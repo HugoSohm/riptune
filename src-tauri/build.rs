@@ -1,8 +1,8 @@
 fn main() {
-    // Charge le .env à la racine s'il existe (pour le dev local)
+    // Load .env from project root if it exists (for local development)
     let _ = dotenvy::dotenv();
     
-    // Si la variable est présente (du .env ou de GitHub Secrets), on la passe au compilateur
+    // If the variable is present (from .env or GitHub secrets), pass it to the compiler
     if let Ok(key) = std::env::var("RESEND_API_KEY") {
         println!("cargo:rustc-env=RESEND_API_KEY={}", key);
     }

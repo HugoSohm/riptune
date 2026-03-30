@@ -230,7 +230,7 @@ pub async fn download_audio(
             let original_path = line.replace("FILEPATH:", "");
             let path_buf = std::path::PathBuf::from(&original_path);
             
-            // Custom Sanitization to match user request: Jeune_Morty-Ivoire_Feeling_Official_Video.wav
+            // Custom Sanitization to match user request: Artist-Title.wav
             let sanitized_path = if let (Some(parent), Some(file_name)) = (path_buf.parent(), path_buf.file_name()) {
                 let name_str = file_name.to_string_lossy();
                 let sanitized_name = name_str
