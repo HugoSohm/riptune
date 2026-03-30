@@ -80,10 +80,14 @@ jobs:
           node -e "
             const fs = require('fs');
             const version = '$VERSION';
-            const log = fs.readFileSync('Changelog.md', 'utf8');
-            const regex = new RegExp('## ' + version.replace('.', '\\.') + '.*?[\\n\\r]([\\s\\S]*?)(## |$)');
-            const match = log.match(regex);
-            const body = match ? match[1].trim() : '### Version ' + version + '\n\nNew release.';
+            const content = fs.readFileSync('Changelog.md', 'utf8').split('\n');
+            const startIdx = content.findIndex(l => l.startsWith('## ' + version));
+            if (startIdx === -1) {
+              fs.writeFileSync('extracted_changelog.txt', '### Version ' + version + '\n\nInitial Release');
+              process.exit(0);
+            }
+            const nextIdx = content.slice(startIdx + 1).findIndex(l => l.startsWith('## '));
+            const body = content.slice(startIdx + 1, nextIdx === -1 ? undefined : startIdx + 1 + nextIdx).join('\n').trim();
             fs.writeFileSync('extracted_changelog.txt', body);
           "
           
@@ -94,7 +98,9 @@ jobs:
           echo "" >> $GITHUB_OUTPUT
           echo "$DELIMITER" >> $GITHUB_OUTPUT
 
-      - uses: tauri-apps/tauri-action@v0
+      - name: build and bundle
+        id: tauri_build
+        uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
@@ -106,7 +112,41 @@ jobs:
           releaseBody: ${{ steps.changelog.outputs.body }}
           releaseDraft: true
           prerelease: false
-          generateReleaseNotes: false
+
+      - name: Clean up and rename assets (yt-dlp style)
+        shell: bash
+        run: |
+          VERSION="${{ steps.changelog.outputs.version }}"
+          mkdir -p clean_assets
+          
+          # Match and rename based on extension
+          find src-tauri/target/release/bundle -maxdepth 2 -type f \( -name "*.msi" -o -name "*.exe" -o -name "*.dmg" -o -name "*.AppImage" -o -name "*.deb" \) | while read file; do
+            filename=$(basename "$file")
+            
+            # Simplified naming logic
+            if [[ "$filename" == *".msi" ]]; then new_name="RipTune.msi";
+            elif [[ "$filename" == *"-setup.exe" ]]; then new_name="RipTune.exe";
+            elif [[ "$filename" == *".dmg" ]]; then new_name="RipTune.dmg";
+            elif [[ "$filename" == *".AppImage" ]]; then new_name="RipTune.AppImage";
+            elif [[ "$filename" == *".deb" ]]; then new_name="RipTune.deb";
+            else continue; fi
+            
+            echo "Renaming $filename to $new_name"
+            cp "$file" "clean_assets/$new_name"
+          done
+
+      - name: Upload clean assets
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          VERSION="${{ steps.changelog.outputs.version }}"
+          # Upload files to the existing release created by tauri-build
+          for file in clean_assets/*; do
+            if [ -f "$file" ]; then
+              gh release upload "$VERSION" "$file" --clobber
+            fi
+          done
 
   finalize-release:
     needs: publish-tauri
