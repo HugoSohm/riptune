@@ -2,6 +2,25 @@
   "name": "rip-tune",
   "private": true,
   "version": "0.1.0",
+  "description": "RipTune - Analyze and download music from YouTube (BPM, Key, Metadata)",
+  "author": "Hugo Sohm <hugo.sohm@gmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/HugoSohm/rip-tune.git"
+  },
+  "bugs": {
+    "url": "https://github.com/HugoSohm/rip-tune/issues"
+  },
+  "homepage": "https://github.com/HugoSohm/rip-tune#readme",
+  "keywords": [
+    "tauri",
+    "rust",
+    "react",
+    "music-analysis",
+    "youtube-downloader",
+    "bpm-extractor"
+  ],
   "type": "module",
   "scripts": {
     "dev": "vite",

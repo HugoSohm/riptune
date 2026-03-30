@@ -189,7 +189,6 @@ pub async fn download_audio(
         .arg("--print")
         .arg("after_move:FILEPATH:%(filepath)s")
         .arg("--newline")
-        .arg("--restrict-filenames")
         .arg("--progress");
 
     if !download_playlist {
@@ -228,9 +227,34 @@ pub async fn download_audio(
 
         // Structured parsing from --print
         if line.starts_with("FILEPATH:") {
-            let path = line.replace("FILEPATH:", "");
+            let original_path = line.replace("FILEPATH:", "");
+            let path_buf = std::path::PathBuf::from(&original_path);
+            
+            // Custom Sanitization to match user request: Jeune_Morty-Ivoire_Feeling_Official_Video.wav
+            let sanitized_path = if let (Some(parent), Some(file_name)) = (path_buf.parent(), path_buf.file_name()) {
+                let name_str = file_name.to_string_lossy();
+                let sanitized_name = name_str
+                    .replace(" - ", "-")   // Remove spaces around hyphen
+                    .replace(" ", "_")     // Replace remaining spaces with underscores
+                    .replace("(", "")      // Remove parentheses
+                    .replace(")", "")
+                    .replace("[", "")
+                    .replace("]", "")
+                    .replace("__", "_");   // Collapse double underscores
+                
+                let new_path = parent.join(sanitized_name);
+                if original_path != new_path.to_string_lossy() {
+                    let _ = std::fs::rename(&original_path, &new_path);
+                    new_path.to_string_lossy().to_string()
+                } else {
+                    original_path
+                }
+            } else {
+                original_path
+            };
+
             last_valid_result = Some(DownloadResult {
-                filepath: path,
+                filepath: sanitized_path,
                 title: last_title.clone(),
                 artist: last_artist.clone(),
             });

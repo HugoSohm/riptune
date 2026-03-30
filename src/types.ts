@@ -7,3 +7,15 @@ export interface HistoryEntry {
   key?: string;
   date: string;
 }
+
+export interface Notification {
+  id: string;
+  message: string;
+  type: 'info' | 'error' | 'success';
+  isTask?: boolean;
+}
+
+export interface PlaylistProgress {
+  current: number;
+  total: number;
+}
