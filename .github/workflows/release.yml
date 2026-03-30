@@ -74,27 +74,21 @@ jobs:
         id: changelog
         shell: bash
         run: |
-          VERSION=$(node -e "console.log(require('./package.json').version)")
+          VERSION=$(node -p "require('./package.json').version")
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           
-          # Extract changelog section for the current version
-          SECTION=$(node -e "
+          node -e "
             const fs = require('fs');
             const version = '$VERSION';
-            const content = fs.readFileSync('Changelog.md', 'utf8');
-            const startIdx = content.indexOf('## ' + version);
-            if (startIdx === -1) {
-              console.log('No changelog found for ' + version);
-              process.exit(0);
-            }
-            const endIdx = content.indexOf('## ', startIdx + 3);
-            const body = content.substring(startIdx, endIdx === -1 ? content.length : endIdx)
-                                .split('\n').slice(1).join('\n').trim();
-            console.log(body);
-          ")
+            const log = fs.readFileSync('Changelog.md', 'utf8');
+            const regex = new RegExp('## ' + version.replace('.', '\\.') + '.*?[\\n\\r]([\\s\\S]*?)(## |$)');
+            const match = log.match(regex);
+            const body = match ? match[1].trim() : '### Version ' + version + '\n\nNew release.';
+            fs.writeFileSync('extracted_changelog.txt', body);
+          "
           
           echo 'body<<EOF' >> $GITHUB_OUTPUT
-          echo "$SECTION" >> $GITHUB_OUTPUT
+          cat extracted_changelog.txt >> $GITHUB_OUTPUT
           echo 'EOF' >> $GITHUB_OUTPUT
 
       - uses: tauri-apps/tauri-action@v0
