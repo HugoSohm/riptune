@@ -6,7 +6,31 @@ on:
       - main
 
 jobs:
+  check-version:
+    runs-on: ubuntu-latest
+    outputs:
+      should_release: ${{ steps.check.outputs.should_release }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check if version is new
+        id: check
+        shell: bash
+        run: |
+          VERSION=$(node -e "console.log(require('./package.json').version)")
+          if git rev-parse "$VERSION" >/dev/null 2>&1; then
+            echo "Version $VERSION already exists. Skipping release."
+            echo "should_release=false" >> $GITHUB_OUTPUT
+          else
+            echo "Version $VERSION is new. Proceeding with release."
+            echo "should_release=true" >> $GITHUB_OUTPUT
+          fi
+
   publish-tauri:
+    needs: check-version
+    if: needs.check-version.outputs.should_release == 'true'
     permissions:
       contents: write
     strategy:
@@ -97,5 +121,6 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch --tags
           git tag -f latest ${{ needs.publish-tauri.outputs.version }}
           git push -f origin latest -f
