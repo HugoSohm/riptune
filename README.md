@@ -19,6 +19,7 @@
 - 📥 **YouTube Downloader**: Download your favorite tracks directly to WAV for high-quality audio.
 - 🏷️ **Smart Metadata**: Automatic retrieval of title and artist information.
 - 🛠️ **Robust Filenames**: Fully compatible with complex filenames (accents, emojis, symbols) on Windows.
+- 🔒 **100% Local Processing**: All downloads, BPM calculations, and key extractions are computed entirely on your machine. No cloud APIs are used for core features (we only use Resend for bug reporting and Aptabase for anonymous telemetry).
 
 ---
 
@@ -70,6 +71,20 @@ This software is intended for **personal and educational use only**. Respect the
 ### 🛡️ Security
 
 If you discover a security vulnerability within RipTune, please report it privately via the [Security Policy](SECURITY.md).
+
+---
+
+### 📊 Privacy & Telemetry
+
+RipTune collects **completely anonymous** telemetry (app launches, general usage statistics) to help improve performance and feature adoption. We use [Aptabase](https://aptabase.com/), a privacy-first, open-source analytics platform.
+
+- 🛑 **No PII** (Personally Identifiable Information) is ever collected.
+- 🛑 **No IPs** are stored.
+- 🛑 **No audio files** or private local data are transmitted.
+
+All telemetry implementation is 100% visible in the open-source code.
+
+---
 
 ### 📜 License
 

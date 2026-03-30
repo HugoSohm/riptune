@@ -6,6 +6,10 @@ fn main() {
     if let Ok(key) = std::env::var("RESEND_API_KEY") {
         println!("cargo:rustc-env=RESEND_API_KEY={}", key);
     }
+    
+    if let Ok(key) = std::env::var("APTABASE_API_KEY") {
+        println!("cargo:rustc-env=APTABASE_API_KEY={}", key);
+    }
 
     tauri_build::build()
 }

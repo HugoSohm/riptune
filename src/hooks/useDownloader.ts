@@ -3,6 +3,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { HistoryEntry, PlaylistProgress } from "../types";
 import { useApp } from "../context/AppContext";
 import { useAudioProcessor } from "./useAudioProcessor";
+import { trackEvent } from "../utils/analytics";
 
 export function useDownloader() {
   const { 
@@ -52,6 +53,8 @@ export function useDownloader() {
         clearNotificationsFor(t.notifications.fetchingPlaylist);
         return;
       }
+
+      trackEvent("download_started", { format, downloadPlaylist: downloadPlaylist ? 1 : 0 });
 
       addNotification(t.notifications.downloading, "info", true);
       const result = await invoke<{ filepath: string, title: string, artist: string }>("download_audio", {

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Bug, X, Image, Trash2, Loader2 } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import { invoke } from "@tauri-apps/api/core";
+import { trackEvent } from "../utils/analytics";
 
 export default function BugReportModal() {
   const { isBugModalOpen, setIsBugModalOpen, addNotification, lang, t } = useApp();
@@ -30,6 +31,8 @@ export default function BugReportModal() {
     try {
       // Direct call to Resend API via Rust Backend
       await invoke("send_bug_report", { message, screenshot });
+      
+      trackEvent("bug_report_sent", { hasScreenshot: screenshot ? 1 : 0 });
 
       addNotification("Bug report sent successfully!", "success");
       setIsBugModalOpen(false);

@@ -8,9 +8,15 @@ import DeleteModal from "./components/DeleteModal";
 import BackgroundOrbs from "./components/BackgroundOrbs";
 import BugReportModal from "./components/BugReportModal";
 import { AppProvider, useApp } from "./context/AppContext";
+import { trackEvent } from "./utils/analytics";
+import { useEffect } from "react";
 
 function AppContent() {
   const { activeTab, dragActive, t } = useApp();
+
+  useEffect(() => {
+    trackEvent("app_started");
+  }, []);
 
   return (
     <div className="h-screen w-screen bg-[#0a0f1c] text-slate-100 font-sans selection:bg-purple-500/30 flex flex-col items-center overflow-hidden relative">

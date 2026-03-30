@@ -1,6 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import { HistoryEntry } from "../types";
 import { useApp } from "../context/AppContext";
+import { trackEvent } from "../utils/analytics";
 
 export function useAudioProcessor() {
   const { 
@@ -10,6 +11,8 @@ export function useAudioProcessor() {
   const processFile = async (filepath: string, titleHint?: string, artistHint?: string) => {
     setLoading(true);
     addNotification(t.notifications.analyzing, "info", true);
+    
+    trackEvent("analysis_started");
 
     try {
       const result = await invoke<[number, string]>("extract_bpm_key", { filepath });
