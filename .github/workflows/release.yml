@@ -87,9 +87,12 @@ jobs:
             fs.writeFileSync('extracted_changelog.txt', body);
           "
           
-          echo 'body<<EOF' >> $GITHUB_OUTPUT
+          # Use a unique delimiter to handle multiline output safely
+          DELIMITER=$(dd if=/dev/urandom bs=15 count=1 2>/dev/null | base64)
+          echo "body<<$DELIMITER" >> $GITHUB_OUTPUT
           cat extracted_changelog.txt >> $GITHUB_OUTPUT
-          echo 'EOF' >> $GITHUB_OUTPUT
+          echo "" >> $GITHUB_OUTPUT
+          echo "$DELIMITER" >> $GITHUB_OUTPUT
 
       - uses: tauri-apps/tauri-action@v0
         env:
