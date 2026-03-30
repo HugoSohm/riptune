@@ -9,6 +9,9 @@
     "type": "git",
     "url": "git+https://github.com/HugoSohm/rip-tune.git"
   },
+  "engines": {
+    "node": ">=24.0.0"
+  },
   "bugs": {
     "url": "https://github.com/HugoSohm/rip-tune/issues"
   },

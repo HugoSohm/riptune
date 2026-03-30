@@ -5,6 +5,9 @@ on:
     branches:
       - main
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   check-version:
     runs-on: ubuntu-latest
@@ -14,6 +17,11 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
 
       - name: Check if version is new
         id: check
@@ -47,7 +55,7 @@ jobs:
       - name: setup node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
           cache: 'npm'
 
       - name: install Rust stable

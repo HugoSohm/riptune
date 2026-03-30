@@ -39,16 +39,16 @@ export default function History() {
         </div>
       </div>
 
-      <div className="w-full flex-1 rounded-3xl bg-[#111728]/80 backdrop-blur-xl border border-white/5 shadow-2xl flex flex-col overflow-hidden">
-        <div className="overflow-x-auto relative scroll-smooth p-1">
-          <table className="w-full text-left border-collapse min-w-[800px] relative">
-            <thead className="sticky top-0 z-10 bg-[#141b2e] shadow-md border-b border-white/10">
-              <tr className="bg-white/5 text-xs uppercase tracking-widest text-slate-400">
-                <th className="px-8 py-5 font-semibold rounded-tl-3xl">{t.history.tableTrack}</th>
-                <th className="px-8 py-5 font-semibold">{t.history.tableDate}</th>
-                <th className="px-8 py-5 font-semibold text-center">{t.history.tableBpm}</th>
-                <th className="px-8 py-5 font-semibold text-center">{t.history.tableKey}</th>
-                <th className="px-8 py-5 font-semibold text-center rounded-tr-3xl">{t.history.tableAction}</th>
+      <div className="w-full flex-1 rounded-3xl bg-[#111728]/80 backdrop-blur-xl border border-white/5 shadow-2xl flex flex-col">
+        <div className="relative scroll-smooth">
+          <table className="w-full text-left border-separate border-spacing-0 relative table-fixed">
+            <thead className="shadow-md border-b border-white/10">
+              <tr className="text-[10px] uppercase tracking-widest text-slate-400">
+                <th className="px-8 py-5 font-semibold w-[45%] rounded-tl-3xl bg-[#141b2e]/95 backdrop-blur-md">{t.history.tableTrack}</th>
+                <th className="px-8 py-5 font-semibold w-[20%] bg-[#141b2e]/95 backdrop-blur-md">{t.history.tableDate}</th>
+                <th className="px-8 py-5 font-semibold text-center w-[10%] bg-[#141b2e]/95 backdrop-blur-md">{t.history.tableBpm}</th>
+                <th className="px-8 py-5 font-semibold text-center w-[10%] bg-[#141b2e]/95 backdrop-blur-md">{t.history.tableKey}</th>
+                <th className="px-8 py-5 font-semibold text-center w-[15%] rounded-tr-3xl bg-[#141b2e]/95 backdrop-blur-md">{t.history.tableAction}</th>
               </tr>
             </thead>
             <tbody>
@@ -64,18 +64,30 @@ export default function History() {
                 </tr>
               ) : (
                 history.map((item) => (
-                  <tr key={item.id} className="border-b border-white/5 hover:bg-white/[0.03] transition-colors">
-                    <td className="px-8 py-5">
-                      <div className="font-bold text-slate-200 truncate max-w-xs xl:max-w-md text-base" title={item.title}>
-                        {item.title}
+                  <tr key={item.id} className="border-b border-white/5 last:border-b-0 hover:bg-white/[0.03] transition-colors last:rounded-b-3xl">
+                    <td className="px-8 py-5 last:rounded-bl-3xl">
+                      <div className="group relative">
+                        <div className="font-bold text-slate-200 truncate text-base max-w-full">
+                          {item.title}
+                        </div>
+                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-slate-900/95 backdrop-blur-md border border-white/10 text-white text-[11px] rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-300 delay-0 group-hover:delay-500 pointer-events-none whitespace-nowrap z-50 shadow-2xl scale-95 group-hover:scale-100 font-medium">
+                          {item.title}
+                        </div>
                       </div>
+                      
                       {item.artist && (
-                        <div className="text-xs text-purple-400 font-medium mt-0.5 truncate max-w-xs xl:max-w-md">
+                        <div className="text-xs text-purple-400 font-medium mt-0.5 truncate max-w-full">
                           {item.artist}
                         </div>
                       )}
-                      <div className="text-xs text-slate-500 truncate max-w-xs xl:max-w-md mt-1.5" title={item.filepath}>
-                        {item.filepath}
+
+                      <div className="group relative mt-1.5">
+                        <div className="text-xs text-slate-500 truncate max-w-full">
+                          {item.filepath}
+                        </div>
+                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-slate-900/95 backdrop-blur-md border border-white/10 text-white text-[11px] rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-300 delay-0 group-hover:delay-500 pointer-events-none whitespace-normal break-all max-w-xs z-50 shadow-2xl scale-95 group-hover:scale-100 font-medium leading-relaxed">
+                          {item.filepath}
+                        </div>
                       </div>
                     </td>
                     <td className="px-8 py-5 whitespace-nowrap">
@@ -104,7 +116,7 @@ export default function History() {
                         <span className="text-slate-600 font-bold">-</span>
                       )}
                     </td>
-                    <td className="px-8 py-5 text-center">
+                    <td className="px-8 py-5 text-center last:rounded-br-3xl">
                       <div className="flex items-center justify-center gap-2">
                         {item.bpm === undefined && (
                           <div className="group relative">
