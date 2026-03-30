@@ -14,6 +14,8 @@ jobs:
       matrix:
         platform: [macos-latest, ubuntu-22.04, windows-latest]
 
+    outputs:
+      version: ${{ steps.changelog.outputs.version }}
     runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v4
@@ -36,6 +38,33 @@ jobs:
       - name: install frontend dependencies
         run: npm install
 
+      - name: get version and extract changelog
+        id: changelog
+        shell: bash
+        run: |
+          VERSION=$(node -e "console.log(require('./package.json').version)")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          
+          # Extract changelog section for the current version
+          SECTION=$(node -e "
+            const fs = require('fs');
+            const version = '$VERSION';
+            const content = fs.readFileSync('Changelog.md', 'utf8');
+            const startIdx = content.indexOf('## ' + version);
+            if (startIdx === -1) {
+              console.log('No changelog found for ' + version);
+              process.exit(0);
+            }
+            const endIdx = content.indexOf('## ', startIdx + 3);
+            const body = content.substring(startIdx, endIdx === -1 ? content.length : endIdx)
+                                .split('\n').slice(1).join('\n').trim();
+            console.log(body);
+          ")
+          
+          echo 'body<<EOF' >> $GITHUB_OUTPUT
+          echo "$SECTION" >> $GITHUB_OUTPUT
+          echo 'EOF' >> $GITHUB_OUTPUT
+
       - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -43,9 +72,30 @@ jobs:
           TAURI_SIGNING_PASSWORD: ${{ secrets.TAURI_SIGNING_PASSWORD }}
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
         with:
-          tagName: v__VERSION__
-          releaseName: "RipTune v__VERSION__"
-          releaseBody: "Automated release from push to main."
+          tagName: __VERSION__
+          releaseName: "RipTune __VERSION__"
+          releaseBody: ${{ steps.changelog.outputs.body }}
           releaseDraft: true
           prerelease: false
-          generateReleaseNotes: true
+          generateReleaseNotes: false
+
+  finalize-release:
+    needs: publish-tauri
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Make release public
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release edit ${{ needs.publish-tauri.outputs.version }} --draft=false
+
+      - name: Update latest tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -f latest ${{ needs.publish-tauri.outputs.version }}
+          git push -f origin latest -f

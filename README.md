@@ -58,3 +58,19 @@ Installers will be located in: `src-tauri/target/release/bundle/`
 - **Frontend**: React 19, TypeScript, Tailwind CSS, Lucide Icons.
 - **Backend**: Rust (Tauri 2.0).
 - **Engines**: FFmpeg, yt-dlp, Essentia Streaming Extractor.
+61: 
+62: ---
+63: 
+64: ### ⚖️ Disclaimer
+65: 
+66: This software is intended for **personal and educational use only**. Respect the terms of service of any third-party content platforms you use (like YouTube). The developer is not responsible for any misuse of this software including copyright infringement. Use of this application is at your own risk.
+67: 
+68: ---
+69: 
+70: ### 🛡️ Security
+71: 
+72: If you discover a security vulnerability within RipTune, please report it privately via the [Security Policy](SECURITY.md).
+73: 
+74: ### 📜 License
+75: 
+76: This project is licensed under the [MIT License](LICENSE).
