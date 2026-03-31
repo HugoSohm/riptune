@@ -4,9 +4,11 @@ use id3::{Tag, TagLike};
 use std::process::{Command, Stdio};
 use std::io::Read;
 use std::io::BufReader;
+use tauri::Manager;
 
 #[tauri::command]
 pub async fn extract_bpm_key(
+    app_handle: tauri::AppHandle,
     state: tauri::State<'_, ProcessState>,
     filepath: String,
 ) -> Result<(f64, String), String> {
@@ -21,9 +23,13 @@ pub async fn extract_bpm_key(
     let audio_ext = std::path::Path::new(&filepath).extension().and_then(|s| s.to_str()).unwrap_or("wav");
     let temp_audio_path = std::env::temp_dir().join(format!("audio_{}.{}", ts, audio_ext));
     let temp_audio_path_str = temp_audio_path.to_string_lossy().to_string();
-    let manifest_dir = env!("CARGO_MANIFEST_DIR");
-    let ffmpeg_path = std::path::Path::new(manifest_dir).join("bin").join("ffmpeg.exe");
-    let extractor_path = std::path::Path::new(manifest_dir).join("bin").join("streaming_extractor_music.exe");
+    let bin_dir = app_handle
+        .path()
+        .resource_dir()
+        .map_err(|e: tauri::Error| e.to_string())?
+        .join("bin");
+    let ffmpeg_path = bin_dir.join("ffmpeg.exe");
+    let extractor_path = bin_dir.join("streaming_extractor_music.exe");
 
     let ffmpeg_status = Command::new(ffmpeg_path)
         .arg("-ss")

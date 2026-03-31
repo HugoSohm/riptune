@@ -1,14 +1,16 @@
 use crate::audio_processor::models::{DownloadResult, ProcessState, ProgressEvent, UrlInfo};
-use std::env;
 use std::fs::File;
 use std::io::{BufRead, BufReader, Write};
 use std::process::{Command, Stdio};
 use tauri::{Emitter, Manager};
 
 #[tauri::command]
-pub async fn check_url_info(url: String, cookies: Option<String>) -> Result<UrlInfo, String> {
-    let manifest_dir = env!("CARGO_MANIFEST_DIR");
-    let bin_dir = std::path::Path::new(manifest_dir).join("bin");
+pub async fn check_url_info(app_handle: tauri::AppHandle, url: String, cookies: Option<String>) -> Result<UrlInfo, String> {
+    let bin_dir = app_handle
+        .path()
+        .resource_dir()
+        .map_err(|e: tauri::Error| e.to_string())?
+        .join("bin");
     let yt_dlp_path = bin_dir.join("yt-dlp.exe");
 
     let mut cmd = Command::new(yt_dlp_path);
@@ -94,8 +96,6 @@ pub async fn download_audio(
     cookies: Option<String>,
     download_playlist: bool,
 ) -> Result<DownloadResult, String> {
-    let manifest_dir = env!("CARGO_MANIFEST_DIR");
-
     let downloads_dir = if let Some(path) = custom_path {
         std::path::PathBuf::from(&path)
     } else {
@@ -109,7 +109,11 @@ pub async fn download_audio(
 
     let out_template = format!("{}\\%(title)s.%(ext)s", downloads_dir.display());
 
-    let bin_dir = std::path::Path::new(manifest_dir).join("bin");
+    let bin_dir = app_handle
+        .path()
+        .resource_dir()
+        .map_err(|e: tauri::Error| e.to_string())?
+        .join("bin");
     let yt_dlp_path = bin_dir.join("yt-dlp.exe");
 
     let mut cmd = Command::new(yt_dlp_path);

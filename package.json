@@ -1,7 +1,7 @@
 {
   "name": "rip-tune",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "RipTune - Analyze and download music from YouTube (BPM, Key, Metadata)",
   "author": "Hugo Sohm <no-reply@riptune.hugosohm.fr>",
   "license": "MIT",
