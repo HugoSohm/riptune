@@ -38,5 +38,4 @@ target/
 
 # Local configuration
 .env
-.env.*
 cookies.txt
