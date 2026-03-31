@@ -45,7 +45,7 @@ interface AppContextType {
   deleteConfirmId: string | null;
   setDeleteConfirmId: (id: string | null) => void;
   handleDeleteHistoryItem: (id: string) => void;
-  confirmDelete: (keepFiles: boolean) => Promise<void>;
+  confirmDelete: () => Promise<void>;
   handleOpenFile: (filepath: string) => Promise<void>;
 
   // Config & FileSystem
@@ -104,8 +104,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const addNotification = (message: string, type: 'info' | 'error' | 'success' = 'info', isTask: boolean = false) => {
     const id = Math.random().toString(36).substring(7);
     setNotifications(prev => [{ id, message, type, isTask }, ...prev]);
-    if (!isTask && type !== 'error') {
-      setTimeout(() => setNotifications(prev => prev.filter(n => n.id !== id)), 5000);
+    if (!isTask) {
+      const delay = type === 'error' ? 8000 : 5000;
+      setTimeout(() => setNotifications(prev => prev.filter(n => n.id !== id)), delay);
     }
     return id;
   };

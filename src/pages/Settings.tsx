@@ -1,4 +1,4 @@
-import { FolderOpen, UploadCloud, Trash2, Sparkles, Info, X } from "lucide-react";
+import { FolderOpen, UploadCloud, Trash2, Sparkles, Info, X, Languages } from "lucide-react";
 import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
 import CustomSelect from "../components/CustomSelect";
@@ -36,6 +36,25 @@ export default function Settings() {
       <div className="w-full rounded-3xl bg-[#111728]/80 backdrop-blur-xl border border-white/5 shadow-2xl p-8">
         <div className="mb-6 border-b border-white/10 pb-6">
           <h3 className="text-xl font-bold text-white mb-2 flex items-center gap-2">
+            <Languages className="w-5 h-5 text-indigo-400" />
+            {t.settings.language}
+          </h3>
+          <div className="mt-4">
+            <CustomSelect
+              options={[
+                { value: 'en', label: 'English (US)' },
+                { value: 'fr', label: 'Français (FR)' },
+                { value: 'es', label: 'Español (ES)' }
+              ]}
+              value={lang}
+              onChange={(val) => setLang(val as Lang)}
+              variant="large"
+            />
+          </div>
+        </div>
+
+        <div className="mb-6 border-b border-white/10 pb-6">
+          <h3 className="text-xl font-bold text-white mb-2 flex items-center gap-2">
             <FolderOpen className="w-5 h-5 text-purple-400" />
             {t.settings.dlLocation}
           </h3>
@@ -62,21 +81,7 @@ export default function Settings() {
           </div>
         </div>
 
-        <div className="mb-6 border-b border-white/10 pb-6">
-          <h3 className="text-xl font-bold text-white mb-2 flex items-center gap-2">
-            <UploadCloud className="w-5 h-5 text-amber-400" />
-            {t.settings.cookies}
-          </h3>
-          <p className="text-slate-400 text-sm mb-4">{t.settings.cookiesDesc}</p>
-          <textarea
-            value={cookies}
-            onChange={(e) => setCookies(e.target.value)}
-            placeholder='[ { "domain": ".youtube.com", ... } ] or # Netscape HTTP Cookie File'
-            className="w-full h-32 bg-[#0a0f1c] border border-white/10 rounded-xl px-4 py-3 text-slate-300 font-mono text-xs shadow-inner focus:outline-none focus:border-purple-500/50 transition-colors resize-none custom-scrollbar"
-          />
-        </div>
-
-        <div className="mb-6 border-b border-white/10 pb-6">
+        <div id="keep-files-setting" className="mb-6 border-b border-white/10 pb-6">
           <h3 className="text-xl font-bold text-white mb-2 flex items-center gap-2">
             <Trash2 className="w-5 h-5 text-red-400" />
             {t.settings.cleanup}
@@ -93,23 +98,19 @@ export default function Settings() {
           </div>
         </div>
 
+
         <div className="mb-6 border-b border-white/10 pb-6">
           <h3 className="text-xl font-bold text-white mb-2 flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-purple-400" />
-            {t.settings.language}
+            <UploadCloud className="w-5 h-5 text-amber-400" />
+            {t.settings.cookies}
           </h3>
-          <div className="mt-4">
-            <CustomSelect
-              options={[
-                { value: 'en', label: 'English (US)' },
-                { value: 'fr', label: 'Français (FR)' },
-                { value: 'es', label: 'Español (ES)' }
-              ]}
-              value={lang}
-              onChange={(val) => setLang(val as Lang)}
-              variant="large"
-            />
-          </div>
+          <p className="text-slate-400 text-sm mb-4">{t.settings.cookiesDesc}</p>
+          <textarea
+            value={cookies}
+            onChange={(e) => setCookies(e.target.value)}
+            placeholder='[ { "domain": ".youtube.com", ... } ] or # Netscape HTTP Cookie File'
+            className="w-full h-32 bg-[#0a0f1c] border border-white/10 rounded-xl px-4 py-3 text-slate-300 font-mono text-xs shadow-inner focus:outline-none focus:border-purple-500/50 transition-colors resize-none custom-scrollbar"
+          />
         </div>
 
         <div className="pt-2">

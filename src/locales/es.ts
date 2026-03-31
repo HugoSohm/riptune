@@ -62,8 +62,10 @@ export const es = {
     activeDesc: "El archivo de audio físico se borrará permanentemente de tu equipo.",
     disabledDesc: "El archivo de audio físico NO se borrará. Solo se quitará del historial.",
     manageSettings: "Configurar esto en Ajustes",
-    confirm: "Sí, eliminar pista",
-    cancel: "Cancelar"
+    confirm: "Eliminar",
+    cancel: "Cancelar",
+    warning: "Atención",
+    fileWillBeDeleted: "El archivo de audio original se borrará permanentemente de tu equipo si se encuentra."
   },
   titleBar: {
     home: "Inicio",
@@ -75,14 +77,14 @@ export const es = {
   notifications: {
     analyzing: "Analizando BPM y Clave",
     analysisComplete: "Análisis completado",
-    errorNotFound: "¡Archivo no encontrado!",
+    errorNotFound: "Archivo no encontrado",
     errorAnalysis: "Error de análisis",
-    fetchingPlaylist: "Obteniendo información de la lista...",
-    downloading: "Descargando audio de YouTube...",
+    fetchingPlaylist: "Obteniendo información de la lista",
+    downloading: "Descargando audio de YouTube",
     downloadComplete: "Descarga completada",
     downloadCancelled: "Descarga cancelada",
     errorDownload: "Error de descarga",
-    cancelling: "Cancelando descarga...",
+    cancelling: "Cancelando descarga",
     trackRemoved: "Pista eliminada del historial",
     notif: "Notificación",
     task: "Tarea",

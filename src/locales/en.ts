@@ -62,8 +62,10 @@ export const en = {
     activeDesc: "The physical audio file will be permanently deleted from your computer if found.",
     disabledDesc: "The physical audio file will NOT be deleted. Only the entry is removed from RipTune.",
     manageSettings: "Manage this in Settings",
-    confirm: "Yes, delete track",
-    cancel: "Cancel"
+    confirm: "Delete",
+    cancel: "Cancel",
+    warning: "Warning",
+    fileWillBeDeleted: "The original audio file will be permanently deleted from your computer if found."
   },
   bugModal: {
     title: "Report a Bug",
@@ -84,14 +86,14 @@ export const en = {
   notifications: {
     analyzing: "Analyzing BPM & Key",
     analysisComplete: "Analysis complete",
-    errorNotFound: "File not found! (Maybe moved or deleted)",
+    errorNotFound: "File not found",
     errorAnalysis: "Analysis Error",
-    fetchingPlaylist: "Fetching playlist information...",
-    downloading: "Downloading audio from YouTube...",
+    fetchingPlaylist: "Fetching playlist information",
+    downloading: "Downloading audio from YouTube",
     downloadComplete: "Download complete",
     downloadCancelled: "Download cancelled",
     errorDownload: "Download Error",
-    cancelling: "Cancelling download...",
+    cancelling: "Cancelling download",
     trackRemoved: "Track removed from history",
     notif: "Notification",
     task: "Task",

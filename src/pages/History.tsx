@@ -26,7 +26,12 @@ export default function History() {
         <div className="flex items-center gap-4 bg-[#111728] px-4 py-2 rounded-xl border border-white/5 shadow-inner">
           <div 
             className="flex items-center gap-2 pr-4 border-r border-white/10 cursor-pointer group transition-all"
-            onClick={() => setActiveTab('settings')}
+            onClick={() => {
+              setActiveTab('settings');
+              setTimeout(() => {
+                document.getElementById('keep-files-setting')?.scrollIntoView({ behavior: 'smooth' });
+              }, 100);
+            }}
           >
             <div className={`h-1.5 w-1.5 rounded-full ${!keepFilesOnHistoryDelete ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.4)]' : 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]'}`} />
             <span className="text-[9px] font-bold uppercase tracking-[0.15em] text-slate-500 group-hover:text-purple-400 transition-colors">

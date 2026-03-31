@@ -1,8 +1,8 @@
-import { AlertTriangle, Trash2, X } from "lucide-react";
+import { AlertTriangle, Trash2, X, Sparkles } from "lucide-react";
 import { useApp } from "../context/AppContext";
 
 export default function DeleteModal() {
-  const { deleteConfirmId, setDeleteConfirmId, confirmDelete, keepFilesOnHistoryDelete, t } = useApp();
+  const { deleteConfirmId, setDeleteConfirmId, confirmDelete, keepFilesOnHistoryDelete, setActiveTab, t } = useApp();
 
   if (!deleteConfirmId) return null;
 
@@ -32,17 +32,30 @@ export default function DeleteModal() {
             {t.deleteModal.description}
           </p>
 
-          <div className="w-full bg-red-500/5 border border-red-500/10 rounded-2xl p-4 mb-8 flex items-start gap-4 text-left">
-            <AlertTriangle className="w-6 h-6 text-red-500 shrink-0 mt-0.5" />
-            <p className="text-xs text-red-200/50 leading-relaxed font-medium">
-              {t.deleteModal.warning}
-              {!keepFilesOnHistoryDelete && (
+          {!keepFilesOnHistoryDelete && (
+            <div className="w-full bg-red-500/5 border border-red-500/10 rounded-2xl p-4 mb-8 flex items-start gap-4 text-left">
+              <AlertTriangle className="w-6 h-6 text-red-500 shrink-0 mt-0.5" />
+              <p className="text-xs text-red-200/50 leading-relaxed font-medium">
+                {t.deleteModal.warning}
                 <span className="block mt-1 font-bold text-red-400">
                   {t.deleteModal.fileWillBeDeleted}
                 </span>
-              )}
-            </p>
-          </div>
+                <button
+                  onClick={() => {
+                    setDeleteConfirmId(null);
+                    setActiveTab('settings');
+                    setTimeout(() => {
+                      document.getElementById('keep-files-setting')?.scrollIntoView({ behavior: 'smooth' });
+                    }, 100);
+                  }}
+                  className="mt-3 text-xs text-purple-400 hover:text-purple-300 transition-colors font-bold flex items-center gap-1 group"
+                >
+                  <Sparkles className="w-3 h-3 group-hover:rotate-12 transition-transform" />
+                  {t.deleteModal.manageSettings}
+                </button>
+              </p>
+            </div>
+          )}
 
           <div className="grid grid-cols-2 gap-4 w-full">
             <button
@@ -52,11 +65,11 @@ export default function DeleteModal() {
               {t.deleteModal.cancel}
             </button>
             <button
-              onClick={() => confirmDelete(keepFilesOnHistoryDelete)}
-              className="px-6 py-4 rounded-2xl bg-red-500 hover:bg-red-600 text-white font-black shadow-lg shadow-red-500/20 transition-all active:scale-95 flex items-center justify-center gap-2"
+              onClick={() => confirmDelete()}
+              className="px-4 py-4 rounded-2xl bg-red-500 hover:bg-red-600 text-white font-black shadow-lg shadow-red-500/20 transition-all active:scale-95 flex items-center justify-center gap-2 whitespace-nowrap"
             >
-              <Trash2 className="w-4 h-4" />
-              {t.deleteModal.confirm}
+              <Trash2 className="w-4 h-4 shrink-0" />
+              <span>{t.deleteModal.confirm}</span>
             </button>
           </div>
         </div>

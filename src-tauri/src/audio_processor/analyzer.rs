@@ -4,7 +4,7 @@ use id3::{Tag, TagLike};
 use std::process::{Command, Stdio};
 use std::io::Read;
 use std::io::BufReader;
-use tauri::Manager;
+
 
 #[tauri::command]
 pub async fn extract_bpm_key(
@@ -12,6 +12,10 @@ pub async fn extract_bpm_key(
     state: tauri::State<'_, ProcessState>,
     filepath: String,
 ) -> Result<(f64, String), String> {
+    if !std::path::Path::new(&filepath).exists() {
+        return Err("File not found on disk".to_string());
+    }
+
     let ts = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .unwrap()
@@ -23,15 +27,12 @@ pub async fn extract_bpm_key(
     let audio_ext = std::path::Path::new(&filepath).extension().and_then(|s| s.to_str()).unwrap_or("wav");
     let temp_audio_path = std::env::temp_dir().join(format!("audio_{}.{}", ts, audio_ext));
     let temp_audio_path_str = temp_audio_path.to_string_lossy().to_string();
-    let bin_dir = app_handle
-        .path()
-        .resource_dir()
-        .map_err(|e: tauri::Error| e.to_string())?
-        .join("bin");
-    let ffmpeg_path = bin_dir.join(format!("ffmpeg{}", std::env::consts::EXE_EXTENSION));
-    let extractor_path = bin_dir.join(format!("streaming_extractor_music{}", std::env::consts::EXE_EXTENSION));
+    let ffmpeg_path = crate::audio_processor::utils::resolve_bin_path(&app_handle, "ffmpeg")?;
+    let extractor_path = crate::audio_processor::utils::resolve_bin_path(&app_handle, "streaming_extractor_music")?;
 
-    let ffmpeg_status = Command::new(ffmpeg_path)
+    let mut ffmpeg_cmd = Command::new(ffmpeg_path);
+    crate::audio_processor::utils::hide_window(&mut ffmpeg_cmd);
+    let ffmpeg_status = ffmpeg_cmd
         .arg("-ss")
         .arg("0")
         .arg("-t")
@@ -49,7 +50,9 @@ pub async fn extract_bpm_key(
         return Err("Failed to extract audio segment for analysis".to_string());
     }
 
-    let mut child = Command::new(extractor_path)
+    let mut extractor_cmd = Command::new(extractor_path);
+    crate::audio_processor::utils::hide_window(&mut extractor_cmd);
+    let mut child = extractor_cmd
         .arg(&temp_audio_path_str)
         .arg(&json_out_str)
         .stdout(Stdio::piped())
@@ -111,6 +114,10 @@ pub async fn update_metadata(
     artist: String,
     bpm: f64,
 ) -> Result<(), String> {
+    if !std::path::Path::new(&filepath).exists() {
+        return Err("File not found on disk".to_string());
+    }
+
     let mut tag = Tag::new();
 
     if let Ok(existing_tag) = Tag::read_from_path(&filepath) {

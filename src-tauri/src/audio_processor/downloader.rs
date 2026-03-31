@@ -6,14 +6,10 @@ use tauri::{Emitter, Manager};
 
 #[tauri::command]
 pub async fn check_url_info(app_handle: tauri::AppHandle, url: String, cookies: Option<String>) -> Result<UrlInfo, String> {
-    let bin_dir = app_handle
-        .path()
-        .resource_dir()
-        .map_err(|e: tauri::Error| e.to_string())?
-        .join("bin");
-    let yt_dlp_path = bin_dir.join(format!("yt-dlp{}", std::env::consts::EXE_EXTENSION));
+    let yt_dlp_path = crate::audio_processor::utils::resolve_bin_path(&app_handle, "yt-dlp")?;
 
     let mut cmd = Command::new(yt_dlp_path);
+    crate::audio_processor::utils::hide_window(&mut cmd);
     cmd.env("PYTHONUTF8", "1");
 
     let mut cookie_path = None;
@@ -109,14 +105,11 @@ pub async fn download_audio(
 
     let out_template = format!("{}\\%(title)s.%(ext)s", downloads_dir.display());
 
-    let bin_dir = app_handle
-        .path()
-        .resource_dir()
-        .map_err(|e: tauri::Error| e.to_string())?
-        .join("bin");
-    let yt_dlp_path = bin_dir.join(format!("yt-dlp{}", std::env::consts::EXE_EXTENSION));
+    let yt_dlp_path = crate::audio_processor::utils::resolve_bin_path(&app_handle, "yt-dlp")?;
+    let bin_dir = yt_dlp_path.parent().ok_or("Could not find binary directory")?;
 
-    let mut cmd = Command::new(yt_dlp_path);
+    let mut cmd = Command::new(&yt_dlp_path);
+    crate::audio_processor::utils::hide_window(&mut cmd);
     cmd.env("PYTHONUTF8", "1");
 
     let mut cookie_path = None;

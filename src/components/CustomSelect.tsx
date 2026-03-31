@@ -45,7 +45,7 @@ export default function CustomSelect({ options, value, onChange, className = "",
       </button>
 
       {isOpen && (
-        <div className="absolute z-[1000] mt-2 left-1/2 -translate-x-1/2 min-w-max bg-slate-900/90 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        <div className={`absolute z-[1000] mt-2 left-0 ${variant === 'large' ? 'w-full' : 'min-w-max'} bg-slate-900/90 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200`}>
           <div className="p-1.5 flex flex-col gap-1">
             {options.map((option) => (
               <button

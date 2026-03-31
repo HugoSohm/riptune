@@ -34,7 +34,7 @@ export default function Home() {
   return (
     <div className="w-full flex-1 flex flex-col justify-center items-center max-w-2xl animate-in fade-in slide-in-from-bottom-4 duration-500 gap-6">
       <div className="text-center w-full">
-        <h1 className="text-4xl md:text-5xl font-black tracking-tighter mb-4 bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-blue-400 to-emerald-400 pb-2 drop-shadow-sm">
+        <h1 className="text-4xl md:text-5xl font-black tracking-tighter mb-4 bg-clip-text text-transparent bg-gradient-to-r from-purple-500 via-indigo-400 to-blue-500 pb-2 drop-shadow-sm">
           {t.home.title}
         </h1>
         <p className="text-sm md:text-base text-slate-400 max-w-lg mx-auto mb-8">
