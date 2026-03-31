@@ -11,7 +11,7 @@ pub async fn check_url_info(app_handle: tauri::AppHandle, url: String, cookies: 
         .resource_dir()
         .map_err(|e: tauri::Error| e.to_string())?
         .join("bin");
-    let yt_dlp_path = bin_dir.join("yt-dlp.exe");
+    let yt_dlp_path = bin_dir.join(format!("yt-dlp{}", std::env::consts::EXE_EXTENSION));
 
     let mut cmd = Command::new(yt_dlp_path);
     cmd.env("PYTHONUTF8", "1");
@@ -114,7 +114,7 @@ pub async fn download_audio(
         .resource_dir()
         .map_err(|e: tauri::Error| e.to_string())?
         .join("bin");
-    let yt_dlp_path = bin_dir.join("yt-dlp.exe");
+    let yt_dlp_path = bin_dir.join(format!("yt-dlp{}", std::env::consts::EXE_EXTENSION));
 
     let mut cmd = Command::new(yt_dlp_path);
     cmd.env("PYTHONUTF8", "1");

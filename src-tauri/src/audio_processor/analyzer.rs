@@ -28,8 +28,8 @@ pub async fn extract_bpm_key(
         .resource_dir()
         .map_err(|e: tauri::Error| e.to_string())?
         .join("bin");
-    let ffmpeg_path = bin_dir.join("ffmpeg.exe");
-    let extractor_path = bin_dir.join("streaming_extractor_music.exe");
+    let ffmpeg_path = bin_dir.join(format!("ffmpeg{}", std::env::consts::EXE_EXTENSION));
+    let extractor_path = bin_dir.join(format!("streaming_extractor_music{}", std::env::consts::EXE_EXTENSION));
 
     let ffmpeg_status = Command::new(ffmpeg_path)
         .arg("-ss")

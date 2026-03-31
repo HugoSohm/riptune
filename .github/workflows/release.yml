@@ -67,6 +67,14 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libjavascriptcoregtk-4.1-dev libsoup-3.0-dev
 
+      - name: setup bins (Windows)
+        if: matrix.platform == 'windows-latest'
+        run: ./setup_bin.ps1
+
+      - name: setup bins (Unix)
+        if: matrix.platform != 'windows-latest'
+        run: chmod +x setup_bin.sh && ./setup_bin.sh
+
       - name: install frontend dependencies
         run: npm install
 
