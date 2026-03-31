@@ -74,10 +74,10 @@ if [ "$OS_NAME" == "Darwin" ]; then
     rm essentia.tar.gz
 else
     ESSENTIA_URL="https://essentia.upf.edu/extractors/essentia-extractors-v2.1_beta2-linux-x86_64.tar.gz"
-    curl -L "$ESSENTIA_URL" -o essentia.tar.xz
-    check_download "essentia.tar.xz" 10000000 # ~10MB minimum
-    tar -xJf essentia.tar.xz -C "$BIN_DIR" --strip-components=1
-    rm essentia.tar.xz
+    curl -L "$ESSENTIA_URL" -o essentia.tar.gz
+    check_download "essentia.tar.gz" 10000000 # ~10MB minimum
+    tar -xzf essentia.tar.gz -C "$BIN_DIR" --strip-components=1
+    rm essentia.tar.gz
 fi
 chmod +x "$BIN_DIR/streaming_extractor_music"
 
