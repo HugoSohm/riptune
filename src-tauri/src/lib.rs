@@ -1,114 +1,8 @@
 pub mod audio_processor;
+pub mod telemetry;
+pub mod updater;
 use tauri::Manager;
 
-// Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-#[tauri::command]
-fn greet(name: &str) -> String {
-    format!("Hello, {}! You've been greeted from Rust!", name)
-}
-
-#[tauri::command]
-async fn send_bug_report(message: String, screenshot: Option<String>) -> Result<(), String> {
-    // Injected at compile time. No hardcoded fallback for security in open-source.
-    let api_key = option_env!("RESEND_API_KEY").unwrap_or(""); 
-    let client = reqwest::Client::new();
-    
-    let html = format!(
-        r#"<div style="font-family: sans-serif; line-height: 1.5; color: #333;">
-              <h2>Bug Report Details</h2>
-              <p><strong>Message:</strong></p>
-              <div style="background: #f4f4f4; padding: 15px; border-radius: 8px;">{}</div>
-              <p><strong>App Version:</strong> 0.1.0</p>
-              <p><strong>Platform:</strong> Windows (Tauri Backend)</p>
-              <hr>
-              <p><strong>Status:</strong> {}</p>
-            </div>"#,
-        message.replace("\n", "<br>"),
-        screenshot.as_ref().map(|_| "<em>Screenshot Attached (Check email attachments)</em>".to_string())
-                  .unwrap_or_else(|| "<em>No screenshot provided.</em>".to_string())
-    );
-
-    let mut body = serde_json::json!({
-        "from": "RipTune App <no-reply@riptune.hugosohm.fr>",
-        "to": ["help@riptune.hugosohm.fr"],
-        "subject": "[Bug Report] RipTune",
-        "html": html
-    });
-
-    if let Some(s) = screenshot {
-        // Clean the base64 string if it contains a data URL prefix
-        let base64_image = s.replace("data:image/png;base64,", "")
-                            .replace("data:image/jpeg;base64,", "");
-        
-        body["attachments"] = serde_json::json!([{
-            "filename": "screenshot.png",
-            "content": base64_image
-        }]);
-    }
-
-    let res = client.post("https://api.resend.com/emails")
-        .header("Authorization", format!("Bearer {}", api_key))
-        .json(&body)
-        .send()
-        .await
-        .map_err(|e| e.to_string())?;
-
-    if !res.status().is_success() {
-        let err_text = res.text().await.unwrap_or_default();
-        return Err(format!("Resend error: {}", err_text));
-    }
-
-    Ok(())
-}
-
-#[tauri::command]
-async fn track_event(event_name: String, props: Option<serde_json::Value>, app: tauri::AppHandle) -> Result<(), String> {
-    let api_key = option_env!("APTABASE_API_KEY").unwrap_or("");
-    if api_key.is_empty() {
-        // Silently ignore if no key is found
-        return Ok(());
-    }
-
-    let client = reqwest::Client::new();
-    let package_info = app.package_info();
-    
-    // We send data to Aptabase endpoint
-    // Determine the base URL depending on the region (e.g., EU)
-    let url = if api_key.starts_with("A-EU-") {
-        "https://eu.aptabase.com/api/v0/event"
-    } else if api_key.starts_with("A-US-") {
-        "https://us.aptabase.com/api/v0/event"
-    } else {
-        "https://aptabase.com/api/v0/event" // Fallback
-    };
-    
-    // Create random session ID for simplistic tracking
-    let session_id = format!("{:016x}", rand::random::<u64>());
-
-    let body = serde_json::json!({
-        "timestamp": chrono::Utc::now().to_rfc3339(),
-        "sessionId": session_id,
-        "eventName": event_name,
-        "systemProps": {
-            "osName": std::env::consts::OS,
-            "osVersion": "", 
-            "locale": "",
-            "appVersion": package_info.version.to_string(),
-            "appBuildNumber": "",
-            "sdkVersion": "riptune-custom-rust@0.1.0"
-        },
-        "props": props
-    });
-
-    let _ = client.post(url)
-        .header("App-Key", api_key)
-        .header("Content-Type", "application/json")
-        .json(&body)
-        .send()
-        .await;
-
-    Ok(())
-}
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -119,47 +13,7 @@ pub fn run() {
         .manage(audio_processor::ProcessState(std::sync::Mutex::new(None)))
         .setup(|app| {
             // Automatic update check on startup
-            let handle = app.handle().clone();
-            tauri::async_runtime::spawn(async move {
-                use tauri_plugin_updater::UpdaterExt;
-                use tauri_plugin_dialog::DialogExt;
-
-                // 1. Get the updater
-                if let Ok(updater) = handle.updater() {
-                    // 2. Check for update
-                    if let Ok(Some(update)) = updater.check().await {
-                        let version = update.version.clone();
-                        
-                        // 3. Ask the user
-                        use tauri_plugin_dialog::{MessageDialogButtons, MessageDialogKind};
-                        handle.dialog()
-                            .message(format!("A new version {} is ready for RipTune. Do you want to install it now?", version))
-                            .title("New version available!")
-                            .kind(MessageDialogKind::Info)
-                            .buttons(MessageDialogButtons::OkCancel)
-                            .show(move |result| {
-                                if result {
-                                    let h = handle.clone();
-                                    tauri::async_runtime::spawn(async move {
-                                        if let Ok(updater) = h.updater() {
-                                            if let Ok(Some(update)) = updater.check().await {
-                                                // 4. Download and install
-                                                let _ = update.download_and_install(
-                                                    |_chunk_size: usize, _total_size: Option<u64>| {
-                                                        // You could display a progress bar here!
-                                                    },
-                                                    || {
-                                                        // Download finished
-                                                    }
-                                                ).await;
-                                            }
-                                        }
-                                    });
-                                }
-                            });
-                    }
-                }
-            });
+            updater::setup_update_check(app.handle().clone());
 
             if let Some(monitor) = app.primary_monitor().ok().flatten() {
                 let size = monitor.size();
@@ -179,9 +33,8 @@ pub fn run() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
-            greet,
-            send_bug_report,
-            track_event,
+            telemetry::send_bug_report,
+            telemetry::track_event,
             audio_processor::download_audio,
             audio_processor::check_url_info,
             audio_processor::cancel_download,
