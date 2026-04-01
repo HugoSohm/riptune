@@ -14,54 +14,48 @@ echo "--- RipTune: Setting up bin binaries for $(uname) ---"
 OS_NAME=$(uname -s)
 ARCH_NAME=$(uname -m)
 
-# Helper function to check if a download was successful and not a small error file
-check_download() {
-    local file=$1
-    local min_size=$2
-    if [ ! -f "$file" ]; then
-        echo "Error: $file was not downloaded."
+# Helper function to download and check file
+download_file() {
+    local url=$1
+    local output=$2
+    
+    echo "Downloading from $url..."
+    if ! curl --fail -L "$url" -o "$output"; then
+        echo "Error: Failed to download from $url (HTTP Error or Network issue)."
         exit 1
     fi
-    local size=$(wc -c <"$file")
-    if [ "$size" -lt "$min_size" ]; then
-        echo "Error: $file is too small ($size bytes). Download probably failed or returned an error page."
-        cat "$file" # Print content for debugging (likely HTML error)
+
+    if [ ! -f "$output" ]; then
+        echo "Error: $output was not created."
         exit 1
     fi
 }
 
 # 1. yt-dlp
-echo "Downloading yt-dlp..."
 if [ "$OS_NAME" == "Darwin" ]; then
     URL="https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_macos"
 else
-    # Default to Linux x86_64 for now
     URL="https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux"
 fi
-curl -L "$URL" -o "$BIN_DIR/yt-dlp"
-check_download "$BIN_DIR/yt-dlp" 1000000 # ~1MB minimum
+download_file "$URL" "$BIN_DIR/yt-dlp"
 chmod +x "$BIN_DIR/yt-dlp"
 
 # 2. ffmpeg
-echo "Downloading FFmpeg..."
 if [ "$OS_NAME" == "Darwin" ]; then
     # Download static macOS build from evermeet.cx
     FFMPEG_URL="https://evermeet.cx/ffmpeg/getrelease/ffmpeg/zip"
-    curl -L "$FFMPEG_URL" -o ffmpeg.zip
-    check_download "ffmpeg.zip" 10000000 # ~10MB minimum
+    download_file "$FFMPEG_URL" "ffmpeg.zip"
     unzip -o ffmpeg.zip -d "$BIN_DIR"
     rm ffmpeg.zip
 
     FFPROBE_URL="https://evermeet.cx/ffmpeg/getrelease/ffprobe/zip"
-    curl -L "$FFPROBE_URL" -o ffprobe.zip
-    check_download "ffprobe.zip" 1000000 # ~1MB minimum
+    download_file "$FFPROBE_URL" "ffprobe.zip"
     unzip -o ffprobe.zip -d "$BIN_DIR"
     rm ffprobe.zip
 else
     # Download static Linux build from johnvansickle.com
     FFMPEG_URL="https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz"
-    curl -L "$FFMPEG_URL" -o ffmpeg.tar.xz
-    check_download "ffmpeg.tar.xz" 10000000 # ~10MB minimum
+    download_file "$FFMPEG_URL" "ffmpeg.tar.xz"
     mkdir -p ffmpeg_tmp
     tar -xJf ffmpeg.tar.xz -C ffmpeg_tmp --strip-components=1
     cp ffmpeg_tmp/ffmpeg "$BIN_DIR/"
@@ -69,19 +63,17 @@ else
     rm -rf ffmpeg_tmp ffmpeg.tar.xz
 fi
 chmod +x "$BIN_DIR/ffmpeg"
+chmod +x "$BIN_DIR/ffprobe"
 
 # 3. streaming_extractor_music (Essentia)
-echo "Downloading Essentia extractor..."
 if [ "$OS_NAME" == "Darwin" ]; then
     ESSENTIA_URL="https://data.metabrainz.org/pub/musicbrainz/acousticbrainz/extractors/essentia-extractor-v2.1_beta2-2-gbb40004-osx.tar.gz"
-    curl -L "$ESSENTIA_URL" -o essentia.tar.gz
-    check_download "essentia.tar.gz" 10000000 # ~10MB minimum
+    download_file "$ESSENTIA_URL" "essentia.tar.gz"
     tar -xzf essentia.tar.gz -C "$BIN_DIR" --strip-components=1
     rm essentia.tar.gz
 else
-    ESSENTIA_URL="https://data.metabrainz.org/pub/musicbrainz/acousticbrainzextractors//essentia-extractor-v2.1_beta2-linux-x86_64.tar.gz"
-    curl -L "$ESSENTIA_URL" -o essentia.tar.gz
-    check_download "essentia.tar.gz" 10000000 # ~10MB minimum
+    ESSENTIA_URL="https://data.metabrainz.org/pub/musicbrainz/acousticbrainz/extractors/essentia-extractor-v2.1_beta2-1-ge3940c0-linux-x86_64.tar.gz"
+    download_file "$ESSENTIA_URL" "essentia.tar.gz"
     tar -xzf essentia.tar.gz -C "$BIN_DIR" --strip-components=1
     rm essentia.tar.gz
 fi

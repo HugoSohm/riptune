@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { listen, UnlistenFn } from "@tauri-apps/api/event";
 import { HistoryEntry, Notification, PlaylistProgress } from "../types";
 import { Lang, translations } from "../i18n";
 
@@ -185,31 +184,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       catch (e) { console.error("Failed to fetch default download dir", e); }
     };
     fetchDefaultDir();
-
-    let unlistenDrop: Promise<UnlistenFn>;
-    let unlistenProgress: Promise<UnlistenFn>;
-
-    unlistenDrop = listen<{ paths: string[] }>("tauri://drag-drop", (event) => {
-      setDragActive(false);
-      const audioExtensions = ['.mp3', '.wav', '.flac', '.m4a', '.ogg', '.aac', '.wma'];
-      if (event.payload.paths?.length > 0) {
-        const path = event.payload.paths[0];
-        if (audioExtensions.some(ext => path.toLowerCase().endsWith(ext))) {
-          setActiveTab("home");
-        } else {
-          addNotification(t.notifications.errorNotFound, "error");
-        }
-      }
-    });
-
-    unlistenProgress = listen<{ current: number, total: number, title: string }>("download-progress", (event) => {
-      setPlaylistProgress({ current: event.payload.current, total: event.payload.total });
-    });
-
-    return () => {
-      unlistenDrop.then((f) => f());
-      unlistenProgress.then((f) => f());
-    };
   }, []);
 
   return (

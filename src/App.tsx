@@ -11,12 +11,26 @@ import { AppProvider, useApp } from "./context/AppContext";
 import { trackEvent } from "./utils/analytics";
 import { useEffect } from "react";
 
+import { useDragDrop } from "./hooks/useDragDrop";
+import { listen, UnlistenFn } from "@tauri-apps/api/event";
+
 function AppContent() {
-  const { activeTab, dragActive, t } = useApp();
+  const { activeTab, dragActive, t, lang, setPlaylistProgress } = useApp();
+  const { isValidDrag } = useDragDrop();
 
   useEffect(() => {
     trackEvent("app_started");
-  }, []);
+
+    let unlistenProgress: Promise<UnlistenFn>;
+
+    unlistenProgress = listen<{ current: number, total: number, title: string }>("download-progress", (event) => {
+      setPlaylistProgress({ current: event.payload.current, total: event.payload.total });
+    });
+
+    return () => {
+      unlistenProgress.then((f) => f());
+    };
+  }, [setPlaylistProgress]);
 
   return (
     <div className="h-screen w-screen bg-[#0a0f1c] text-slate-100 font-sans selection:bg-purple-500/30 flex flex-col items-center overflow-hidden relative">
@@ -25,13 +39,17 @@ function AppContent() {
 
       {/* Global Drag & Drop Overlay */}
       {dragActive && (
-        <div className="fixed inset-0 z-[100] bg-[#0a0f1c]/80 backdrop-blur-md border-4 border-dashed border-purple-500 flex items-center justify-center transition-all">
-          <div className="text-center animate-bounce">
-            <div className="w-24 h-24 mx-auto rounded-full bg-purple-500/20 flex items-center justify-center mb-6 border border-purple-500/30 shadow-[0_0_50px_rgba(168,85,247,0.4)]">
-              <UploadCloud className="w-12 h-12 text-purple-400" />
+        <div className={`fixed inset-0 z-[100] bg-[#0a0f1c]/80 backdrop-blur-md border-4 border-dashed ${isValidDrag ? 'border-purple-500 cursor-copy' : 'border-red-500 cursor-not-allowed'} flex items-center justify-center transition-all`}>
+          <div className="text-center">
+            <div className={`w-24 h-24 mx-auto rounded-full ${isValidDrag ? 'bg-purple-500/20 border-purple-500/30 shadow-[0_0_50px_rgba(168,85,247,0.4)]' : 'bg-red-500/20 border-red-500/30 shadow-[0_0_50px_rgba(239,68,68,0.4)]'} flex items-center justify-center mb-6 border`}>
+              <UploadCloud className={`w-12 h-12 ${isValidDrag ? 'text-purple-400' : 'text-red-400'}`} />
             </div>
-            <h2 className="text-4xl font-black text-white tracking-tight">{t.home.dropTitle}</h2>
-            <p className="text-purple-300 mt-2 text-lg">{t.home.dropDesc}</p>
+            <h2 className="text-3xl md:text-4xl font-black text-white tracking-tight">
+              {isValidDrag ? t.home.dropTitle : (lang === 'fr' ? 'Fichier non supporté' : 'File not supported')}
+            </h2>
+            <p className={`${isValidDrag ? 'text-purple-300' : 'text-red-300'} mt-2 text-lg px-8`}>
+              {isValidDrag ? t.home.dropDesc : (lang === 'fr' ? 'Seuls les fichiers MP3, WAV et FLAC sont acceptés.' : 'Only MP3, WAV and FLAC files are accepted.')}
+            </p>
           </div>
         </div>
       )}

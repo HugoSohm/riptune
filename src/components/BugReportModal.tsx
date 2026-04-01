@@ -9,6 +9,7 @@ export default function BugReportModal() {
   const [message, setMessage] = useState("");
   const [screenshot, setScreenshot] = useState<string | null>(null);
   const [isSending, setIsSending] = useState(false);
+  const [showFullImage, setShowFullImage] = useState(false);
 
   if (!isBugModalOpen) return null;
 
@@ -23,6 +24,22 @@ export default function BugReportModal() {
     }
   };
 
+  const handlePaste = (e: React.ClipboardEvent) => {
+    const items = e.clipboardData.items;
+    for (let i = 0; i < items.length; i++) {
+        if (items[i].type.indexOf("image") !== -1) {
+            const file = items[i].getAsFile();
+            if (file) {
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    setScreenshot(reader.result as string);
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+    }
+  };
+
   const handleSend = async () => {
     if (!message.trim()) return;
     
@@ -34,7 +51,7 @@ export default function BugReportModal() {
       
       trackEvent("bug_report_sent", { hasScreenshot: screenshot ? 1 : 0 });
 
-      addNotification("Bug report sent successfully!", "success");
+      addNotification("Bug report sent successfully", "success");
       setIsBugModalOpen(false);
       setMessage("");
       setScreenshot(null);
@@ -61,7 +78,10 @@ export default function BugReportModal() {
       />
 
       {/* Modal */}
-      <div className="relative w-full max-w-2xl bg-[#0f1424] border border-white/10 rounded-[2rem] shadow-2xl overflow-hidden animate-in zoom-in-95 fade-in duration-300">
+      <div 
+        onPaste={handlePaste}
+        className="relative w-full max-w-2xl bg-[#0f1424] border border-white/10 rounded-[2rem] shadow-2xl overflow-hidden animate-in zoom-in-95 fade-in duration-300"
+      >
         {/* Header */}
         <div className="px-8 py-6 border-b border-white/5 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -126,15 +146,36 @@ export default function BugReportModal() {
                 </span>
               </label>
             ) : (
-              <div className="relative group w-full h-32 rounded-2xl overflow-hidden border border-white/10">
-                <img src={screenshot} alt="Preview" className="w-full h-full object-cover" />
-                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                  <span className="text-[10px] text-white uppercase font-bold tracking-widest px-3 py-1 bg-black/50 rounded-full border border-white/10">Preview Style</span>
-                </div>
+              <div 
+                onClick={() => setShowFullImage(true)}
+                className="relative group w-full h-32 rounded-2xl overflow-hidden border border-white/10 cursor-zoom-in"
+              >
+                <img src={screenshot} alt="Preview" className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300" />
               </div>
             )}
           </div>
         </div>
+
+        {/* Full Image Overlay */}
+        {showFullImage && screenshot && (
+          <div 
+            className="fixed inset-0 z-[100001] bg-black/90 flex items-center justify-center p-8 backdrop-blur-md animate-in fade-in duration-300 pointer-events-auto"
+            onClick={() => setShowFullImage(false)}
+          >
+            <button 
+              className="absolute top-8 right-8 w-12 h-12 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-all active:scale-90"
+              onClick={() => setShowFullImage(false)}
+            >
+              <X className="w-6 h-6" />
+            </button>
+            <img 
+              src={screenshot} 
+              alt="Full Preview" 
+              className="max-w-full max-h-full object-contain rounded-xl shadow-2xl animate-in zoom-in-95 duration-300"
+              onMouseDown={(e) => e.stopPropagation()}
+            />
+          </div>
+        )}
 
         {/* Footer */}
         <div className="px-8 py-6 bg-white/[0.02] border-t border-white/5 flex items-center justify-end gap-3">

@@ -72,7 +72,7 @@ export const fr = {
     description: "Quelque chose ne fonctionne pas ? Décrivez le problème ci-dessous pour que notre équipe puisse l'analyser.",
     label: "Message",
     placeholder: "Expliquez ce qu'il s'est passé et comment reproduire le bug...",
-    screenshot: "Ajouter une capture (Optionnel)",
+    screenshot: "Capture d'écran (Optionnel - Coller supporté)",
     cancel: "Annuler",
     send: "Envoyer le rapport"
   },
