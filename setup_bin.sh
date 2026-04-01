@@ -51,6 +51,12 @@ if [ "$OS_NAME" == "Darwin" ]; then
     check_download "ffmpeg.zip" 10000000 # ~10MB minimum
     unzip -o ffmpeg.zip -d "$BIN_DIR"
     rm ffmpeg.zip
+
+    FFPROBE_URL="https://evermeet.cx/ffmpeg/getrelease/ffprobe/zip"
+    curl -L "$FFPROBE_URL" -o ffprobe.zip
+    check_download "ffprobe.zip" 1000000 # ~1MB minimum
+    unzip -o ffprobe.zip -d "$BIN_DIR"
+    rm ffprobe.zip
 else
     # Download static Linux build from johnvansickle.com
     FFMPEG_URL="https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz"
@@ -67,13 +73,13 @@ chmod +x "$BIN_DIR/ffmpeg"
 # 3. streaming_extractor_music (Essentia)
 echo "Downloading Essentia extractor..."
 if [ "$OS_NAME" == "Darwin" ]; then
-    ESSENTIA_URL="https://essentia.upf.edu/extractors/essentia-extractors-v2.1_beta2-osx-x86_64.tar.gz"
+    ESSENTIA_URL="https://data.metabrainz.org/pub/musicbrainz/acousticbrainz/extractors/essentia-extractor-v2.1_beta2-2-gbb40004-osx.tar.gz"
     curl -L "$ESSENTIA_URL" -o essentia.tar.gz
     check_download "essentia.tar.gz" 10000000 # ~10MB minimum
     tar -xzf essentia.tar.gz -C "$BIN_DIR" --strip-components=1
     rm essentia.tar.gz
 else
-    ESSENTIA_URL="https://essentia.upf.edu/extractors/essentia-extractors-v2.1_beta2-linux-x86_64.tar.gz"
+    ESSENTIA_URL="https://data.metabrainz.org/pub/musicbrainz/acousticbrainzextractors//essentia-extractor-v2.1_beta2-linux-x86_64.tar.gz"
     curl -L "$ESSENTIA_URL" -o essentia.tar.gz
     check_download "essentia.tar.gz" 10000000 # ~10MB minimum
     tar -xzf essentia.tar.gz -C "$BIN_DIR" --strip-components=1

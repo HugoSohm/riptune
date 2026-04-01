@@ -27,7 +27,7 @@ dist-ssr
 # Rust/Tauri
 /src-tauri/target/
 /src-tauri/gen/
-/src-tauri/bin/
+/src-tauri/bin/*
 !/src-tauri/bin/.gitkeep
 *.exe
 *.msi

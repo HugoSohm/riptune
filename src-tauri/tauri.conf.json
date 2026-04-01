@@ -4,9 +4,9 @@
   "version": "../package.json",
   "identifier": "com.hugz.riptune",
   "build": {
-    "beforeDevCommand": "npm run dev",
+    "beforeDevCommand": "npm run frontend:dev",
     "devUrl": "http://localhost:1420",
-    "beforeBuildCommand": "npm run build",
+    "beforeBuildCommand": "npm run frontend:build",
     "frontendDist": "../dist"
   },
   "app": {

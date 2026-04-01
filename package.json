@@ -26,11 +26,12 @@
   ],
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
-    "preview": "vite preview",
+    "dev": "tauri dev",
+    "build": "tauri build",
+    "frontend:dev": "vite",
+    "frontend:build": "tsc && vite build",
     "tauri": "tauri",
-    "setup": "powershell ./setup_bin.ps1"
+    "setup": "node -e \"const { execSync } = require('child_process'); const script = process.platform === 'win32' ? 'powershell ./setup_bin.ps1' : 'sh ./setup_bin.sh'; execSync(script, { stdio: 'inherit' });\""
   },
   "dependencies": {
     "@tauri-apps/api": "^2",

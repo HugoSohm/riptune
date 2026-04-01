@@ -37,16 +37,17 @@ if (-not (Test-Path (Join-Path $BinDir "ffmpeg.exe"))) {
 }
 
 # 3. streaming_extractor_music.exe (Essentia)
-$EssentiaUrl = "https://essentia.upf.edu/static/extractors/win64/essentia-extractors-v2.1_beta2-windows-64bit.zip"
+$EssentiaUrl = "https://data.metabrainz.org/pub/musicbrainz/acousticbrainz/extractors/essentia-extractor-v2.1_beta2-1-ge3940c0-win-i686.zip"
 $EssentiaZipPath = Join-Path $env:TEMP "essentia.zip"
 if (-not (Test-Path (Join-Path $BinDir "streaming_extractor_music.exe"))) {
-    Write-Host "Downloading Essentia extractors... (Official Site)" -ForegroundColor Yellow
+    Write-Host "Downloading Essentia extractor..." -ForegroundColor Yellow
     try {
         Invoke-WebRequest -Uri $EssentiaUrl -OutFile $EssentiaZipPath
-        Write-Host "Extracting Essentia binaries..."
+        Write-Host "Extracting Essentia binary..."
         Expand-Archive -Path $EssentiaZipPath -DestinationPath $BinDir -Force
         Remove-Item $EssentiaZipPath -Force
-    } catch {
+    }
+    catch {
         Write-Host "Warning: Could not download Essentia automatically. Please place 'streaming_extractor_music.exe' manually in $BinDir" -ForegroundColor Red
     }
 }

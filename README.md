@@ -36,10 +36,12 @@ npm install
 ```
 
 #### 3. Setup Binaries (Sideloads)
-RipTune relies on external tools (`ffmpeg`, `yt-dlp`, `essentia`). Download them automatically with:
-```powershell
+RipTune relies on external tools (`ffmpeg`, `ffprobe`, `yt-dlp`, `essentia`). Download them automatically for your platform:
+```bash
 npm run setup
 ```
+> [!NOTE]
+> This command will automatically detect your OS and download the correct binaries into `src-tauri/bin`. These files are ignored by Git to keep the repository light.
 
 #### 4. Run in Development
 ```powershell
