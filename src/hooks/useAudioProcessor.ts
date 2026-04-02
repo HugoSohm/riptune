@@ -8,7 +8,7 @@ export function useAudioProcessor() {
     history, saveHistory, setLatest, addNotification, clearNotificationsFor, setLoading, t 
   } = useApp();
 
-  const processFile = async (filepath: string, titleHint?: string, artistHint?: string) => {
+  const processFile = async (filepath: string, titleHint?: string, artistHint?: string, isTemp: boolean = false) => {
     setLoading(true);
     addNotification(t.notifications.analyzing, "info", true);
     
@@ -45,29 +45,36 @@ export function useAudioProcessor() {
 
       clearNotificationsFor(t.notifications.analyzing);
 
-      const existingEntryIndex = history.findIndex(item => item.filepath === filepath);
+      const entry: HistoryEntry = {
+        id: crypto.randomUUID(),
+        title,
+        artist,
+        filepath,
+        bpm,
+        key: keyStr,
+        date: new Date().toISOString(),
+        isTemp
+      };
 
-      if (existingEntryIndex !== -1) {
-        const updatedHistory = [...history];
-        updatedHistory[existingEntryIndex] = {
-          ...updatedHistory[existingEntryIndex],
-          bpm,
-          key: keyStr
-        };
-        saveHistory(updatedHistory);
-        setLatest(updatedHistory[existingEntryIndex]);
+      if (!isTemp) {
+        const existingEntryIndex = history.findIndex(item => item.filepath === filepath);
+        if (existingEntryIndex !== -1) {
+          const updatedHistory = [...history];
+          updatedHistory[existingEntryIndex] = {
+            ...updatedHistory[existingEntryIndex],
+            bpm,
+            key: keyStr
+          };
+          saveHistory(updatedHistory);
+          setLatest(updatedHistory[existingEntryIndex]);
+        } else {
+          saveHistory([entry, ...history]);
+          setLatest(entry);
+        }
       } else {
-        const newEntry: HistoryEntry = {
-          id: crypto.randomUUID(),
-          title,
-          artist,
-          filepath,
-          bpm,
-          key: keyStr,
-          date: new Date().toISOString()
-        };
-        saveHistory([newEntry, ...history]);
-        setLatest(newEntry);
+        // Still add to history for display, but it's temporary
+        saveHistory([entry, ...history]);
+        setLatest(entry);
       }
 
       addNotification(t.notifications.analysisComplete, "success");

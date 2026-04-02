@@ -16,7 +16,7 @@
         "title": "RipTune",
         "width": 1280,
         "height": 720,
-        "minWidth": 800,
+        "minWidth": 1240,
         "minHeight": 650,
         "decorations": false
       }
@@ -37,7 +37,16 @@
       "icons/128x128@2x.png",
       "icons/icon.icns",
       "icons/icon.ico"
-    ]
+    ],
+    "copyright": "Copyright © 2026 RipTune",
+    "windows": {
+      "nsis": {
+        "installerIcon": "icons/icon.ico",
+        "headerImage": "icons/installer_header.bmp",
+        "sidebarImage": "icons/installer_sidebar.bmp",
+        "installMode": "perMachine"
+      }
+    }
   },
   "plugins": {
     "updater": {

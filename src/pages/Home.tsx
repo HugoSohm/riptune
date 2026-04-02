@@ -37,9 +37,10 @@ export default function Home() {
         <h1 className="text-4xl md:text-5xl font-black tracking-tighter mb-4 bg-clip-text text-transparent bg-gradient-to-r from-purple-500 via-indigo-400 to-blue-500 pb-2 drop-shadow-sm">
           {t.home.title}
         </h1>
-        <p className="text-sm md:text-base text-slate-400 max-w-lg mx-auto mb-8">
-          {t.home.description}
-        </p>
+        <p 
+          className="text-sm md:text-base text-slate-400 max-w-lg mx-auto mb-8"
+          dangerouslySetInnerHTML={{ __html: t.home.description }}
+        />
 
         <div className="flex flex-wrap justify-center items-center gap-3 md:gap-6 mb-8">
           <div className="group relative">
@@ -108,7 +109,7 @@ export default function Home() {
               <span className={`text-sm font-medium ${!isPlaylist ? 'text-slate-600' : 'text-slate-300'}`}>{t.home.playlist}</span>
             </label>
             <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 px-3 py-1.5 bg-slate-900/90 backdrop-blur-md border border-white/10 text-white text-[11px] rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-300 delay-0 group-hover:delay-500 pointer-events-none whitespace-nowrap z-50 shadow-2xl scale-95 group-hover:scale-100 font-medium text-center">
-              {!isPlaylist ? t.home.playlistTooltipEmpty : t.home.playlistTooltipFull}
+              {t.home.playlistTooltipFull}
             </div>
           </div>
         </div>
@@ -158,9 +159,10 @@ export default function Home() {
               <AlertTriangle className="w-6 h-6 text-amber-500 shrink-0 mt-0.5" />
               <div>
                 <h4 className="text-sm font-bold text-amber-500 uppercase tracking-wider">{t.home.playlistDetected}</h4>
-                <p className="text-xs text-amber-200/70 mt-1 leading-relaxed">
-                  {t.home.playlistDetectedDesc}
-                </p>
+                <p 
+                  className="text-xs text-amber-200/70 mt-1 leading-relaxed"
+                  dangerouslySetInnerHTML={{ __html: t.home.playlistDetectedDesc }}
+                />
               </div>
             </div>
           </div>
@@ -188,9 +190,9 @@ export default function Home() {
 
         {latest && (
           <div className="mt-8 text-center animate-in fade-in slide-in-from-top-4 duration-1000 w-full flex justify-center">
-            <button
-              onClick={() => handleOpenFile(latest.filepath)}
-              className="w-full max-w-lg relative flex items-center gap-3 bg-[#111728]/40 backdrop-blur-md border border-white/5 rounded-2xl p-2.5 pr-4 transition-all group/file hover:bg-white/[0.02] border-white/5"
+            <div
+              className={`w-full max-w-lg relative flex items-center gap-3 bg-[#111728]/40 backdrop-blur-md border border-white/5 rounded-2xl p-2.5 pr-4 transition-all group/file ${!latest.isTemp ? 'hover:bg-white/[0.02] cursor-pointer' : 'cursor-default'}`}
+              onClick={() => !latest.isTemp && handleOpenFile(latest.filepath)}
             >
               <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-purple-500/10 to-blue-500/5 border border-white/5 flex items-center justify-center shrink-0">
                 <Music className="w-5 h-5 text-purple-400/70" />
@@ -206,10 +208,12 @@ export default function Home() {
                 </p>
               </div>
 
-              <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-slate-500 group-hover/file:text-white group-hover/file:bg-purple-500/40 transition-all shrink-0">
-                <FolderOpen className="w-4 h-4" />
-              </div>
-            </button>
+              {!latest.isTemp && (
+                <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-slate-500 group-hover/file:text-white group-hover/file:bg-purple-500/40 transition-all shrink-0">
+                  <FolderOpen className="w-4 h-4" />
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>

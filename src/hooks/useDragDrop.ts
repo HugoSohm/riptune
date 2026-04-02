@@ -4,7 +4,7 @@ import { useApp } from "../context/AppContext";
 import { useAudioProcessor } from "./useAudioProcessor";
 
 export function useDragDrop() {
-  const { setDragActive, setActiveTab } = useApp();
+  const { setDragActive, setActiveTab, isBugModalOpen } = useApp();
   const { processFile } = useAudioProcessor();
   const [isValidDrag, setIsValidDrag] = useState(true);
 
@@ -34,15 +34,18 @@ export function useDragDrop() {
     let unlistenDrop: Promise<UnlistenFn>;
 
     unlistenEnter = listen("tauri://drag-enter", (event: any) => {
+      if (isBugModalOpen) return;
       setDragActive(true);
       setIsValidDrag(checkFile(event.payload));
     });
 
     unlistenLeave = listen("tauri://drag-leave", () => {
+      if (isBugModalOpen) return;
       setDragActive(false);
     });
 
     unlistenDrop = listen("tauri://drag-drop", (event: any) => {
+      if (isBugModalOpen) return;
       setDragActive(false);
       const paths = event.payload.paths || [];
       if (paths.length > 0) {
@@ -60,7 +63,7 @@ export function useDragDrop() {
       unlistenLeave.then(f => f());
       unlistenDrop.then(f => f());
     };
-  }, [setDragActive, setActiveTab, processFile]);
+  }, [setDragActive, setActiveTab, processFile, isBugModalOpen]);
 
   return { isValidDrag };
 }

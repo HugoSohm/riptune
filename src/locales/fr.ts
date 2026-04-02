@@ -1,7 +1,7 @@
 export const fr = {
   home: {
-    title: "Rip la mélodie parfaite.",
-    description: "Collez un lien YouTube ou glissez-déposez un fichier audio pour extraire instantanément son BPM et sa clé musicale.",
+    title: "Rip the perfect tune",
+    description: "Collez un <span class='text-purple-400'>lien YouTube</span> ou <span class='text-purple-400'>glissez & déposez un fichier audio</span> pour extraire instantanément son BPM et sa clé musicale.",
     urlPlaceholder: "https://youtube.com/watch?v=...",
     invalidUrl: "Seules les URLs YouTube sont acceptées",
     format: "Format",
@@ -11,17 +11,16 @@ export const fr = {
     formatTooltip: "Choisir l'extension du fichier audio",
     analyzeTooltip: "Extraire automatiquement le BPM et la clé musicale",
     downloadTooltip: "Conserver le fichier audio sur votre appareil après l'analyse",
-    playlistTooltipEmpty: "Collez une URL de playlist YouTube",
-    playlistTooltipFull: "Télécharger tous les titres de la playlist",
-    playlistDetected: "Playlist Détectée",
-    playlistDetectedDesc: "Le téléchargement d'une playlist prend plus de temps. Pour des raisons de performance, l'Auto-Analyse est désactivée pour les lots. Vous pourrez analyser les titres individuellement plus tard.",
+    playlistTooltipFull: "Télécharge tous les fichiers de la playlist",
+    playlistDetected: "Playlist détectée",
+    playlistDetectedDesc: "Le téléchargement d'une playlist prend plus de temps. Pour des raisons de performance, <span class='font-bold'>l'auto-analyse est désactivée</span> pour les lots. Vous pourrez analyser les titres individuellement plus tard.",
     dropTitle: "Déposez votre fichier ici",
-    dropDesc: "Nous extrairons instantanément le BPM et la Clé.",
+    dropDesc: "Nous extrairons instantanément le BPM et la clé.",
     bpm: "BPM",
     key: "Clé",
   },
   history: {
-    title: "Votre Historique",
+    title: "Votre historique",
     description: "Tous les titres téléchargés et analysés",
     entries: "Entrées",
     entry: "Entrée",
@@ -31,9 +30,14 @@ export const fr = {
     tableDate: "Date & Heure",
     tableBpm: "BPM",
     tableKey: "Clé",
-    tableAction: "Action",
+    tableAction: "Actions",
+    status: {
+      analysis: "Analyse seule",
+      download: "Téléchargement seul",
+      full: "Téléchargement + analyse"
+    },
     tooltips: {
-      analyze: "Analyser BPM & Clé",
+      analyze: "Analyser BPM & clé",
       open: "Ouvrir dans l'explorateur",
       delete: "Supprimer de l'historique"
     }
@@ -44,9 +48,9 @@ export const fr = {
     dlLocation: "Dossier de téléchargement",
     dlLocationDesc: "Choisissez le dossier où seront sauvegardés vos titres YouTube. Par défaut, le chemin système ci-dessous est utilisé.",
     browse: "Parcourir",
-    cookies: "Cookies YouTube",
-    cookiesDesc: "Collez vos cookies (format JSON EditThisCookie ou Netscape) pour éviter les limitations ou accéder aux playlists privées.",
-    cleanup: "Historique & Nettoyage",
+    cookies: "cookies YouTube",
+    cookiesDesc: "Collez vos cookies <i class='italic'>(format JSON EditThisCookie ou Netscape)</i> pour éviter les limitations ou accéder aux playlists privées.",
+    cleanup: "Historique & nettoyage",
     keepFiles: "Garder les fichiers physiques",
     keepFilesDesc: "Si activé, les fichiers audio ne seront PAS supprimés de votre disque lors de la suppression de l'historique.",
     language: "Langue",
@@ -56,7 +60,7 @@ export const fr = {
   deleteModal: {
     title: "Supprimer le titre ?",
     description: "Êtes-vous sûr de vouloir retirer ce titre de l'historique ?",
-    fileDeletion: "Suppression du fichier (à la suppression)",
+    fileDeletion: "Suppression du fichier <i class='italic'>(à la suppression)</i>",
     active: "Active",
     disabled: "Désactivée",
     activeDesc: "Le fichier audio physique sera définitivement supprimé de votre ordinateur s'il est trouvé.",
@@ -72,7 +76,8 @@ export const fr = {
     description: "Quelque chose ne fonctionne pas ? Décrivez le problème ci-dessous pour que notre équipe puisse l'analyser.",
     label: "Message",
     placeholder: "Expliquez ce qu'il s'est passé et comment reproduire le bug...",
-    screenshot: "Capture d'écran (Optionnel - Coller supporté)",
+    screenshot: "Capture d'écran <i class='italic'>(Glisser-déposer ou coller)</i>",
+    dropTitle: "Déposez votre capture ici",
     cancel: "Annuler",
     send: "Envoyer le rapport"
   },
@@ -80,11 +85,13 @@ export const fr = {
     home: "Accueil",
     history: "Historique",
     settings: "Paramètres",
-    bugReport: "Signaler un Bug",
-    audioAnalyzer: "Analyseur Audio"
+    bugReport: "Signaler un bug",
+    audioAnalyzer: "Analyseur audio",
+    koFi: "Soutenir sur Ko-fi",
+    github: "Code source sur GitHub"
   },
   notifications: {
-    analyzing: "Analyse du BPM & de la Clé",
+    analyzing: "Analyse du BPM & de la clé",
     analysisComplete: "Analyse terminée",
     errorNotFound: "Fichier non trouvé",
     errorAnalysis: "Erreur d'analyse",

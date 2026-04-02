@@ -1,7 +1,7 @@
 export const es = {
   home: {
-    title: "Extrae la melodía perfecta.",
-    description: "Peque un enlace de YouTube o arrastre un archivo de audio para extraer instantáneamente su BPM y clave musical.",
+    title: "Rip the perfect tune",
+    description: "Peque un <span class='text-purple-400'>enlace de YouTube</span> o <span class='text-purple-400'>arrastre & suelte un archivo</span> para extraer instantáneamente su BPM y clave musical.",
     urlPlaceholder: "https://youtube.com/watch?v=...",
     invalidUrl: "Solo se aceptan URLs de YouTube",
     format: "Formato",
@@ -11,27 +11,31 @@ export const es = {
     formatTooltip: "Elegir extensión de archivo de audio",
     analyzeTooltip: "Extraer automáticamente BPM y clave musical",
     downloadTooltip: "Conservar el archivo de audio en su dispositivo tras el análisis",
-    playlistTooltipEmpty: "Pega una URL de lista de reproducción de YouTube",
-    playlistTooltipFull: "Descargar todas las pistas de la lista",
-    playlistDetected: "Lista Detectada",
-    playlistDetectedDesc: "La descarga de una lista lleva más tiempo. Por razones de rendimiento, el Análisis automático está desactivado para descargas por lotes. Puedes analizar las pistas individualmente más tarde.",
+    playlistTooltipFull: "Descarga todos los archivos de la lista",
+    playlistDetected: "Lista detectada",
+    playlistDetectedDesc: "La descarga de una lista lleva más tiempo. Por razones de rendimiento, el <span class='font-bold'>análisis automático está desactivado</span> para descargas por lotes. Puedes analizar las pistas individualmente más tarde.",
     dropTitle: "Suelta cualquier archivo de audio aquí",
     dropDesc: "Extraeremos el BPM y la Clave al instante.",
     bpm: "BPM",
     key: "Clave",
   },
   history: {
-    title: "Su Historial",
+    title: "Su historial",
     description: "Todas las pistas descargadas y analizadas",
     entries: "Entradas",
     entry: "Entrada",
     empty: "El historial está vacío.",
     emptyDesc: "Descarga una pista para verla aquí.",
-    tableTrack: "Detalles de la Pista",
-    tableDate: "Fecha y Hora",
+    tableTrack: "Detalles de la pista",
+    tableDate: "Fecha y hora",
     tableBpm: "BPM",
     tableKey: "Clave",
-    tableAction: "Acción",
+    tableAction: "Acciones",
+    status: {
+      analysis: "Solo análisis",
+      download: "Solo descarga",
+      full: "Descarga + análisis"
+    },
     tooltips: {
       analyze: "Analizar BPM y Clave",
       open: "Abrir en el Explorador",
@@ -41,12 +45,12 @@ export const es = {
   settings: {
     title: "Configuración",
     description: "Configura las preferencias de la aplicación",
-    dlLocation: "Ubicación de Descarga",
+    dlLocation: "Ubicación de descarga",
     dlLocationDesc: "Elige la carpeta donde se guardarán tus archivos. Por defecto, se usa la ruta del sistema que se muestra abajo.",
     browse: "Buscar",
-    cookies: "Cookies de YouTube",
-    cookiesDesc: "Pega tus cookies (formato JSON EditThisCookie o Netscape) para evitar límites o acceder a listas privadas.",
-    cleanup: "Historial y Limpieza",
+    cookies: "cookies de YouTube",
+    cookiesDesc: "Pega tus cookies <i class='italic'>(formato JSON EditThisCookie o Netscape)</i> para evitar límites o acceder a listas privadas.",
+    cleanup: "Historial y limpieza",
     keepFiles: "Mantener archivos físicos",
     keepFilesDesc: "Si está activo, los archivos de audio NO se borrarán al quitar pistas del historial.",
     language: "Idioma",
@@ -56,7 +60,7 @@ export const es = {
   deleteModal: {
     title: "¿Eliminar pista?",
     description: "¿Estás seguro de que quieres quitar esta pista del historial?",
-    fileDeletion: "Borrado de Archivos (al eliminar)",
+    fileDeletion: "Borrado de archivos <i class='italic'>(al eliminar)</i>",
     active: "Activo",
     disabled: "Desactivado",
     activeDesc: "El archivo de audio físico se borrará permanentemente de tu equipo.",
@@ -67,12 +71,24 @@ export const es = {
     warning: "Atención",
     fileWillBeDeleted: "El archivo de audio original se borrará permanentemente de tu equipo si se encuentra."
   },
+  bugModal: {
+    title: "Reportar un bug",
+    description: "¿Algo no funciona? Describe el problema para que nuestro equipo pueda analizarlo.",
+    label: "Mensaje",
+    placeholder: "Explica qué pasó y cómo reproducir el bug...",
+    screenshot: "Captura de pantalla <i class='italic'>(Arrastrar o pegar)</i>",
+    dropTitle: "Suelta tu captura aquí",
+    cancel: "Cancelar",
+    send: "Enviar reporte"
+  },
   titleBar: {
     home: "Inicio",
     history: "Historial",
     settings: "Ajustes",
     bugReport: "Reportar un error",
-    audioAnalyzer: "Analizador de Audio"
+    audioAnalyzer: "Analizador de audio",
+    koFi: "Apoyar en Ko-fi",
+    github: "Código fuente en GitHub"
   },
   notifications: {
     analyzing: "Analizando BPM y Clave",

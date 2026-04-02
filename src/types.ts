@@ -6,6 +6,7 @@ export interface HistoryEntry {
   bpm?: number;
   key?: string;
   date: string;
+  isTemp?: boolean;
 }
 
 export interface Notification {

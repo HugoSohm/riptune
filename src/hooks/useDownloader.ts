@@ -68,7 +68,7 @@ export function useDownloader() {
       clearNotificationsFor(t.notifications.downloading);
 
       if (autoAnalyze) {
-        await processFile(result.filepath, result.title, result.artist);
+        await processFile(result.filepath, result.title, result.artist, !shouldDownload);
         if (!shouldDownload) {
           try {
             await invoke("delete_file", { filepath: result.filepath });

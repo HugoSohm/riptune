@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Bug, X, Image, Trash2, Loader2 } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import { invoke } from "@tauri-apps/api/core";
+import { listen, UnlistenFn } from "@tauri-apps/api/event";
 import { trackEvent } from "../utils/analytics";
 
 export default function BugReportModal() {
@@ -10,6 +11,60 @@ export default function BugReportModal() {
   const [screenshot, setScreenshot] = useState<string | null>(null);
   const [isSending, setIsSending] = useState(false);
   const [showFullImage, setShowFullImage] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+
+  useEffect(() => {
+    let unlistenEnter: Promise<UnlistenFn>;
+    let unlistenLeave: Promise<UnlistenFn>;
+    let unlistenDrop: Promise<UnlistenFn>;
+    
+    if (isBugModalOpen) {
+        unlistenEnter = listen("tauri://drag-enter", (event: any) => {
+            const paths = event.payload.paths || [];
+            if (paths.length > 0) {
+                const path = paths[0].toLowerCase();
+                if (path.endsWith(".png") || path.endsWith(".jpg") || path.endsWith(".jpeg") || path.endsWith(".webp") || path.endsWith(".gif")) {
+                    setIsDragging(true);
+                }
+            }
+        });
+
+        unlistenLeave = listen("tauri://drag-leave", () => {
+            setIsDragging(false);
+        });
+
+        unlistenDrop = listen("tauri://drag-drop", async (event: any) => {
+            setIsDragging(false);
+            const paths = event.payload.paths || [];
+            if (paths.length > 0) {
+                const path = paths[0];
+                const lowerPath = path.toLowerCase();
+                const isImage = lowerPath.endsWith(".png") || 
+                               lowerPath.endsWith(".jpg") || 
+                               lowerPath.endsWith(".jpeg") || 
+                               lowerPath.endsWith(".webp") || 
+                               lowerPath.endsWith(".gif");
+
+                if (isImage) {
+                    try {
+                        const dataUrl = await invoke<string>("read_image_base64", { path });
+                        setScreenshot(dataUrl);
+                        addNotification("Image attached", "success");
+                    } catch (error) {
+                        console.error("Failed to read image", error);
+                        addNotification("Could not read image file", "error");
+                    }
+                }
+            }
+        });
+    }
+
+    return () => {
+        if (unlistenEnter) unlistenEnter.then(f => f());
+        if (unlistenLeave) unlistenLeave.then(f => f());
+        if (unlistenDrop) unlistenDrop.then(f => f());
+    };
+  }, [isBugModalOpen, addNotification]);
 
   if (!isBugModalOpen) return null;
 
@@ -80,7 +135,7 @@ export default function BugReportModal() {
       {/* Modal */}
       <div 
         onPaste={handlePaste}
-        className="relative w-full max-w-2xl bg-[#0f1424] border border-white/10 rounded-[2rem] shadow-2xl overflow-hidden animate-in zoom-in-95 fade-in duration-300"
+        className="relative w-full max-w-2xl bg-[#0f1424] border border-white/10 rounded-[2rem] shadow-2xl overflow-hidden animate-in zoom-in-95 fade-in duration-300 transition-all"
       >
         {/* Header */}
         <div className="px-8 py-6 border-b border-white/5 flex items-center justify-between">
@@ -118,9 +173,10 @@ export default function BugReportModal() {
 
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <label className="text-xs font-bold uppercase tracking-widest text-slate-500">
-                {t.bugModal.screenshot}
-              </label>
+              <label 
+                className="text-xs font-bold uppercase tracking-widest text-slate-500"
+                dangerouslySetInnerHTML={{ __html: t.bugModal.screenshot }}
+              />
               {screenshot && (
                 <button
                   onClick={() => setScreenshot(null)}
@@ -133,7 +189,15 @@ export default function BugReportModal() {
             </div>
 
             {!screenshot ? (
-              <label className="group relative flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-white/5 rounded-2xl hover:border-yellow-500/30 hover:bg-yellow-500/5 transition-all cursor-pointer">
+              <label className={`group relative flex flex-col items-center justify-center w-full h-32 border-2 border-dashed ${isDragging ? 'border-yellow-500 bg-yellow-500/10 shadow-[0_0_30px_rgba(234,179,8,0.2)] scale-[1.02]' : 'border-white/5 hover:border-yellow-500/30 hover:bg-yellow-500/5'} rounded-2xl transition-all cursor-pointer overflow-hidden`}>
+                {isDragging && (
+                  <div className="absolute inset-0 z-10 bg-yellow-500/10 backdrop-blur-[2px] flex items-center justify-center animate-in fade-in duration-200">
+                    <div className="flex flex-col items-center">
+                        <Image className="w-8 h-8 text-yellow-400" />
+                        <span className="text-[10px] font-black text-yellow-400 uppercase tracking-[0.2em] mt-2">{t.bugModal.dropTitle}</span>
+                    </div>
+                  </div>
+                )}
                 <input
                   type="file"
                   className="hidden"

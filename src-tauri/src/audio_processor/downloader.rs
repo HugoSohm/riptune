@@ -93,7 +93,11 @@ pub async fn download_audio(
     download_playlist: bool,
 ) -> Result<DownloadResult, String> {
     let downloads_dir = if let Some(path) = custom_path {
-        std::path::PathBuf::from(&path)
+        if path == "TMP_ANALYSIS" {
+            std::env::temp_dir().join("riptune_analysis")
+        } else {
+            std::path::PathBuf::from(&path)
+        }
     } else {
         app_handle
             .path()

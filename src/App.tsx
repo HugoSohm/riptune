@@ -12,17 +12,18 @@ import { trackEvent } from "./utils/analytics";
 import { useEffect } from "react";
 
 import { useDragDrop } from "./hooks/useDragDrop";
+import { useFullscreenShortcut } from "./hooks/useFullscreenShortcut";
 import { listen, UnlistenFn } from "@tauri-apps/api/event";
 
 function AppContent() {
   const { activeTab, dragActive, t, lang, setPlaylistProgress } = useApp();
   const { isValidDrag } = useDragDrop();
+  useFullscreenShortcut();
 
   useEffect(() => {
     trackEvent("app_started");
 
     let unlistenProgress: Promise<UnlistenFn>;
-
     unlistenProgress = listen<{ current: number, total: number, title: string }>("download-progress", (event) => {
       setPlaylistProgress({ current: event.payload.current, total: event.payload.total });
     });
@@ -39,7 +40,7 @@ function AppContent() {
 
       {/* Global Drag & Drop Overlay */}
       {dragActive && (
-        <div className={`fixed inset-0 z-[100] bg-[#0a0f1c]/80 backdrop-blur-md border-4 border-dashed ${isValidDrag ? 'border-purple-500 cursor-copy' : 'border-red-500 cursor-not-allowed'} flex items-center justify-center transition-all`}>
+        <div className={`fixed inset-0 z-[1000000] bg-[#0a0f1c]/80 backdrop-blur-md border-4 border-dashed ${isValidDrag ? 'border-purple-500 cursor-copy' : 'border-red-500 cursor-not-allowed'} flex items-center justify-center transition-all`}>
           <div className="text-center">
             <div className={`w-24 h-24 mx-auto rounded-full ${isValidDrag ? 'bg-purple-500/20 border-purple-500/30 shadow-[0_0_50px_rgba(168,85,247,0.4)]' : 'bg-red-500/20 border-red-500/30 shadow-[0_0_50px_rgba(239,68,68,0.4)]'} flex items-center justify-center mb-6 border`}>
               <UploadCloud className={`w-12 h-12 ${isValidDrag ? 'text-purple-400' : 'text-red-400'}`} />

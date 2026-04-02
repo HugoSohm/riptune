@@ -1,13 +1,17 @@
 {
   "name": "rip-tune",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "RipTune - Analyze and download music from YouTube (BPM, Key, Metadata)",
   "author": "Hugo Sohm <no-reply@riptune.hugosohm.fr>",
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/HugoSohm/rip-tune.git"
+  },
+  "funding": {
+    "type": "ko-fi",
+    "url": "https://ko-fi.com/riptune"
   },
   "engines": {
     "node": ">=24.0.0"

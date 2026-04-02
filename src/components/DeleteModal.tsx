@@ -2,9 +2,12 @@ import { AlertTriangle, Trash2, X, Sparkles } from "lucide-react";
 import { useApp } from "../context/AppContext";
 
 export default function DeleteModal() {
-  const { deleteConfirmId, setDeleteConfirmId, confirmDelete, keepFilesOnHistoryDelete, setActiveTab, t } = useApp();
+  const { deleteConfirmId, setDeleteConfirmId, confirmDelete, keepFilesOnHistoryDelete, setActiveTab, t, history } = useApp();
 
   if (!deleteConfirmId) return null;
+
+  const itemToDelete = history.find(h => h.id === deleteConfirmId);
+  const showFileWarning = !keepFilesOnHistoryDelete && !itemToDelete?.isTemp;
 
   return (
     <div className="fixed inset-0 z-[100002] flex items-center justify-center p-4">
@@ -19,7 +22,7 @@ export default function DeleteModal() {
         >
           <X className="w-5 h-5" />
         </button>
-
+ 
         <div className="flex flex-col items-center text-center">
           <div className="w-20 h-20 rounded-full bg-red-500/10 flex items-center justify-center mb-6 border border-red-500/20 shadow-[0_0_30px_rgba(239,68,68,0.2)]">
             <Trash2 className="w-10 h-10 text-red-500" />
@@ -31,8 +34,8 @@ export default function DeleteModal() {
           <p className="text-slate-400 text-sm leading-relaxed mb-6">
             {t.deleteModal.description}
           </p>
-
-          {!keepFilesOnHistoryDelete && (
+ 
+          {showFileWarning && (
             <div className="w-full bg-red-500/5 border border-red-500/10 rounded-2xl p-4 mb-8 flex items-start gap-4 text-left">
               <AlertTriangle className="w-6 h-6 text-red-500 shrink-0 mt-0.5" />
               <p className="text-xs text-red-200/50 leading-relaxed font-medium">

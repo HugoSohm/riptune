@@ -1,6 +1,8 @@
 pub mod audio_processor;
+pub mod reporting;
 pub mod telemetry;
 pub mod updater;
+pub mod utils;
 use tauri::Manager;
 
 
@@ -33,8 +35,9 @@ pub fn run() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
-            telemetry::send_bug_report,
+            reporting::send_bug_report,
             telemetry::track_event,
+            utils::read_image_base64,
             audio_processor::download_audio,
             audio_processor::check_url_info,
             audio_processor::cancel_download,
