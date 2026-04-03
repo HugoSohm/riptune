@@ -107,7 +107,8 @@ pub async fn download_audio(
 
     std::fs::create_dir_all(&downloads_dir).map_err(|e| e.to_string())?;
 
-    let out_template = format!("{}\\%(title)s.%(ext)s", downloads_dir.display());
+    let separator = std::path::MAIN_SEPARATOR;
+    let out_template = format!("{}{}%(title)s.%(ext)s", downloads_dir.display(), separator);
 
     let yt_dlp_path = crate::audio_processor::utils::resolve_bin_path(&app_handle, "yt-dlp")?;
     let bin_dir = yt_dlp_path.parent().ok_or("Could not find binary directory")?;
@@ -199,8 +200,10 @@ pub async fn download_audio(
                 
                 let new_path = parent.join(sanitized_name);
                 if original_path != new_path.to_string_lossy() {
-                    let _ = std::fs::rename(&original_path, &new_path);
-                    new_path.to_string_lossy().to_string()
+                    match std::fs::rename(&original_path, &new_path) {
+                        Ok(_) => new_path.to_string_lossy().to_string(),
+                        Err(_) => original_path
+                    }
                 } else {
                     original_path
                 }

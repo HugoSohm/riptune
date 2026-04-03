@@ -52,11 +52,26 @@ npm run tauri dev
 ---
 
 ### 🏗️ Build (Production)
-To generate the Windows installer (`.exe` and `.msi`):
-```powershell
+To generate the Windows or macOS installer:
+```bash
 npm run tauri build
 ```
 Installers will be located in: `src-tauri/target/release/bundle/`
+
+### 🍎 macOS Troubleshooting
+If you encounter the error: **"RipTune is damaged and can't be opened"** when launching the app from your Applications folder, this is likely because the app is not yet notarized.
+
+To fix this, follow these steps:
+1. Move RipTune to your `/Applications` folder.
+2. Open your terminal and run the provided script:
+   ```bash
+   chmod +x fix-mac-permissions.sh
+   ./fix-mac-permissions.sh
+   ```
+   *OR* manually run this command:
+   ```bash
+   sudo xattr -cr /Applications/RipTune.app
+   ```
 
 ### 🛠️ Tech Stack
 - **Frontend**: React 19, TypeScript, Tailwind CSS, Lucide Icons.

@@ -1,5 +1,14 @@
 # RipTune Changelog
 
+## 0.1.2 (2026-04-03)
+
+### 🍎 macOS Support & Stability
+- **Permission Fix Tool**: Included a dedicated `fix-mac-permissions.sh` script to resolve the "App is damaged" error caused by macOS Gatekeeper.
+- **Improved Documentation**: Updated README with clear troubleshooting steps for macOS users.
+- **Cross-Platform File System**: Refactored file and folder opening to support Windows (`explorer`), macOS (`open`), and Linux (`xdg-open`).
+- **Path Bug Fix**: Resolved a critical issue where download templates were using Windows-specific backslashes, preventing successful downloads on macOS and Linux.
+- **Enhanced File Reliability**: Improved file sanitization and renaming logic to ensure history entries always point to existing files, even if cleanup fails.
+
 ## 0.1.1 (2026-04-02)
 
 ### 🚀 Improvements & UX
