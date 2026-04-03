@@ -1,5 +1,12 @@
 # RipTune Changelog
 
+## 0.1.4 (2026-04-03)
+
+### 📦 Premium macOS Installer Experience
+- **Bundled DMG Installer**: The macOS release now provides a unified ZIP package containing the official DMG installer, the permission fix script, and setup instructions.
+- **Smart Asset Cleanup**: Fixed the release workflow to automatically remove all default macOS artifacts (DMG, TAR.GZ), offering a single entry point for each architecture (`x64` and `aarch64`).
+- **Streamlined Setup**: Simplified instructions to guide users through the standard DMG "Drag-to-Applications" process, followed by a one-click permission fix if needed.
+
 ## 0.1.3 (2026-04-03)
 
 ### 📦 Optimized macOS Distribution
