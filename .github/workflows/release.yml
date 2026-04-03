@@ -122,6 +122,32 @@ jobs:
           releaseDraft: true
           prerelease: false
 
+      - name: Package macOS ZIP
+        if: matrix.platform == 'macos-latest'
+        shell: bash
+        run: |
+          VERSION="${{ steps.changelog.outputs.version }}"
+          # Temporary folder structure
+          mkdir -p RipTune
+          cp -r src-tauri/target/release/bundle/macos/RipTune.app RipTune/
+          cp fix-mac-permissions.sh RipTune/
+          cp README_MAC.txt RipTune/READ_ME.txt
+          chmod +x RipTune/fix-mac-permissions.sh
+          
+          # Final ZIP name with macOS indicator
+          ZIP_NAME="RipTune_${VERSION}_macOS_x64.zip"
+          zip -r $ZIP_NAME RipTune/
+          
+          # Clean release: delete the default .dmg and .app.tar.gz created by Tauri
+          # so we only offer this complete, self-healing ZIP
+          gh release delete-asset $VERSION RipTune_${VERSION}_x64.dmg --yes || true
+          gh release delete-asset $VERSION RipTune_${VERSION}_x64.app.tar.gz --yes || true
+          
+          # Upload final ZIP
+          gh release upload $VERSION $ZIP_NAME --clobber
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 
   finalize-release:
     needs: publish-tauri

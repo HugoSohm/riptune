@@ -1,5 +1,12 @@
 # RipTune Changelog
 
+## 0.1.3 (2026-04-03)
+
+### 📦 Optimized macOS Distribution
+- **Automated Bundle Packaging**: The GitHub Actions workflow now automatically packages a self-contained ZIP for macOS (`RipTune_v0.1.3_macOS_x64.zip`) containing the app, troubleshooting script, and setup guide.
+- **Release Automation**: Automates the removal of default DMG/TAR.GZ artifacts on macOS to ensure users only download the single, validated bundle.
+- **Improved ZIP Structure**: Cleaned up the internal folder structure of the macOS bundle for better user experience.
+
 ## 0.1.2 (2026-04-03)
 
 ### 🍎 macOS Support & Stability
