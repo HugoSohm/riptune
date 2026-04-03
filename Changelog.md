@@ -1,5 +1,14 @@
 # RipTune Changelog
 
+## 0.1.5 (2026-04-03)
+
+### 💎 Ultra-Premium macOS Installer
+- **Interactive DMG Bundle**: The macOS installer is now a single, polished DMG containing the application, a setup guide, and an auto-healing script.
+- **GUI-Based Fix Tool**: Replaced the terminal-based script with a native macOS `.command` file that uses clear pop-up dialogs and automatically closes the terminal window.
+- **Zero-Config Experience**: Simplified troubleshooting instructions to a single "Right-Click > Open" action, providing a seamless setup for users facing Gatekeeper restrictions.
+- **Standardized Packaging**: Adopted standard naming conventions while maintaining a custom, high-end installation experience for macOS.
+
+
 ## 0.1.4 (2026-04-03)
 
 ### 📦 Premium macOS Installer Experience

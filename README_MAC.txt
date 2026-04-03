@@ -1,21 +1,15 @@
 ENGLISH:
 --------
-If macOS displays the message "RipTune is damaged and cannot be opened":
+If macOS displays an error:
 
-1. Move the 'RipTune.app' file into your 'Applications' folder.
-2. Open the Terminal (Cmd + Space, type "Terminal").
-3. Drag the 'fix-mac-permissions.sh' file (from this folder) into your terminal window.
-4. Press the 'Enter' key.
-   - If the system asks for your password, type it (it will not appear on screen) and press Enter.
-5. You can now launch RipTune normally from your Applications.
+1. Drag 'RipTune.app' onto the 'Applications' icon.
+2. Right-click 'fix-mac-permissions.command' and select 'Open'.
+3. Follow the popup instructions.
 
 FRANÇAIS :
 -----------
-Si macOS affiche le message "RipTune est endommagé et ne peut pas être ouvert" :
+En cas d'erreur de lancement sur macOS :
 
-1. Déplacez le fichier 'RipTune.app' dans votre dossier 'Applications'.
-2. Ouvrez le terminal (Cmd + Espace, tapez "Terminal").
-3. Glissez le fichier 'fix-mac-permissions.sh' (contenu dans ce dossier) dans votre fenêtre de terminal.
-4. Appuyez sur la touche 'Entrée'.
-   - Si le système demande votre mot de passe, tapez-le (il ne s'affichera pas à l'écran) et validez.
-5. Vous pouvez maintenant lancer RipTune normalement depuis vos Applications.
+1. Glissez 'RipTune.app' sur l'icône 'Applications'.
+2. Faites un clic droit sur 'fix-mac-permissions.command' et choisissez 'Ouvrir'.
+3. Suivez les instructions qui s'affichent à l'écran.
