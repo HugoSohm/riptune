@@ -53,14 +53,17 @@ if [ "$OS_NAME" == "Darwin" ]; then
     unzip -o ffprobe.zip -d "$BIN_DIR"
     rm ffprobe.zip
 else
-    # Download static Linux build from johnvansickle.com
-    FFMPEG_URL="https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz"
-    download_file "$FFMPEG_URL" "ffmpeg.tar.xz"
-    mkdir -p ffmpeg_tmp
-    tar -xJf ffmpeg.tar.xz -C ffmpeg_tmp --strip-components=1
-    cp ffmpeg_tmp/ffmpeg "$BIN_DIR/"
-    cp ffmpeg_tmp/ffprobe "$BIN_DIR/"
-    rm -rf ffmpeg_tmp ffmpeg.tar.xz
+    # Download static Linux build from a more reliable GitHub mirror (ffmpeg-static)
+    FFMPEG_URL="https://github.com/eugeneware/ffmpeg-static/releases/download/b5.0.1/linux-x64.gz"
+    download_file "$FFMPEG_URL" "ffmpeg.gz"
+    gunzip -c ffmpeg.gz > "$BIN_DIR/ffmpeg"
+    rm ffmpeg.gz
+    
+    # ffprobe is also available on similar stable mirrors
+    FFPROBE_URL="https://github.com/ffbinaries/ffbinaries-prebuilt/releases/download/v4.4.1/ffprobe-4.4.1-linux-64.zip"
+    download_file "$FFPROBE_URL" "ffprobe.zip"
+    unzip -o ffprobe.zip -d "$BIN_DIR"
+    rm ffprobe.zip
 fi
 chmod +x "$BIN_DIR/ffmpeg"
 chmod +x "$BIN_DIR/ffprobe"
