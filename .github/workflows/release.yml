@@ -108,7 +108,7 @@ jobs:
 
       - name: build and bundle
         id: tauri_build
-        uses: tauri-apps/tauri-action@v0
+        uses: tauri-apps/tauri-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
@@ -173,3 +173,53 @@ jobs:
           git fetch --tags
           git tag -f latest ${{ needs.publish-tauri.outputs.version }}
           git push -f origin latest -f
+
+      - name: Generate and upload latest.json
+        shell: bash
+        run: |
+          VERSION="${{ needs.publish-tauri.outputs.version }}"
+          DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          
+          # Get all assets links from the release
+          ASSETS=$(gh release view $VERSION --json assets --jq '.assets')
+          
+          # Find specific assets for each platform
+          WIN_URL=$(echo "$ASSETS" | jq -r '.[] | select(.name | endswith(".exe")) | .url' | head -n 1)
+          MAC_X64_URL=$(echo "$ASSETS" | jq -r '.[] | select(.name | endswith("_x64.dmg")) | .url' | head -n 1)
+          MAC_ARM_URL=$(echo "$ASSETS" | jq -r '.[] | select(.name | endswith("_aarch64.dmg")) | .url' | head -n 1)
+          LINUX_URL=$(echo "$ASSETS" | jq -r '.[] | select(.name | endswith(".AppImage")) | .url' | head -n 1)
+
+          # Function to get signature content from .sig files
+          get_sig() {
+            local pattern=$1
+            local sig_url=$(echo "$ASSETS" | jq -r ".[] | select(.name | contains(\"$pattern\") and endswith(\".sig\")) | .url" | head -n 1)
+            if [ "$sig_url" != "null" ] && [ -n "$sig_url" ]; then
+              curl -sL "$sig_url"
+            else
+              echo ""
+            fi
+          }
+
+          WIN_SIG=$(get_sig ".exe")
+          MAC_X64_SIG=$(get_sig "_x64.dmg")
+          MAC_ARM_SIG=$(get_sig "_aarch64.dmg")
+          LINUX_SIG=$(get_sig ".AppImage")
+
+          # Create the latest.json (v2 format)
+          cat <<EOF > latest.json
+          {
+            "version": "$VERSION",
+            "notes": "Version $VERSION release",
+            "pub_date": "$DATE",
+            "platforms": {
+              "windows-x86_64": { "url": "$WIN_URL", "signature": "$WIN_SIG" },
+              "darwin-x86_64": { "url": "$MAC_X64_URL", "signature": "$MAC_X64_SIG" },
+              "darwin-aarch64": { "url": "$MAC_ARM_URL", "signature": "$MAC_ARM_SIG" },
+              "linux-x86_64": { "url": "$LINUX_URL", "signature": "$LINUX_SIG" }
+            }
+          }
+          EOF
+          
+          gh release upload $VERSION latest.json --clobber
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

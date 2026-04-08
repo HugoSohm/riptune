@@ -1,5 +1,11 @@
 # RipTune Changelog
 
+## 0.1.7 (2026-04-08)
+
+### 🛠️ Auto-Update Fix
+- **Restored Auto-Updates**: Corrected a critical issue where the application would not detect or download new versions due to missing permissions in Tauri v2.
+- **Workflow Optimization**: Upgraded the CI/CD pipeline to ensure the update manifest (`latest.json`) is always generated and signed correctly for all platforms.
+
 ## 0.1.6 (2026-04-08)
 
 ### 🚀 Ultra-Fast WASM Analysis
