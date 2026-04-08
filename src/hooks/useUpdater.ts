@@ -32,12 +32,10 @@ export function useUpdater() {
     setStatus('downloading');
     setProgress(0);
 
-    let totalSize = 0;
     try {
       await update.downloadAndInstall((event) => {
         switch (event.event) {
           case 'Started':
-            totalSize = event.data.contentLength || 0;
             setStatus('downloading');
             break;
           case 'Progress':
