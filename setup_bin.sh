@@ -65,23 +65,7 @@ fi
 chmod +x "$BIN_DIR/ffmpeg"
 chmod +x "$BIN_DIR/ffprobe"
 
-# 3. streaming_extractor_music (Essentia)
-if [ "$OS_NAME" == "Darwin" ]; then
-    ESSENTIA_URL="https://data.metabrainz.org/pub/musicbrainz/acousticbrainz/extractors/essentia-extractor-v2.1_beta2-2-gbb40004-osx.tar.gz"
-else
-    ESSENTIA_URL="https://data.metabrainz.org/pub/musicbrainz/acousticbrainz/extractors/essentia-extractor-v2.1_beta2-linux-x86_64.tar.gz"
-fi
-
-download_file "$ESSENTIA_URL" "essentia.tar.gz"
-# Extract without stripping to handle both root and subfolder structures
-tar -xzf essentia.tar.gz -C "$BIN_DIR"
-# If it was in a subfolder, move it up
-if [ ! -f "$BIN_DIR/streaming_extractor_music" ]; then
-    find "$BIN_DIR" -name "streaming_extractor_music" -exec mv {} "$BIN_DIR/" \;
-fi
-rm essentia.tar.gz
-
-chmod +x "$BIN_DIR/streaming_extractor_music"
+chmod +x "$BIN_DIR/ffprobe"
 
 echo "--- Setup Complete! ---"
 echo "Binaries are located in: $BIN_DIR"

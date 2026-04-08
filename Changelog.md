@@ -1,5 +1,14 @@
 # RipTune Changelog
 
+## 0.1.6 (2026-04-08)
+
+### 🚀 Ultra-Fast WASM Analysis
+- **Essentia WASM Migration**: Fully migrated audio analysis (BPM & Key) from native Rust binaries to a high-performance frontend WASM engine.
+- **Engine Optimization**: Dramatically reduced analysis time by eliminating backend process spawning, temporary file creation, and disk I/O.
+- **Lightweight Architecture**: Removed heavy Essentia binaries (~15MB), simplifying the install process and reducing the final application size.
+- **Smart Memory Management**: Implemented automatic WASM memory cleanup and optimized audio decoding for fast, reliable processing in the sandbox.
+- **Tauri v2 Permission Sync**: Synchronized all Tauri plugin versions and implemented granular filesystem capabilities for secure, hardware-accelerated analysis.
+
 ## 0.1.5 (2026-04-03)
 
 ### 💎 Ultra-Premium macOS Installer

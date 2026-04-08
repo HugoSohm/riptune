@@ -60,16 +60,5 @@ if (-not (Test-Path (Join-Path $BinDir "ffmpeg.exe"))) {
     Remove-Item $ExtractPath -Recurse -Force
 }
 
-# 3. streaming_extractor_music.exe (Essentia)
-$EssentiaUrl = "https://data.metabrainz.org/pub/musicbrainz/acousticbrainz/extractors/essentia-extractor-v2.1_beta2-1-ge3940c0-win-i686.zip"
-$EssentiaZipPath = Join-Path $env:TEMP "essentia.zip"
-if (-not (Test-Path (Join-Path $BinDir "streaming_extractor_music.exe"))) {
-    Invoke-Download -Url $EssentiaUrl -OutFile $EssentiaZipPath
-    
-    Write-Host "Extracting Essentia binary..."
-    Expand-Archive -Path $EssentiaZipPath -DestinationPath $BinDir -Force
-    Remove-Item $EssentiaZipPath -Force
-}
-
 Write-Host "--- Setup Complete! ---" -ForegroundColor Green
 Write-Host "Binaries are located in: $BinDir"

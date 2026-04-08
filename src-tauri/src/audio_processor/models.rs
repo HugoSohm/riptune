@@ -19,23 +19,6 @@ pub struct ProgressEvent {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct AudioAnalysis {
-    pub rhythm: Rhythm,
-    pub tonal: Tonal,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-pub struct Rhythm {
-    pub bpm: f64,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-pub struct Tonal {
-    pub key_key: String,
-    pub key_scale: String,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
 pub struct DownloadResult {
     pub filepath: String,
     pub title: String,

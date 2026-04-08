@@ -11,6 +11,7 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .manage(audio_processor::ProcessState(std::sync::Mutex::new(None)))
         .setup(|app| {
@@ -41,7 +42,6 @@ pub fn run() {
             audio_processor::download_audio,
             audio_processor::check_url_info,
             audio_processor::cancel_download,
-            audio_processor::extract_bpm_key,
             audio_processor::open_file,
             audio_processor::open_folder,
             audio_processor::delete_file,

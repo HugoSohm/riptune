@@ -2,6 +2,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { HistoryEntry } from "../types";
 import { useApp } from "../context/AppContext";
 import { trackEvent } from "../utils/analytics";
+import { analyzeAudioFile } from "../utils/essentia";
 
 export function useAudioProcessor() {
   const { 
@@ -15,9 +16,9 @@ export function useAudioProcessor() {
     trackEvent("analysis_started");
 
     try {
-      const result = await invoke<[number, string]>("extract_bpm_key", { filepath });
-      const bpm = Math.round(result[0]);
-      const keyStr = result[1];
+      // Analyze file directly on the frontend using essentia-wasm
+      const [bpmVal, keyStr] = await analyzeAudioFile(filepath);
+      const bpm = Math.round(bpmVal);
 
       let title = titleHint;
       let artist = artistHint;
