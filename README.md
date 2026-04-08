@@ -37,7 +37,7 @@ npm install
 ```
 
 #### 3. Setup Binaries (Sideloads)
-RipTune relies on external tools (`ffmpeg`, `ffprobe`, `yt-dlp`, `essentia`). Download them automatically for your platform:
+RipTune relies on external tools (`ffmpeg`, `ffprobe`, `yt-dlp`). Download them automatically for your platform:
 ```bash
 npm run setup
 ```
@@ -59,24 +59,23 @@ npm run tauri build
 Installers will be located in: `src-tauri/target/release/bundle/`
 
 ### 🍎 macOS Troubleshooting
-If you encounter the error: **"RipTune is damaged and can't be opened"** when launching the app from your Applications folder, this is likely because the app is not yet notarized.
+If you encounter the error: **"RipTune is damaged and can't be opened"** when launching the app, this is due to macOS Gatekeeper security as the app is currently unsigned.
 
-To fix this, follow these steps:
-1. Move RipTune to your `/Applications` folder.
-2. Open your terminal and run the provided script:
-   ```bash
-   chmod +x fix-mac-permissions.command
-   ./fix-mac-permissions.command
-   ```
-   *OR* manually run this command:
-   ```bash
-   sudo xattr -cr /Applications/RipTune.app
-   ```
+**Solution:**
+1. Open the **RipTune DMG** installer.
+2. Read the **instructions.txt** file included in the disk image.
+3. Move `RipTune.app` to your `/Applications` folder.
+4. Double-click the **Fix RipTune.app** utility (included in the DMG) to authorize the application.
+
+*Manual alternative (Terminal):*
+```bash
+sudo xattr -cr /Applications/RipTune.app
+```
 
 ### 🛠️ Tech Stack
 - **Frontend**: React 19, TypeScript, Tailwind CSS, Lucide Icons.
 - **Backend**: Rust (Tauri 2.0).
-- **Engines**: FFmpeg, yt-dlp, Essentia Streaming Extractor.
+- **Engines**: FFmpeg, yt-dlp, Essentia.js (WASM).
 
 ---
 

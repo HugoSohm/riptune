@@ -44,7 +44,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        platform: [macos-latest, ubuntu-22.04, windows-latest]
+        platform: [macos-13, macos-14, ubuntu-22.04, windows-latest]
 
     outputs:
       version: ${{ steps.changelog.outputs.version }}
@@ -122,29 +122,27 @@ jobs:
           releaseDraft: true
           prerelease: false
 
-      - name: Package macOS DMG (Custom)
-        if: matrix.platform == 'macos-latest'
+      - name: Package macOS DMG
+        if: startsWith(matrix.platform, 'macos-')
         shell: bash
         run: |
           VERSION="${{ steps.changelog.outputs.version }}"
-          # Temporary folder structure
-          mkdir -p RipTune_Setup
-          cp -r src-tauri/target/release/bundle/macos/RipTune.app RipTune_Setup/
-          cp fix-mac-permissions.command RipTune_Setup/
-          cp README_MAC.txt RipTune_Setup/READ_ME.txt
-          chmod +x RipTune_Setup/fix-mac-permissions.command
           
-          # Add shortcut to /Applications for convenience
-          ln -s /Applications RipTune_Setup/Applications
+          # Run the custom build script
+          chmod +x scripts/macos/build.sh
+          ./scripts/macos/build.sh
           
-          # Final DMG name with standard naming convention
-          DMG_NAME="RipTune_${VERSION}_x64.dmg"
-          hdiutil create -volname "RipTune Installer" -srcfolder RipTune_Setup -ov -format UDZO $DMG_NAME
+          # Find the generated DMG (it will be named RipTune_VERSION_ARCH.dmg)
+          FULL_DMG_PATH=$(ls dist/RipTune_${VERSION}_*.dmg | head -n 1)
+          DMG_NAME=$(basename "$FULL_DMG_PATH")
+          cp "$FULL_DMG_PATH" .
           
           # Clean release: delete the default .dmg and .app.tar.gz created by Tauri
-          # so we only offer this complete, self-healing custom DMG
-          gh release delete-asset $VERSION RipTune_${VERSION}_x64.dmg --yes || true
-          gh release delete-asset $VERSION RipTune_${VERSION}_x64.app.tar.gz --yes || true
+          # so we only offer this complete, pro custom DMG
+          ARCH=$(uname -m)
+          if [ "$ARCH" = "arm64" ]; then CUR_ARCH="aarch64"; else CUR_ARCH="x64"; fi
+          gh release delete-asset $VERSION RipTune_${VERSION}_${CUR_ARCH}.dmg --yes || true
+          gh release delete-asset $VERSION RipTune_${VERSION}_${CUR_ARCH}.app.tar.gz --yes || true
           
           # Upload final DMG
           gh release upload $VERSION $DMG_NAME --clobber

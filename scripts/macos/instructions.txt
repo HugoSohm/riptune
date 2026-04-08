@@ -1,0 +1,13 @@
+--- INSTRUCTIONS D'INSTALLATION / INSTALLATION INSTRUCTIONS ---
+
+FRANÇAIS :
+1. Déplacez RipTune.app dans votre dossier Applications.
+2. Double-cliquez sur "Fix RipTune.app" pour autoriser l'exécution de l'application.
+
+Note : Cette étape est nécessaire car RipTune est un projet indépendant non signé (ceci permet d'éviter les frais de licence Apple Developer de 99$/an).
+
+ENGLISH:
+1. Move RipTune.app to your Applications folder.
+2. Double-click on "Fix RipTune.app" to authorize the application to run.
+
+Note: This step is required because RipTune is an independent, unsigned project (this avoids the $99/year Apple Developer license fees).

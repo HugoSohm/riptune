@@ -1,5 +1,15 @@
 # RipTune Changelog
 
+## 0.1.9 (2026-04-08)
+
+### 💎 Pro macOS Installer & Dual-Arch CI
+- **Native Custom DMG**: The macOS installer now features a premium layout with custom icons, background branding, and a dedicated repair utility.
+- **GUI-Based Repair Tool**: Replaced the terminal-based fix script with "Fix RipTune.app", a native AppleScript-based utility with pop-up success/error dialogs.
+- **Dual-Architecture Support**: Upgraded CI/CD to build and publish separate, optimized DMGs for both Intel (x64) and Apple Silicon (aarch64).
+- **Interactive Instructions**: Included a bilingual instructions file inside the DMG explaining why the repair utility is necessary (to avoid Apple's $99/year developer fee).
+- **CI/CD Stabilization**: Refactored the release workflow to use a robust, architecture-aware script for bundling and asset cleanup.
+- **Bilingual Assets**: Translated all installer-related scripts and instructions into English and French.
+
 ## 0.1.8 (2026-04-08)
 
 ### ✨ Integrated Updater & Enhanced Reporting

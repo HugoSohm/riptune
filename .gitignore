@@ -39,3 +39,6 @@ target/
 # Local configuration
 .env
 cookies.txt
+
+# Compiled scripts
+scripts/**/*.app
