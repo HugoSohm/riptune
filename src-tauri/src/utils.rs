@@ -1,9 +1,9 @@
-use base64::{Engine as _, engine::general_purpose};
+use base64::{engine::general_purpose, Engine as _};
 
 #[tauri::command]
 pub async fn read_image_base64(path: String) -> Result<String, String> {
     let bytes = std::fs::read(&path).map_err(|e| e.to_string())?;
-    
+
     // Check if it's an image by extension
     let path_lower = path.to_lowercase();
     let mime = if path_lower.ends_with(".png") {

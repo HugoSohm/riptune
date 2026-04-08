@@ -1,6 +1,6 @@
 [package]
 name = "rip-tune"
-version = "0.1.7"
+version = "0.1.8"
 description = "RipTune - Analyze and download music from YouTube"
 authors = ["HugoSohm"]
 edition = "2021"
@@ -31,3 +31,4 @@ reqwest = { version = "0.12", features = ["json", "rustls-tls"] }
 chrono = "0.4.44"
 rand = "0.10.0"
 base64 = "0.22.1"
+tauri-plugin-process = "2"

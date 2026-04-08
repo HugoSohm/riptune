@@ -1,5 +1,16 @@
 # RipTune Changelog
 
+## 0.1.8 (2026-04-08)
+
+### ✨ Integrated Updater & Enhanced Reporting
+- **Custom Updater UI**: Replaced the native system update modal with a premium React-based button in the TitleBar for a seamless, non-intrusive update experience.
+- **Auto-Restart**: Implemented automatic application relaunch after a successful update installation using the Tauri Process plugin.
+- **Mandatory Email Field**: Added a required email input to the Bug Report modal to enable direct communication and follow-up with reporters.
+- **Smart Reply-To Logic**: Bug report emails now include the user's email in the `reply-to` header, allowing developers to respond with a single click.
+- **GitHub Issues Integration**: Added a direct shortcut to GitHub Issues within the bug report modal as an alternative reporting channel.
+- **Precise Version Tracking**: Bug reports now automatically include the exact application version (retrieved via Rust AppHandle) for faster debugging.
+- **Script Cleanup**: Fixed redundant `chmod` commands in the binary setup scripts for macOS and Linux.
+
 ## 0.1.7 (2026-04-08)
 
 ### 🛠️ Auto-Update Fix

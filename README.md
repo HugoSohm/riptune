@@ -65,8 +65,8 @@ To fix this, follow these steps:
 1. Move RipTune to your `/Applications` folder.
 2. Open your terminal and run the provided script:
    ```bash
-   chmod +x fix-mac-permissions.sh
-   ./fix-mac-permissions.sh
+   chmod +x fix-mac-permissions.command
+   ./fix-mac-permissions.command
    ```
    *OR* manually run this command:
    ```bash

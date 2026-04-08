@@ -73,10 +73,13 @@ export const fr = {
   },
   bugModal: {
     title: "Signaler un bug",
-    description: "Quelque chose ne fonctionne pas ? Décrivez le problème ci-dessous pour que notre équipe puisse l'analyser.",
-    label: "Message",
+    description: "Quelque chose ne fonctionne pas ? Décrivez le problème ci-dessous pour que notre équipe puisse l'analyser.<br />Vous pouvez aussi ouvrir une issue sur GitHub.",
+    githubIssues: "Ouvrir une issue sur GitHub",
+    label: "Description",
+    emailLabel: "Email",
+    emailPlaceholder: "votre@email.fr",
     placeholder: "Expliquez ce qu'il s'est passé et comment reproduire le bug...",
-    screenshot: "Capture d'écran <i class='italic'>(Glisser-déposer ou coller)</i>",
+    screenshot: "Capture d'écran <i class='italic'>(Glisser-déposer ou coller supporté)</i>",
     dropTitle: "Déposez votre capture ici",
     cancel: "Annuler",
     send: "Envoyer le rapport"

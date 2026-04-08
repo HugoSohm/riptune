@@ -73,8 +73,11 @@ export const en = {
   },
   bugModal: {
     title: "Report a bug",
-    description: "Something not working correctly? Describe the problem below and our team will check it out.",
-    label: "Message",
+    description: "Something not working correctly? Describe the problem below and our team will check it out.<br />You can also open an issue on GitHub.",
+    githubIssues: "Open an issue on GitHub",
+    label: "Description",
+    emailLabel: "Email",
+    emailPlaceholder: "your@email.com",
     placeholder: "Explain what happened and how to reproduce the bug...",
     screenshot: "Screenshot <i class='italic'>(Drag & drop or paste supported)</i>",
     dropTitle: "Drop your screenshot here",

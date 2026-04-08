@@ -29,7 +29,9 @@ pub async fn open_file(filepath: String) -> Result<(), String> {
     }
     #[cfg(not(any(target_os = "windows", target_os = "macos")))]
     {
-        let parent = std::path::Path::new(&filepath).parent().unwrap_or(std::path::Path::new("."));
+        let parent = std::path::Path::new(&filepath)
+            .parent()
+            .unwrap_or(std::path::Path::new("."));
         Command::new("xdg-open")
             .arg(parent)
             .spawn()

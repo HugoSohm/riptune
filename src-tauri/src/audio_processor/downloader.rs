@@ -5,7 +5,11 @@ use std::process::{Command, Stdio};
 use tauri::{Emitter, Manager};
 
 #[tauri::command]
-pub async fn check_url_info(app_handle: tauri::AppHandle, url: String, cookies: Option<String>) -> Result<UrlInfo, String> {
+pub async fn check_url_info(
+    app_handle: tauri::AppHandle,
+    url: String,
+    cookies: Option<String>,
+) -> Result<UrlInfo, String> {
     let yt_dlp_path = crate::audio_processor::utils::resolve_bin_path(&app_handle, "yt-dlp")?;
 
     let mut cmd = Command::new(yt_dlp_path);
@@ -111,7 +115,9 @@ pub async fn download_audio(
     let out_template = format!("{}{}%(title)s.%(ext)s", downloads_dir.display(), separator);
 
     let yt_dlp_path = crate::audio_processor::utils::resolve_bin_path(&app_handle, "yt-dlp")?;
-    let bin_dir = yt_dlp_path.parent().ok_or("Could not find binary directory")?;
+    let bin_dir = yt_dlp_path
+        .parent()
+        .ok_or("Could not find binary directory")?;
 
     let mut cmd = Command::new(&yt_dlp_path);
     crate::audio_processor::utils::hide_window(&mut cmd);
@@ -179,15 +185,21 @@ pub async fn download_audio(
     let mut reader = BufReader::new(stdout);
     let mut line_buf = Vec::new();
 
-    while reader.read_until(b'\n', &mut line_buf).map_err(|e| e.to_string())? > 0 {
+    while reader
+        .read_until(b'\n', &mut line_buf)
+        .map_err(|e| e.to_string())?
+        > 0
+    {
         let line = String::from_utf8_lossy(&line_buf).trim().to_string();
         line_buf.clear();
 
         if line.starts_with("FILEPATH:") {
             let original_path = line.replace("FILEPATH:", "");
             let path_buf = std::path::PathBuf::from(&original_path);
-            
-            let sanitized_path = if let (Some(parent), Some(file_name)) = (path_buf.parent(), path_buf.file_name()) {
+
+            let sanitized_path = if let (Some(parent), Some(file_name)) =
+                (path_buf.parent(), path_buf.file_name())
+            {
                 let name_str = file_name.to_string_lossy();
                 let sanitized_name = name_str
                     .replace(" - ", "-")
@@ -197,12 +209,12 @@ pub async fn download_audio(
                     .replace("[", "")
                     .replace("]", "")
                     .replace("__", "_");
-                
+
                 let new_path = parent.join(sanitized_name);
                 if original_path != new_path.to_string_lossy() {
                     match std::fs::rename(&original_path, &new_path) {
                         Ok(_) => new_path.to_string_lossy().to_string(),
-                        Err(_) => original_path
+                        Err(_) => original_path,
                     }
                 } else {
                     original_path

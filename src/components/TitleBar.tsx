@@ -1,11 +1,13 @@
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { getVersion } from "@tauri-apps/api/app";
 import { openUrl } from "@tauri-apps/plugin-opener";
-import { X, Minus, Square, Copy, Home, List, Settings2, Bug, Coffee, ExternalLink } from "lucide-react";
+import { X, Minus, Square, Copy, Home, List, Settings2, Bug, Coffee, ExternalLink, Sparkles, Loader2 } from "lucide-react";
 import { useApp } from "../context/AppContext";
+import { useUpdater } from "../hooks/useUpdater";
 import { useState, useEffect } from "react";
 export default function TitleBar() {
   const { activeTab, setActiveTab, setIsBugModalOpen, t } = useApp();
+  const { update, status, installUpdate } = useUpdater();
   const appWindow = getCurrentWindow();
   const [version, setVersion] = useState<string>("");
   const [isMaximized, setIsMaximized] = useState(false);
@@ -68,6 +70,32 @@ export default function TitleBar() {
           </div>
           <span className="text-[10px] uppercase tracking-widest text-white/30 font-medium">{t.titleBar.audioAnalyzer}</span>
         </div>
+        
+        {/* Update Button */}
+        {status !== 'idle' && status !== 'checking' && status !== 'error' && (
+          <button
+            onMouseDown={(e) => e.stopPropagation()}
+            onClick={installUpdate}
+            disabled={status === 'downloading' || status === 'installing'}
+            className={`flex items-center gap-2 ml-4 px-3 py-1.5 rounded-full text-[10px] font-black tracking-wider uppercase transition-all duration-500 border pointer-events-auto group ${
+              status === 'available' 
+                ? 'bg-purple-600/20 border-purple-500/30 text-purple-300 hover:bg-purple-500 hover:text-white hover:border-purple-400 hover:shadow-[0_0_20px_rgba(168,85,247,0.4)] animate-pulse'
+                : 'bg-emerald-500/20 border-emerald-500/30 text-emerald-300 cursor-wait'
+            }`}
+          >
+            {status === 'available' ? (
+              <>
+                <Sparkles className="w-3 h-3 group-hover:rotate-12 transition-transform" />
+                <span>Update to v{update?.version}</span>
+              </>
+            ) : (
+              <>
+                <Loader2 className="w-3 h-3 animate-spin" />
+                <span>{status === 'downloading' ? 'Downloading...' : 'Installing...'}</span>
+              </>
+            )}
+          </button>
+        )}
       </div>
 
       <div className="flex items-center h-full">

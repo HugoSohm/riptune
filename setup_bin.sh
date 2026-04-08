@@ -68,7 +68,5 @@ fi
 chmod +x "$BIN_DIR/ffmpeg"
 chmod +x "$BIN_DIR/ffprobe"
 
-chmod +x "$BIN_DIR/ffprobe"
-
 echo "--- Setup Complete! ---"
 echo "Binaries are located in: $BIN_DIR"

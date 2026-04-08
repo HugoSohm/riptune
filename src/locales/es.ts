@@ -73,13 +73,16 @@ export const es = {
   },
   bugModal: {
     title: "Reportar un bug",
-    description: "¿Algo no funciona? Describe el problema para que nuestro equipo pueda analizarlo.",
-    label: "Mensaje",
-    placeholder: "Explica qué pasó y cómo reproducir el bug...",
-    screenshot: "Captura de pantalla <i class='italic'>(Arrastrar o pegar)</i>",
-    dropTitle: "Suelta tu captura aquí",
+    description: "¿Algo no funciona? Describe el problema para que nuestro equipo pueda analizarlo.<br />También puedes abrir una incidencia en GitHub.",
+    githubIssues: "Abrir una incidencia en GitHub",
+    label: "Descripción",
+    emailLabel: "Correo electrónico",
+    emailPlaceholder: "tu@correo.es",
+    placeholder: "Explica lo que pasó y cómo reproducir el error...",
+    screenshot: "Captura de pantalla <i class='italic'>(Arrastrar y soltar o pegar compatible)</i>",
+    dropTitle: "Suelte su captura aquí",
     cancel: "Cancelar",
-    send: "Enviar reporte"
+    send: "Enviar informe"
   },
   titleBar: {
     home: "Inicio",
