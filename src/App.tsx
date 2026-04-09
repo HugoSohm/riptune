@@ -19,21 +19,11 @@ import { listen, UnlistenFn } from "@tauri-apps/api/event";
 function AppContent() {
   const { activeTab, dragActive, t, lang, setPlaylistProgress } = useApp();
   const { isValidDrag } = useDragDrop();
-  const [isMaximized, setIsMaximized] = useState(false);
   const appWindow = getCurrentWindow();
   useFullscreenShortcut();
 
   useEffect(() => {
     trackEvent("app_started");
-
-    // Check initial state
-    appWindow.isMaximized().then(setIsMaximized);
-
-    // Listen for resize events to update maximized state
-    const unlisten = appWindow.onResized(async () => {
-      const maximized = await appWindow.isMaximized();
-      setIsMaximized(maximized);
-    });
 
     let unlistenProgress: Promise<UnlistenFn>;
     unlistenProgress = listen<{ current: number, total: number, title: string }>("download-progress", (event) => {
@@ -41,7 +31,6 @@ function AppContent() {
     });
 
     return () => {
-      unlisten.then(fn => fn());
       unlistenProgress.then((f) => f());
     };
   }, [appWindow, setPlaylistProgress]);
