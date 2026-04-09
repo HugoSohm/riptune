@@ -21,8 +21,6 @@ dotenvy = "0.15"
 [dependencies]
 tauri = { version = "2", features = ["macos-private-api"] }
 tauri-plugin-opener = "2"
-cocoa = "0.26"
-objc = "0.2"
 tauri-plugin-dialog = "2"
 tauri-plugin-updater = "2"
 tauri-plugin-fs = "2"
@@ -34,3 +32,8 @@ chrono = "0.4.44"
 rand = "0.10.0"
 base64 = "0.22.1"
 tauri-plugin-process = "2"
+
+[target.'cfg(target_os = "macos")'.dependencies]
+tauri = { version = "2", features = ["macos-private-api"] }
+cocoa = "0.26"
+objc = "0.2"
