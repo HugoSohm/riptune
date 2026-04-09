@@ -1,6 +1,6 @@
 [package]
 name = "rip-tune"
-version = "0.2.0"
+version = "0.2.1"
 description = "RipTune - Analyze and download music from YouTube"
 authors = ["HugoSohm"]
 edition = "2021"
@@ -19,8 +19,10 @@ tauri-build = { version = "2", features = [] }
 dotenvy = "0.15"
 
 [dependencies]
-tauri = { version = "2", features = [] }
+tauri = { version = "2", features = ["macos-private-api"] }
 tauri-plugin-opener = "2"
+cocoa = "0.26"
+objc = "0.2"
 tauri-plugin-dialog = "2"
 tauri-plugin-updater = "2"
 tauri-plugin-fs = "2"

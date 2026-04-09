@@ -1,3 +1,5 @@
+import { useState, useEffect } from "react";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 import { UploadCloud } from "lucide-react";
 import TitleBar from "./components/TitleBar";
 import Home from "./pages/Home";
@@ -9,7 +11,6 @@ import BackgroundOrbs from "./components/BackgroundOrbs";
 import BugReportModal from "./components/BugReportModal";
 import { AppProvider, useApp } from "./context/AppContext";
 import { trackEvent } from "./utils/analytics";
-import { useEffect } from "react";
 
 import { useDragDrop } from "./hooks/useDragDrop";
 import { useFullscreenShortcut } from "./hooks/useFullscreenShortcut";
@@ -18,10 +19,21 @@ import { listen, UnlistenFn } from "@tauri-apps/api/event";
 function AppContent() {
   const { activeTab, dragActive, t, lang, setPlaylistProgress } = useApp();
   const { isValidDrag } = useDragDrop();
+  const [isMaximized, setIsMaximized] = useState(false);
+  const appWindow = getCurrentWindow();
   useFullscreenShortcut();
 
   useEffect(() => {
     trackEvent("app_started");
+
+    // Check initial state
+    appWindow.isMaximized().then(setIsMaximized);
+
+    // Listen for resize events to update maximized state
+    const unlisten = appWindow.onResized(async () => {
+      const maximized = await appWindow.isMaximized();
+      setIsMaximized(maximized);
+    });
 
     let unlistenProgress: Promise<UnlistenFn>;
     unlistenProgress = listen<{ current: number, total: number, title: string }>("download-progress", (event) => {
@@ -29,9 +41,10 @@ function AppContent() {
     });
 
     return () => {
+      unlisten.then(fn => fn());
       unlistenProgress.then((f) => f());
     };
-  }, [setPlaylistProgress]);
+  }, [appWindow, setPlaylistProgress]);
 
   return (
     <div className="h-screen w-screen bg-[#0a0f1c] text-slate-100 font-sans selection:bg-purple-500/30 flex flex-col items-center overflow-hidden relative">
@@ -56,7 +69,7 @@ function AppContent() {
       )}
 
       {/* Main Content Scroll Wrapper */}
-      <div className="flex-1 w-full overflow-y-auto custom-scrollbar scroll-smooth z-10 mt-[60px] flex flex-col">
+      <div className="flex-1 w-full overflow-y-auto custom-scrollbar scroll-smooth z-10 flex flex-col">
         <main className={`w-full max-w-7xl mx-auto px-6 pb-12 flex-1 flex flex-col items-center ${activeTab !== 'home' ? 'pt-8' : ''}`}>
           {activeTab === 'home' && <Home />}
           {activeTab === 'history' && <History />}

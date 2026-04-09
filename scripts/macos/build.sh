@@ -39,9 +39,6 @@ OUTPUT_DMG="$OUTPUT_DIR/${APP_NAME}_${VERSION}_${ARCH_NAME}.dmg"
 # Assets
 BACKGROUND="$SCRIPT_DIR/dmg-background.png"
 INSTRUCTIONS_FILE="$SCRIPT_DIR/instructions.txt"
-FIXER_APP="$SCRIPT_DIR/Fix RipTune.app"
-FIXER_SRC="$SCRIPT_DIR/fix-riptune.applescript"
-FIXER_ICON="$SCRIPT_DIR/fix-riptune.icns"
 
 # Check for app in common locations (native vs cross-compiled)
 if [ -d "$ROOT_DIR/src-tauri/target/$TARGET_DIR/release/bundle/macos/${APP_NAME}.app" ]; then
@@ -63,19 +60,13 @@ echo "Updating RipTune.app icon..."
 cp "$ROOT_DIR/src-tauri/icons/icon.icns" "$MACOS_APP/Contents/Resources/icon.icns"
 touch "$MACOS_APP"
 
-# 2. Prepare Fixer utility
-echo "Compiling repair script..."
-rm -rf "$FIXER_APP"
-osacompile -o "$FIXER_APP" "$FIXER_SRC"
-cp "$FIXER_ICON" "$FIXER_APP/Contents/Resources/applet.icns"
-touch "$FIXER_APP"
+# 2. (Skipped) Prepare Fixer utility no longer needed
 
 # 3. Create staging directory
 echo "Creating staging folder..."
 rm -rf "$STAGING_DIR"
 mkdir -p "$STAGING_DIR"
 cp -R "$MACOS_APP" "$STAGING_DIR/"
-cp -R "$FIXER_APP" "$STAGING_DIR/"
 cp "$INSTRUCTIONS_FILE" "$STAGING_DIR/instructions.txt"
 
 # 4. Generate DMG logic (Hand-crafted equivalent of Tauri's bundle_dmg.sh)
@@ -123,8 +114,7 @@ tell application "Finder"
         -- Matching your original layout
         set position of item "${APP_NAME}.app" of theView to {200, 250}
         set position of item "Applications" of theView to {600, 250}
-        set position of item "Fix RipTune.app" of theView to {475, 110}
-        set position of item "instructions.txt" of theView to {325, 110}
+        set position of item "instructions.txt" of theView to {400, 110}
         
         update (items of theView)
         -- Give it a moment to save .DS_Store
@@ -145,4 +135,3 @@ echo "---"
 echo "Success! The Pro DMG has been created here: $OUTPUT_DMG"
 echo "Cleaning up..."
 rm -rf "$STAGING_DIR"
-rm -rf "$FIXER_APP"

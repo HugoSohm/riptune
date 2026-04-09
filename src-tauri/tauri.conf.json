@@ -10,15 +10,19 @@
     "frontendDist": "../dist"
   },
   "app": {
+    "macOSPrivateApi": true,
     "windows": [
       {
         "label": "main",
-        "title": "RipTune",
+        "title": "",
         "width": 1280,
         "height": 720,
         "minWidth": 1240,
         "minHeight": 650,
-        "decorations": false
+        "decorations": true,
+        "transparent": false,
+        "titleBarStyle": "Overlay",
+        "shadow": true
       }
     ],
     "security": {

@@ -5,12 +5,14 @@ import { X, Minus, Square, Copy, Home, List, Settings2, Bug, Coffee, ExternalLin
 import { useApp } from "../context/AppContext";
 import { useUpdater } from "../hooks/useUpdater";
 import { useState, useEffect } from "react";
+
 export default function TitleBar() {
   const { activeTab, setActiveTab, setIsBugModalOpen, t } = useApp();
   const { update, status, installUpdate } = useUpdater();
   const appWindow = getCurrentWindow();
   const [version, setVersion] = useState<string>("");
   const [isMaximized, setIsMaximized] = useState(false);
+  const isMac = typeof window !== 'undefined' && /Mac|iPhone|iPod|iPad/.test(navigator.userAgent);
 
   useEffect(() => {
     getVersion().then(setVersion).catch(console.error);
@@ -53,7 +55,7 @@ export default function TitleBar() {
   return (
     <div
       data-tauri-drag-region
-      className="h-[60px] w-full bg-[#0a0f1c] border-b border-white/5 flex items-center justify-between pl-6 select-none fixed top-0 left-0 z-[99999] cursor-default"
+      className={`h-[60px] w-full bg-[#0a0f1c] border-b border-white/10 flex items-center justify-between select-none shrink-0 cursor-default transition-all duration-300 ${isMac ? 'pl-[100px] pr-6' : 'pl-6'}`}
     >
       <div className="flex items-center gap-3 pointer-events-none">
         <div className="w-8 h-8 flex items-center justify-center pointer-events-none">
@@ -187,34 +189,36 @@ export default function TitleBar() {
           </div>
         </div>
 
-        {/* Separator */}
-        <div className="w-[1px] h-8 bg-white/10 mx-2" />
+        {/* Separator - Hidden on macOS */}
+        {!isMac && <div className="w-[1px] h-8 bg-white/10 mx-2" />}
 
-        {/* Window Controls */}
-        <div className="flex items-center h-full" onMouseDown={(e) => e.stopPropagation()}>
-          <button
-            onMouseDown={handleMinimize}
-            className="h-[60px] w-14 flex items-center justify-center text-slate-400 hover:bg-white/5 hover:text-white transition-colors"
-          >
-            <Minus className="w-3.5 h-3.5 pointer-events-none" />
-          </button>
-          <button
-            onMouseDown={handleMaximize}
-            className="h-[60px] w-14 flex items-center justify-center text-slate-400 hover:bg-white/5 hover:text-white transition-colors"
-          >
-            {isMaximized ? (
-              <Copy className="w-3 h-3 rotate-180 pointer-events-none" />
-            ) : (
-              <Square className="w-3.5 h-3.5 pointer-events-none" />
-            )}
-          </button>
-          <button
-            onMouseDown={handleClose}
-            className="h-[60px] w-14 flex items-center justify-center text-slate-400 hover:bg-red-500 hover:text-white transition-colors"
-          >
-            <X className="w-4 h-4 pointer-events-none" />
-          </button>
-        </div>
+        {/* Window Controls - Hidden on macOS as we use native ones */}
+        {!isMac && (
+          <div className="flex items-center h-full" onMouseDown={(e) => e.stopPropagation()}>
+            <button
+              onMouseDown={handleMinimize}
+              className="h-[60px] w-14 flex items-center justify-center text-slate-400 hover:bg-white/5 hover:text-white transition-colors"
+            >
+              <Minus className="w-3.5 h-3.5 pointer-events-none" />
+            </button>
+            <button
+              onMouseDown={handleMaximize}
+              className="h-[60px] w-14 flex items-center justify-center text-slate-400 hover:bg-white/5 hover:text-white transition-colors"
+            >
+              {isMaximized ? (
+                <Copy className="w-3 h-3 rotate-180 pointer-events-none" />
+              ) : (
+                <Square className="w-3.5 h-3.5 pointer-events-none" />
+              )}
+            </button>
+            <button
+              onMouseDown={handleClose}
+              className="h-[60px] w-14 flex items-center justify-center text-slate-400 hover:bg-red-500 hover:text-white transition-colors"
+            >
+              <X className="w-4 h-4 pointer-events-none" />
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

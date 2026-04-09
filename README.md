@@ -62,15 +62,11 @@ Installers will be located in: `src-tauri/target/release/bundle/`
 If you encounter the error: **"RipTune is damaged and can't be opened"** when launching the app, this is due to macOS Gatekeeper security as the app is currently unsigned.
 
 **Solution:**
-1. Open the **RipTune DMG** installer.
-2. Read the **instructions.txt** file included in the disk image.
-3. Move `RipTune.app` to your `/Applications` folder.
-4. Double-click the **Fix RipTune.app** utility (included in the DMG) to authorize the application.
-
-*Manual alternative (Terminal):*
-```bash
-sudo xattr -cr /Applications/RipTune.app
-```
+1. Move `RipTune.app` to your `/Applications` folder.
+2. Open a terminal and run the following command:
+   ```bash
+   sudo xattr -c /Applications/RipTune.app
+   ```
 
 ### 🛠️ Tech Stack
 - **Frontend**: React 19, TypeScript, Tailwind CSS, Lucide Icons.

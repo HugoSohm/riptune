@@ -1,5 +1,14 @@
 # RipTune Changelog
 
+## 0.2.1 (2026-04-09)
+
+### 🎨 Native macOS Aesthetics & CI/CD Restoration
+- **Improve TitleBar**: Implemented a native macOS `NSToolbar` workaround to perfectly center traffic light buttons within the 60px header.
+- **Precision UI Alignment**: Fine-tuned vertical positioning of system controls for a professional, integrated look.
+- **Restored Linux Packages**: Re-enabled `.deb` and `.rpm` generation in the release workflow.
+- **Expanded Windows Support**: Added **Windows ARM64** to the automated build matrix for dual-architecture coverage.
+- **Workflow Cleanup**: Silenced compiler warnings and optimized build steps for a cleaner, faster release process.
+
 ## 0.2.0 (2026-04-09)
 
 ### 🚀 Official Major Release & Stability
