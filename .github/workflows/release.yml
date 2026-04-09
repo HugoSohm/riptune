@@ -63,7 +63,7 @@ jobs:
           fi
 
   build:
-    name: "Build ${{ matrix.platform == 'ubuntu-22.04' && 'Linux' || matrix.platform == 'windows-latest' && 'Windows' || format('macOS ({0})', matrix.arch) }}"
+    name: "Build ${{ matrix.os_name }}"
     needs: check-version
     if: needs.check-version.outputs.should_release == 'true'
     strategy:
@@ -72,15 +72,19 @@ jobs:
         include:
           - platform: macos-latest
             arch: aarch64
+            os_name: "macOS (Apple Silicon)"
             args: "--target aarch64-apple-darwin --bundles app"
           - platform: macos-latest
             arch: x64
+            os_name: "macOS (Intel)"
             args: "--target x86_64-apple-darwin --bundles app"
           - platform: ubuntu-22.04
             arch: x64
+            os_name: "Linux"
             args: ""
           - platform: windows-latest
             arch: x64
+            os_name: "Windows"
             args: ""
 
     runs-on: ${{ matrix.platform }}
