@@ -46,19 +46,16 @@ FIXER_ICON="$SCRIPT_DIR/fix-riptune.icns"
 # Check for app in common locations (native vs cross-compiled)
 if [ -d "$ROOT_DIR/src-tauri/target/$TARGET_DIR/release/bundle/macos/${APP_NAME}.app" ]; then
     MACOS_APP="$ROOT_DIR/src-tauri/target/$TARGET_DIR/release/bundle/macos/${APP_NAME}.app"
-    BUNDLE_DMG_SCRIPT="$ROOT_DIR/src-tauri/target/$TARGET_DIR/release/bundle/dmg/bundle_dmg.sh"
 else
     MACOS_APP="$ROOT_DIR/src-tauri/target/release/bundle/macos/${APP_NAME}.app"
-    BUNDLE_DMG_SCRIPT="$ROOT_DIR/src-tauri/target/release/bundle/dmg/bundle_dmg.sh"
 fi
 
-echo "--- Preparing custom macOS installer ---"
+echo "--- Preparing Pro macOS installer (${ARCH_NAME}) ---"
 
 # 1. Verify main application
 if [ ! -d "$MACOS_APP" ]; then
-    echo "Error: ${APP_NAME}.app not found in target/release/bundle/macos/."
-    echo "Running 'npm run build'..."
-    npm run build
+    echo "Error: ${APP_NAME}.app not found in expected target location: $MACOS_APP"
+    exit 1
 fi
 
 # Apply the native icon to the already compiled RipTune application
@@ -70,44 +67,82 @@ touch "$MACOS_APP"
 echo "Compiling repair script..."
 rm -rf "$FIXER_APP"
 osacompile -o "$FIXER_APP" "$FIXER_SRC"
-
-# Apply custom icon to Fixer utility
-echo "Applying custom icon to Fixer..."
 cp "$FIXER_ICON" "$FIXER_APP/Contents/Resources/applet.icns"
-# Force macOS to refresh the icon
 touch "$FIXER_APP"
 
 # 3. Create staging directory
 echo "Creating staging folder..."
 rm -rf "$STAGING_DIR"
 mkdir -p "$STAGING_DIR"
-
-# Copy files to DMG staging area
 cp -R "$MACOS_APP" "$STAGING_DIR/"
 cp -R "$FIXER_APP" "$STAGING_DIR/"
+cp "$INSTRUCTIONS_FILE" "$STAGING_DIR/instructions.txt"
 
-# 4. Create DMG
-echo "Generating DMG..."
+# 4. Generate DMG logic (Hand-crafted equivalent of Tauri's bundle_dmg.sh)
+echo "Generating Pro DMG..."
 mkdir -p "$OUTPUT_DIR"
 rm -f "$OUTPUT_DMG"
 
-# Call Tauri's DMG script to generate the DMG with a specific layout
-"$BUNDLE_DMG_SCRIPT" \
-    --volname "$VOLUME_NAME" \
-    --volicon "$ROOT_DIR/src-tauri/icons/icon.icns" \
-    --background "$BACKGROUND" \
-    --window-pos 200 120 \
-    --window-size 800 625 \
-    --icon-size 80 \
-    --icon "${APP_NAME}.app" 200 250 \
-    --app-drop-link 600 250 \
-    --icon "Fix RipTune.app" 475 110 \
-    --hide-extension "Fix RipTune.app" \
-    --add-file "instructions.txt" "$INSTRUCTIONS_FILE" 325 110 \
-    "$OUTPUT_DMG" \
-    "$STAGING_DIR"
+# Create a temporary writable DMG
+TEMP_DMG="${OUTPUT_DMG}.temp.dmg"
+hdiutil create -size 500m -fs HFS+ -volname "$VOLUME_NAME" "$TEMP_DMG"
+
+# Mount it
+MOUNT_DIR="/Volumes/$VOLUME_NAME"
+# Unmount if already mounted
+hdiutil detach "$MOUNT_DIR" 2>/dev/null || true
+hdiutil attach "$TEMP_DMG"
+
+# Copy files to the mounted image
+cp -R "$STAGING_DIR"/* "$MOUNT_DIR/"
+# Link to Applications
+ln -s /Applications "$MOUNT_DIR/Applications"
+
+# Set Background
+mkdir "$MOUNT_DIR/.background"
+cp "$BACKGROUND" "$MOUNT_DIR/.background/background.png"
+
+# Use AppleScript to set layout (match Tauri's bundle_dmg.sh logic)
+echo "Setting DMG visuals (Icons & Background)..."
+osascript <<EOF
+tell application "Finder"
+    tell disk "$VOLUME_NAME"
+        open
+        set theView to container window
+        set current view of theView to icon view
+        set toolbar visible of theView to false
+        set statusbar visible of theView to false
+        set items_pos to {200, 120, 1000, 745}
+        set bounds of theView to items_pos
+        
+        set theIconViewOpts to icon view options of theView
+        set icon size of theIconViewOpts to 85
+        set arrangement of theIconViewOpts to not arranged
+        set background picture of theIconViewOpts to file ".background:background.png"
+        
+        -- Matching your original layout
+        set position of item "${APP_NAME}.app" of theView to {200, 250}
+        set position of item "Applications" of theView to {600, 250}
+        set position of item "Fix RipTune.app" of theView to {475, 110}
+        set position of item "instructions.txt" of theView to {325, 110}
+        
+        update (items of theView)
+        -- Give it a moment to save .DS_Store
+        delay 2
+        close
+    end tell
+end tell
+EOF
+
+# Unmount
+hdiutil detach "$MOUNT_DIR"
+
+# Convert to compressed image
+hdiutil convert "$TEMP_DMG" -format UDZO -o "$OUTPUT_DMG"
+rm "$TEMP_DMG"
 
 echo "---"
-echo "Success! The DMG has been created here: $OUTPUT_DMG"
+echo "Success! The Pro DMG has been created here: $OUTPUT_DMG"
 echo "Cleaning up..."
 rm -rf "$STAGING_DIR"
+rm -rf "$FIXER_APP"

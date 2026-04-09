@@ -72,10 +72,10 @@ jobs:
         include:
           - platform: macos-latest
             arch: aarch64
-            args: "--target aarch64-apple-darwin"
+            args: "--target aarch64-apple-darwin --bundles app"
           - platform: macos-latest
             arch: x64
-            args: "--target x86_64-apple-darwin"
+            args: "--target x86_64-apple-darwin --bundles app"
           - platform: ubuntu-22.04
             arch: x64
             args: ""
@@ -97,6 +97,12 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.platform == 'macos-latest' && (matrix.arch == 'x64' && 'x86_64-apple-darwin' || 'aarch64-apple-darwin') || '' }}
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          # The key includes the platform and arch to avoid cache pollution
+          key: ${{ matrix.platform }}-${{ matrix.arch }}
 
       - name: install dependencies (ubuntu only)
         if: matrix.platform == 'ubuntu-22.04'
