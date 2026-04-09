@@ -139,13 +139,11 @@ jobs:
           ARCH_OVERRIDE="${{ matrix.arch }}" ./scripts/macos/build.sh
           
           # 2. Re-sign the final custom DMG for the updater
-          # We need the Tauri signer to sign the final DMG we just created
-          echo "${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}" > ./tauri.key
+          # We pass the key content directly to avoid file path interpretation issues
           DMG_FILE=$(ls dist/RipTune_${VERSION}_*.dmg | head -n 1)
           
           # Sign using tauri-cli
-          npx tauri signer sign -k ./tauri.key "$DMG_FILE" --password "${{ secrets.TAURI_SIGNING_PASSWORD }}" > "${DMG_FILE}.sig"
-          rm ./tauri.key
+          npx tauri signer sign -k "${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}" "$DMG_FILE" --password "${{ secrets.TAURI_SIGNING_PASSWORD }}" > "${DMG_FILE}.sig"
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
