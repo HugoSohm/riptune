@@ -10,9 +10,12 @@ env:
 
 jobs:
   check-version:
+    name: "Check Version"
     runs-on: ubuntu-latest
     outputs:
       should_release: ${{ steps.check.outputs.should_release }}
+      version: ${{ steps.check.outputs.version }}
+      body: ${{ steps.check.outputs.body }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -23,31 +26,63 @@ jobs:
         with:
           node-version: 24
 
-      - name: Check if version is new
+      - name: Check version and extract changelog
         id: check
         shell: bash
         run: |
           VERSION=$(node -e "console.log(require('./package.json').version)")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          
           if git rev-parse "$VERSION" >/dev/null 2>&1; then
             echo "Version $VERSION already exists. Skipping release."
             echo "should_release=false" >> $GITHUB_OUTPUT
           else
             echo "Version $VERSION is new. Proceeding with release."
             echo "should_release=true" >> $GITHUB_OUTPUT
+            
+            # Extract changelog
+            node -e "
+              const fs = require('fs');
+              const version = '$VERSION';
+              const content = fs.readFileSync('Changelog.md', 'utf8').split('\n');
+              const startIdx = content.findIndex(l => l.startsWith('## ' + version));
+              if (startIdx === -1) {
+                fs.writeFileSync('extracted_changelog.txt', '### Version ' + version + '\n\nInitial Release');
+                process.exit(0);
+              }
+              const nextIdx = content.slice(startIdx + 1).findIndex(l => l.startsWith('## '));
+              const body = content.slice(startIdx + 1, nextIdx === -1 ? undefined : startIdx + 1 + nextIdx).join('\n').trim();
+              fs.writeFileSync('extracted_changelog.txt', body);
+            "
+            
+            DELIMITER=$(dd if=/dev/urandom bs=15 count=1 2>/dev/null | base64)
+            echo "body<<$DELIMITER" >> $GITHUB_OUTPUT
+            cat extracted_changelog.txt >> $GITHUB_OUTPUT
+            echo "" >> $GITHUB_OUTPUT
+            echo "$DELIMITER" >> $GITHUB_OUTPUT
           fi
 
-  publish-tauri:
+  build:
+    name: "Build ${{ matrix.platform == 'ubuntu-22.04' && 'Linux' || matrix.platform == 'windows-latest' && 'Windows' || format('macOS ({0})', matrix.arch) }}"
     needs: check-version
     if: needs.check-version.outputs.should_release == 'true'
-    permissions:
-      contents: write
     strategy:
       fail-fast: false
       matrix:
-        platform: [macos-13, macos-14, ubuntu-22.04, windows-latest]
+        include:
+          - platform: macos-latest
+            arch: aarch64
+            args: "--target aarch64-apple-darwin"
+          - platform: macos-latest
+            arch: x64
+            args: "--target x86_64-apple-darwin"
+          - platform: ubuntu-22.04
+            arch: x64
+            args: ""
+          - platform: windows-latest
+            arch: x64
+            args: ""
 
-    outputs:
-      version: ${{ steps.changelog.outputs.version }}
     runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v4
@@ -60,6 +95,8 @@ jobs:
 
       - name: install Rust stable
         uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.platform == 'macos-latest' && (matrix.arch == 'x64' && 'x86_64-apple-darwin' || 'aarch64-apple-darwin') || '' }}
 
       - name: install dependencies (ubuntu only)
         if: matrix.platform == 'ubuntu-22.04'
@@ -78,34 +115,6 @@ jobs:
       - name: install frontend dependencies
         run: npm install
 
-      - name: get version and extract changelog
-        id: changelog
-        shell: bash
-        run: |
-          VERSION=$(node -p "require('./package.json').version")
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          
-          node -e "
-            const fs = require('fs');
-            const version = '$VERSION';
-            const content = fs.readFileSync('Changelog.md', 'utf8').split('\n');
-            const startIdx = content.findIndex(l => l.startsWith('## ' + version));
-            if (startIdx === -1) {
-              fs.writeFileSync('extracted_changelog.txt', '### Version ' + version + '\n\nInitial Release');
-              process.exit(0);
-            }
-            const nextIdx = content.slice(startIdx + 1).findIndex(l => l.startsWith('## '));
-            const body = content.slice(startIdx + 1, nextIdx === -1 ? undefined : startIdx + 1 + nextIdx).join('\n').trim();
-            fs.writeFileSync('extracted_changelog.txt', body);
-          "
-          
-          # Use a unique delimiter to handle multiline output safely
-          DELIMITER=$(dd if=/dev/urandom bs=15 count=1 2>/dev/null | base64)
-          echo "body<<$DELIMITER" >> $GITHUB_OUTPUT
-          cat extracted_changelog.txt >> $GITHUB_OUTPUT
-          echo "" >> $GITHUB_OUTPUT
-          echo "$DELIMITER" >> $GITHUB_OUTPUT
-
       - name: build and bundle
         id: tauri_build
         uses: tauri-apps/tauri-action@v0
@@ -116,86 +125,99 @@ jobs:
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
           APTABASE_API_KEY: ${{ secrets.APTABASE_API_KEY }}
         with:
-          tagName: __VERSION__
-          releaseName: "RipTune __VERSION__"
-          releaseBody: ${{ steps.changelog.outputs.body }}
-          releaseDraft: true
-          prerelease: false
+          # Note: No tagName means it only builds without creating a release
+          args: ${{ matrix.args }}
 
       - name: Package macOS DMG
-        if: startsWith(matrix.platform, 'macos-')
+        if: matrix.platform == 'macos-latest'
         shell: bash
         run: |
-          VERSION="${{ steps.changelog.outputs.version }}"
+          VERSION="${{ needs.check-version.outputs.version }}"
           
-          # Run the custom build script
+          # 1. Run the custom build script
           chmod +x scripts/macos/build.sh
-          ./scripts/macos/build.sh
+          ARCH_OVERRIDE="${{ matrix.arch }}" ./scripts/macos/build.sh
           
-          # Find the generated DMG (it will be named RipTune_VERSION_ARCH.dmg)
-          FULL_DMG_PATH=$(ls dist/RipTune_${VERSION}_*.dmg | head -n 1)
-          DMG_NAME=$(basename "$FULL_DMG_PATH")
-          cp "$FULL_DMG_PATH" .
+          # 2. Re-sign the final custom DMG for the updater
+          # We need the Tauri signer to sign the final DMG we just created
+          echo "${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}" > ./tauri.key
+          DMG_FILE=$(ls dist/RipTune_${VERSION}_*.dmg | head -n 1)
           
-          # Clean release: delete the default .dmg and .app.tar.gz created by Tauri
-          # so we only offer this complete, pro custom DMG
-          ARCH=$(uname -m)
-          if [ "$ARCH" = "arm64" ]; then CUR_ARCH="aarch64"; else CUR_ARCH="x64"; fi
-          gh release delete-asset $VERSION RipTune_${VERSION}_${CUR_ARCH}.dmg --yes || true
-          gh release delete-asset $VERSION RipTune_${VERSION}_${CUR_ARCH}.app.tar.gz --yes || true
-          
-          # Upload final DMG
-          gh release upload $VERSION $DMG_NAME --clobber
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Sign using tauri-cli
+          npx tauri signer sign -k ./tauri.key "$DMG_FILE" --password "${{ secrets.TAURI_SIGNING_PASSWORD }}" > "${DMG_FILE}.sig"
+          rm ./tauri.key
 
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: artifacts-${{ matrix.platform }}-${{ matrix.arch }}
+          path: |
+            src-tauri/target/release/bundle/nsis/*.exe
+            src-tauri/target/release/bundle/nsis/*.exe.sig
+            src-tauri/target/release/bundle/appimage/*.AppImage
+            src-tauri/target/release/bundle/appimage/*.AppImage.sig
+            src-tauri/target/x86_64-apple-darwin/release/bundle/nsis/*.exe
+            src-tauri/target/x86_64-apple-darwin/release/bundle/nsis/*.exe.sig
+            dist/*.dmg
+            dist/*.dmg.sig
 
-  finalize-release:
-    needs: publish-tauri
+  publish:
+    name: "Publish Release"
+    needs: [check-version, build]
+    runs-on: ubuntu-latest
     permissions:
       contents: write
-    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Make release public
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./all-artifacts
+          pattern: artifacts-*
+          merge-multiple: true
+
+      - name: List downloaded files (Debug)
+        run: ls -R ./all-artifacts
+
+      - name: Create Release
+        id: create_release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release edit ${{ needs.publish-tauri.outputs.version }} --draft=false
+          VERSION="${{ needs.check-version.outputs.version }}"
+          gh release create $VERSION \
+            --title "RipTune $VERSION" \
+            --notes "${{ needs.check-version.outputs.body }}" \
+            --draft
 
-      - name: Update latest tag
+      - name: Upload Assets
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git fetch --tags
-          git tag -f latest ${{ needs.publish-tauri.outputs.version }}
-          git push -f origin latest -f
+          VERSION="${{ needs.check-version.outputs.version }}"
+          # Find all binaries and signatures in the merged artifacts folder
+          find ./all-artifacts -type f \( -name "*.dmg" -o -name "*.dmg.sig" -o -name "*.exe" -o -name "*.exe.sig" -o -name "*.AppImage" -o -name "*.AppImage.sig" \) -exec gh release upload $VERSION {} --clobber \;
 
       - name: Generate and upload latest.json
         shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          VERSION="${{ needs.publish-tauri.outputs.version }}"
+          VERSION="${{ needs.check-version.outputs.version }}"
           DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
           
-          # Get all assets links from the release
           ASSETS=$(gh release view $VERSION --json assets --jq '.assets')
           
-          # Find specific assets for each platform
           WIN_URL=$(echo "$ASSETS" | jq -r '.[] | select(.name | endswith(".exe")) | .url' | head -n 1)
           MAC_X64_URL=$(echo "$ASSETS" | jq -r '.[] | select(.name | endswith("_x64.dmg")) | .url' | head -n 1)
           MAC_ARM_URL=$(echo "$ASSETS" | jq -r '.[] | select(.name | endswith("_aarch64.dmg")) | .url' | head -n 1)
           LINUX_URL=$(echo "$ASSETS" | jq -r '.[] | select(.name | endswith(".AppImage")) | .url' | head -n 1)
 
-          # Function to get signature content from .sig files
           get_sig() {
             local pattern=$1
             local sig_url=$(echo "$ASSETS" | jq -r ".[] | select(.name | contains(\"$pattern\") and endswith(\".sig\")) | .url" | head -n 1)
-            if [ "$sig_url" != "null" ] && [ -n "$sig_url" ]; then
-              curl -sL "$sig_url"
-            else
-              echo ""
-            fi
+            if [ "$sig_url" != "null" ] && [ -n "$sig_url" ]; then curl -sL "$sig_url"; else echo ""; fi
           }
 
           WIN_SIG=$(get_sig ".exe")
@@ -203,7 +225,6 @@ jobs:
           MAC_ARM_SIG=$(get_sig "_aarch64.dmg")
           LINUX_SIG=$(get_sig ".AppImage")
 
-          # Create the latest.json (v2 format)
           cat <<EOF > latest.json
           {
             "version": "$VERSION",
@@ -219,5 +240,21 @@ jobs:
           EOF
           
           gh release upload $VERSION latest.json --clobber
+
+      - name: Make release public
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${{ needs.check-version.outputs.version }}"
+          gh release edit $VERSION --draft=false
+
+      - name: Update latest tag
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${{ needs.check-version.outputs.version }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch --tags
+          git tag -f latest $VERSION
+          git push -f origin latest -f

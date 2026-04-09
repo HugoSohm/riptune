@@ -11,13 +11,27 @@ OUTPUT_DIR="$ROOT_DIR/dist"
 
 # Metadata extraction
 VERSION=$(node -p "require('$ROOT_DIR/package.json').version")
-ARCH=$(uname -m)
-if [ "$ARCH" = "arm64" ]; then
-    ARCH_NAME="aarch64"
-elif [ "$ARCH" = "x86_64" ]; then
-    ARCH_NAME="x64"
+
+# Allow overriding ARCH from environment (aarch64 or x64)
+if [ -n "$ARCH_OVERRIDE" ]; then
+    ARCH_NAME="$ARCH_OVERRIDE"
+    if [ "$ARCH_NAME" = "aarch64" ]; then 
+        TARGET_DIR="aarch64-apple-darwin"
+    else 
+        TARGET_DIR="x86_64-apple-darwin"
+    fi
 else
-    ARCH_NAME="$ARCH"
+    ARCH=$(uname -m)
+    if [ "$ARCH" = "arm64" ]; then
+        ARCH_NAME="aarch64"
+        TARGET_DIR="aarch64-apple-darwin"
+    elif [ "$ARCH" = "x86_64" ]; then
+        ARCH_NAME="x64"
+        TARGET_DIR="x86_64-apple-darwin"
+    else
+        ARCH_NAME="$ARCH"
+        TARGET_DIR="" # Fallback to native
+    fi
 fi
 
 OUTPUT_DMG="$OUTPUT_DIR/${APP_NAME}_${VERSION}_${ARCH_NAME}.dmg"
@@ -28,8 +42,15 @@ INSTRUCTIONS_FILE="$SCRIPT_DIR/instructions.txt"
 FIXER_APP="$SCRIPT_DIR/Fix RipTune.app"
 FIXER_SRC="$SCRIPT_DIR/fix-riptune.applescript"
 FIXER_ICON="$SCRIPT_DIR/fix-riptune.icns"
-MACOS_APP="$ROOT_DIR/src-tauri/target/release/bundle/macos/${APP_NAME}.app"
-BUNDLE_DMG_SCRIPT="$ROOT_DIR/src-tauri/target/release/bundle/dmg/bundle_dmg.sh"
+
+# Check for app in common locations (native vs cross-compiled)
+if [ -d "$ROOT_DIR/src-tauri/target/$TARGET_DIR/release/bundle/macos/${APP_NAME}.app" ]; then
+    MACOS_APP="$ROOT_DIR/src-tauri/target/$TARGET_DIR/release/bundle/macos/${APP_NAME}.app"
+    BUNDLE_DMG_SCRIPT="$ROOT_DIR/src-tauri/target/$TARGET_DIR/release/bundle/dmg/bundle_dmg.sh"
+else
+    MACOS_APP="$ROOT_DIR/src-tauri/target/release/bundle/macos/${APP_NAME}.app"
+    BUNDLE_DMG_SCRIPT="$ROOT_DIR/src-tauri/target/release/bundle/dmg/bundle_dmg.sh"
+fi
 
 echo "--- Preparing custom macOS installer ---"
 
