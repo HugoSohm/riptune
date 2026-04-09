@@ -19,38 +19,6 @@ pub fn run() {
             // Automatic update check on startup
             updater::setup_update_check(app.handle().clone());
 
-            #[cfg(target_os = "macos")]
-            #[allow(deprecated)]
-            {
-                use cocoa::base::{id, nil};
-                use objc::{msg_send, sel, sel_impl};
-
-                let window = app.get_webview_window("main").unwrap();
-                let ns_window = window.ns_window().unwrap() as id;
-
-                unsafe {
-                    use cocoa::foundation::{NSString, NSRect};
-                    
-                    let toolbar_class = objc::runtime::Class::get("NSToolbar").unwrap();
-                    let toolbar: id = msg_send![toolbar_class, alloc];
-                    let identifier = NSString::alloc(nil).init_str("main-toolbar");
-                    let toolbar: id = msg_send![toolbar, initWithIdentifier: identifier];
-                    let _: () = msg_send![ns_window, setToolbar: toolbar];
-
-                    // Décaler les boutons vers le bas (via le superview du bouton fermer)
-                    use cocoa::appkit::NSWindowButton;
-                    let close_button: id = msg_send![ns_window, standardWindowButton: NSWindowButton::NSWindowCloseButton];
-                    if close_button != nil {
-                        let container: id = msg_send![close_button, superview];
-                        if container != nil {
-                            let mut frame: NSRect = msg_send![container, frame];
-                            frame.origin.y -= 6.0; // On descend de 6px
-                            let _: () = msg_send![container, setFrame: frame];
-                        }
-                    }
-                }
-            }
-
             if let Some(monitor) = app.primary_monitor().ok().flatten() {
                 let size = monitor.size();
                 let scale_factor = monitor.scale_factor();

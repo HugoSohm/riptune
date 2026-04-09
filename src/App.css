@@ -2,13 +2,17 @@
 @tailwind components;
 @tailwind utilities;
 
-html, body {
-  background-color: transparent !important;
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  background-color: #0a0f1c !important;
   overflow: hidden;
 }
 
 /* Fix for smooth blurs on macOS */
-.blur-xl, .blur-2xl, .blur-3xl {
+.blur-xl,
+.blur-2xl,
+.blur-3xl {
   backface-visibility: hidden;
   transform: translateZ(0);
 }

@@ -35,8 +35,8 @@ function AppContent() {
 
   return (
     <div className="h-screen w-screen bg-[#0a0f1c] text-slate-100 font-sans selection:bg-purple-500/30 flex flex-col items-center overflow-hidden relative">
-      <TitleBar />
       <BackgroundOrbs />
+      <TitleBar />
 
       {/* Global Drag & Drop Overlay */}
       {dragActive && (
