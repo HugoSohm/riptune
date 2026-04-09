@@ -171,7 +171,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      workflows: write
     steps:
       - uses: actions/checkout@v4
 
@@ -254,13 +253,3 @@ jobs:
           VERSION="${{ needs.check-version.outputs.version }}"
           gh release edit $VERSION --draft=false
 
-      - name: Update latest tag
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          VERSION="${{ needs.check-version.outputs.version }}"
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git fetch --tags
-          git tag -f latest $VERSION
-          git push -f origin latest -f
