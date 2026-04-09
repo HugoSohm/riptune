@@ -225,7 +225,7 @@ jobs:
           WIN_SIG=$(get_sig ".exe")
           MAC_X64_SIG=$(get_sig "_x64.dmg")
           MAC_ARM_SIG=$(get_sig "_aarch64.dmg")
-          LINUX_SIG=$(get_sig(".AppImage"))
+          LINUX_SIG=$(get_sig ".AppImage")
 
           cat <<EOF > latest.json
           {
