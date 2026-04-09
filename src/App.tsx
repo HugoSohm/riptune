@@ -1,5 +1,4 @@
 import { useEffect } from "react";
-import { getCurrentWindow } from "@tauri-apps/api/window";
 import { UploadCloud } from "lucide-react";
 import TitleBar from "./components/TitleBar";
 import Home from "./pages/Home";
@@ -19,7 +18,6 @@ import { listen, UnlistenFn } from "@tauri-apps/api/event";
 function AppContent() {
   const { activeTab, dragActive, t, lang, setPlaylistProgress } = useApp();
   const { isValidDrag } = useDragDrop();
-  const appWindow = getCurrentWindow();
   useFullscreenShortcut();
 
   useEffect(() => {
@@ -33,7 +31,7 @@ function AppContent() {
     return () => {
       unlistenProgress.then((f) => f());
     };
-  }, [appWindow, setPlaylistProgress]);
+  }, [setPlaylistProgress]);
 
   return (
     <div className="h-screen w-screen bg-[#0a0f1c] text-slate-100 font-sans selection:bg-purple-500/30 flex flex-col items-center overflow-hidden relative">
