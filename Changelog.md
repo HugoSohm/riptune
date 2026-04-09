@@ -1,5 +1,13 @@
 # RipTune Changelog
 
+## 0.2.0 (2026-04-09)
+
+### 🚀 Official Major Release & Stability
+- **Stabilized Multi-Arch CI/CD**: Finalized the automated build system for all architectures (Intel & Apple Silicon).
+- **Production-Ready Installers**: Validated the custom DMG layouts and repair tools for end-users.
+- **Workflow Optimization**: Fully integrated Rust/NPM caching for high-speed releases.
+- **Final Packaging Polish**: Atomicity guaranteed for all future releases.
+
 ## 0.1.9 (2026-04-08)
 
 ### 💎 Pro macOS Installer & Dual-Arch CI
