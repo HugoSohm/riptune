@@ -69,25 +69,30 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        platform: [macos-latest-amd64, macos-latest-arm64, ubuntu-22.04, windows-latest]
         include:
-          - platform: macos-latest
+          - platform: macos-latest-arm64
+            real_platform: macos-latest
             arch: aarch64
             os_name: "macOS (Apple Silicon)"
             args: "--target aarch64-apple-darwin --bundles app"
-          - platform: macos-latest
+          - platform: macos-latest-amd64
+            real_platform: macos-latest
             arch: x64
             os_name: "macOS (Intel)"
             args: "--target x86_64-apple-darwin --bundles app"
           - platform: ubuntu-22.04
+            real_platform: ubuntu-22.04
             arch: x64
             os_name: "Linux"
             args: ""
           - platform: windows-latest
+            real_platform: windows-latest
             arch: x64
             os_name: "Windows"
             args: ""
 
-    runs-on: ${{ matrix.platform }}
+    runs-on: ${{ matrix.real_platform }}
     steps:
       - uses: actions/checkout@v4
 
@@ -100,26 +105,25 @@ jobs:
       - name: install Rust stable
         uses: dtolnay/rust-toolchain@stable
         with:
-          targets: ${{ matrix.platform == 'macos-latest' && (matrix.arch == 'x64' && 'x86_64-apple-darwin' || 'aarch64-apple-darwin') || '' }}
+          targets: ${{ matrix.real_platform == 'macos-latest' && (matrix.arch == 'x64' && 'x86_64-apple-darwin' || 'aarch64-apple-darwin') || '' }}
 
       - name: Rust cache
         uses: swatinem/rust-cache@v2
         with:
-          # The key includes the platform and arch to avoid cache pollution
-          key: ${{ matrix.platform }}-${{ matrix.arch }}
+          key: ${{ matrix.real_platform }}-${{ matrix.arch }}
 
       - name: install dependencies (ubuntu only)
-        if: matrix.platform == 'ubuntu-22.04'
+        if: matrix.real_platform == 'ubuntu-22.04'
         run: |
           sudo apt-get update
           sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libjavascriptcoregtk-4.1-dev libsoup-3.0-dev
 
       - name: setup bins (Windows)
-        if: matrix.platform == 'windows-latest'
+        if: matrix.real_platform == 'windows-latest'
         run: ./setup_bin.ps1
 
       - name: setup bins (Unix)
-        if: matrix.platform != 'windows-latest'
+        if: matrix.real_platform != 'windows-latest'
         run: chmod +x setup_bin.sh && ./setup_bin.sh
 
       - name: install frontend dependencies
@@ -135,24 +139,18 @@ jobs:
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
           APTABASE_API_KEY: ${{ secrets.APTABASE_API_KEY }}
         with:
-          # Note: No tagName means it only builds without creating a release
           args: ${{ matrix.args }}
 
       - name: Package macOS DMG
-        if: matrix.platform == 'macos-latest'
+        if: matrix.real_platform == 'macos-latest'
         shell: bash
         run: |
           VERSION="${{ needs.check-version.outputs.version }}"
-          
-          # 1. Run the custom build script
           chmod +x scripts/macos/build.sh
           ARCH_OVERRIDE="${{ matrix.arch }}" ./scripts/macos/build.sh
           
-          # 2. Re-sign the final custom DMG for the updater
-          # We pass the key content directly to avoid file path interpretation issues
+          # Re-sign the final custom DMG
           DMG_FILE=$(ls dist/RipTune_${VERSION}_*.dmg | head -n 1)
-          
-          # Sign using tauri-cli
           npx tauri signer sign -k "${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}" "$DMG_FILE" --password "${{ secrets.TAURI_SIGNING_PASSWORD }}" > "${DMG_FILE}.sig"
 
       - name: Upload Artifacts
@@ -185,9 +183,6 @@ jobs:
           pattern: artifacts-*
           merge-multiple: true
 
-      - name: List downloaded files (Debug)
-        run: ls -R ./all-artifacts
-
       - name: Create Release
         id: create_release
         env:
@@ -205,7 +200,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           VERSION="${{ needs.check-version.outputs.version }}"
-          # Find all binaries and signatures in the merged artifacts folder
           find ./all-artifacts -type f \( -name "*.dmg" -o -name "*.dmg.sig" -o -name "*.exe" -o -name "*.exe.sig" -o -name "*.AppImage" -o -name "*.AppImage.sig" \) -exec gh release upload $VERSION {} --clobber \;
 
       - name: Generate and upload latest.json
@@ -215,7 +209,6 @@ jobs:
         run: |
           VERSION="${{ needs.check-version.outputs.version }}"
           DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-          
           ASSETS=$(gh release view $VERSION --json assets --jq '.assets')
           
           WIN_URL=$(echo "$ASSETS" | jq -r '.[] | select(.name | endswith(".exe")) | .url' | head -n 1)
@@ -232,7 +225,7 @@ jobs:
           WIN_SIG=$(get_sig ".exe")
           MAC_X64_SIG=$(get_sig "_x64.dmg")
           MAC_ARM_SIG=$(get_sig "_aarch64.dmg")
-          LINUX_SIG=$(get_sig ".AppImage")
+          LINUX_SIG=$(get_sig(".AppImage"))
 
           cat <<EOF > latest.json
           {
@@ -256,4 +249,3 @@ jobs:
         run: |
           VERSION="${{ needs.check-version.outputs.version }}"
           gh release edit $VERSION --draft=false
-
