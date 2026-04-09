@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { UploadCloud } from "lucide-react";
 import TitleBar from "./components/TitleBar";
