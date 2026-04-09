@@ -133,7 +133,6 @@ jobs:
         id: tauri_build
         uses: tauri-apps/tauri-action@v0
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PASSWORD: ${{ secrets.TAURI_SIGNING_PASSWORD }}
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
@@ -249,3 +248,15 @@ jobs:
         run: |
           VERSION="${{ needs.check-version.outputs.version }}"
           gh release edit $VERSION --draft=false
+
+      - name: Update latest tag
+        continue-on-error: true # Prevents failure if workflow files are changed in the commit
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${{ needs.check-version.outputs.version }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch --tags
+          git tag -f latest $VERSION
+          git push -f origin latest -f
