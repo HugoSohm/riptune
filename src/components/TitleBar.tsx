@@ -8,7 +8,7 @@ import { useState, useEffect } from "react";
 
 export default function TitleBar() {
   const { activeTab, setActiveTab, setIsBugModalOpen, t } = useApp();
-  const { update, status, installUpdate } = useUpdater();
+  const { update, status, progress, errorMessage, installUpdate } = useUpdater();
   const appWindow = getCurrentWindow();
   const [version, setVersion] = useState<string>("");
   const [isMaximized, setIsMaximized] = useState(false);
@@ -68,7 +68,7 @@ export default function TitleBar() {
               <span className="text-sm font-bold tracking-tight text-white">RipTune</span>
               {version && (
                 <span className="px-1.5 py-0.5 bg-purple-500/20 text-purple-300 text-[9px] font-bold rounded-md border border-purple-500/30 leading-none">
-                  v{version}
+                   v{version}
                 </span>
               )}
             </div>
@@ -76,14 +76,17 @@ export default function TitleBar() {
           </div>
           
           {/* Update Button - Not Draggable */}
-          {status !== 'idle' && status !== 'checking' && status !== 'error' && (
+          {status !== 'idle' && status !== 'checking' && (
             <div className="ml-4">
               <button
-                onMouseDown={installUpdate}
+                onMouseDown={status === 'error' ? () => window.location.reload() : installUpdate}
                 disabled={status === 'downloading' || status === 'installing'}
+                title={errorMessage || undefined}
                 className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px] font-black tracking-wider uppercase transition-all duration-500 border group ${
                   status === 'available' 
                     ? 'bg-purple-600/20 border-purple-500/30 text-purple-300 hover:bg-purple-500 hover:text-white hover:border-purple-400 hover:shadow-[0_0_20px_rgba(168,85,247,0.4)] animate-pulse'
+                    : status === 'error'
+                    ? 'bg-red-500/20 border-red-500/30 text-red-300 hover:bg-red-500 hover:text-white'
                     : 'bg-emerald-500/20 border-emerald-500/30 text-emerald-300 cursor-wait'
                 }`}
               >
@@ -92,10 +95,19 @@ export default function TitleBar() {
                     <Sparkles className="w-3 h-3 group-hover:rotate-12 transition-transform" />
                     <span>Update to v{update?.version}</span>
                   </>
+                ) : status === 'error' ? (
+                  <>
+                    <Bug className="w-3 h-3" />
+                    <span>Update Failed - Click to retry</span>
+                  </>
                 ) : (
                   <>
                     <Loader2 className="w-3 h-3 animate-spin" />
-                    <span>{status === 'downloading' ? 'Downloading...' : 'Installing...'}</span>
+                    <span>
+                      {status === 'downloading' 
+                        ? progress > 0 ? `Downloading ${progress}%` : 'Downloading...' 
+                        : 'Installing...'}
+                    </span>
                   </>
                 )}
               </button>

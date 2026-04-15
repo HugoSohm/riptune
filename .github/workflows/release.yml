@@ -212,29 +212,50 @@ jobs:
           DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
           ASSETS=$(gh release view $VERSION --json assets --jq '.assets')
           
-          WIN_URL=$(echo "$ASSETS" | jq -r '.[] | select(.name | endswith(".exe")) | .url' | head -n 1)
+          # Improved asset selection to avoid arch mixup
+          WIN_X64_URL=$(echo "$ASSETS" | jq -r '.[] | select(.name | contains("_x64") and endswith(".exe")) | .url' | head -n 1)
+          # Fallback if _x64 is not specifically in the name but it's the only one or default
+          if [ -z "$WIN_X64_URL" ] || [ "$WIN_X64_URL" == "null" ]; then
+            WIN_X64_URL=$(echo "$ASSETS" | jq -r '.[] | select(.name | (contains("_arm64") | not) and endswith(".exe")) | .url' | head -n 1)
+          fi
+          
+          WIN_ARM64_URL=$(echo "$ASSETS" | jq -r '.[] | select(.name | contains("_arm64") and endswith(".exe")) | .url' | head -n 1)
           MAC_X64_URL=$(echo "$ASSETS" | jq -r '.[] | select(.name | endswith("_x64.dmg")) | .url' | head -n 1)
           MAC_ARM_URL=$(echo "$ASSETS" | jq -r '.[] | select(.name | endswith("_aarch64.dmg")) | .url' | head -n 1)
           LINUX_URL=$(echo "$ASSETS" | jq -r '.[] | select(.name | endswith(".AppImage")) | .url' | head -n 1)
 
           get_sig() {
             local pattern=$1
-            local sig_url=$(echo "$ASSETS" | jq -r ".[] | select(.name | contains(\"$pattern\") and endswith(\".sig\")) | .url" | head -n 1)
-            if [ "$sig_url" != "null" ] && [ -n "$sig_url" ]; then curl -sL "$sig_url"; else echo ""; fi
+            local exclude=$2
+            local sig_name=$(echo "$ASSETS" | jq -r ".[] | select(.name | contains(\"$pattern\") and (if \"$exclude\" != \"\" then contains(\"$exclude\") | not else true end) and endswith(\".sig\")) | .name" | head -n 1)
+            if [ "$sig_name" != "null" ] && [ -n "$sig_name" ]; then
+              # Use gh release download to get the file content safely (handles draft permissions)
+              gh release download $VERSION -p "$sig_name" -O -
+            else
+              echo ""
+            fi
           }
 
-          WIN_SIG=$(get_sig ".exe")
-          MAC_X64_SIG=$(get_sig "_x64.dmg")
-          MAC_ARM_SIG=$(get_sig "_aarch64.dmg")
-          LINUX_SIG=$(get_sig ".AppImage")
+          WIN_X64_SIG=$(get_sig "_x64" "_arm64")
+          # Fallback for Windows x64 sig
+          if [ -z "$WIN_X64_SIG" ]; then
+             WIN_X64_SIG=$(get_sig ".exe" "_arm64")
+          fi
+          
+          WIN_ARM64_SIG=$(get_sig "_arm64" "")
+          MAC_X64_SIG=$(get_sig "_x64.dmg" "")
+          MAC_ARM_SIG=$(get_sig "_aarch64.dmg" "")
+          LINUX_SIG=$(get_sig ".AppImage" "")
 
+          # JSON construction with correct arch mapping
           cat <<EOF > latest.json
           {
             "version": "$VERSION",
             "notes": "Version $VERSION release",
             "pub_date": "$DATE",
             "platforms": {
-              "windows-x86_64": { "url": "$WIN_URL", "signature": "$WIN_SIG" },
+              "windows-x86_64": { "url": "$WIN_X64_URL", "signature": "$WIN_X64_SIG" },
+              "windows-aarch64": { "url": "$WIN_ARM64_URL", "signature": "$WIN_ARM64_SIG" },
               "darwin-x86_64": { "url": "$MAC_X64_URL", "signature": "$MAC_X64_SIG" },
               "darwin-aarch64": { "url": "$MAC_ARM_URL", "signature": "$MAC_ARM_SIG" },
               "linux-x86_64": { "url": "$LINUX_URL", "signature": "$LINUX_SIG" }

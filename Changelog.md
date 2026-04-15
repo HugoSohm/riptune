@@ -1,5 +1,14 @@
 # RipTune Changelog
 
+## 0.2.3 (2026-04-15)
+
+### 🛠️ Critical Updater & Deployment Fixes
+- **Validated Update Manifest**: Fixed a major issue where `latest.json` was generated with empty signatures and wrong architecture URLs.
+- **Improved Windows Arch Support**: Corrected the release workflow to properly distinguish between **x64** and **ARM64** Windows binaries in the update manifest.
+- **Authenticated Signature Fetching**: Switched to GitHub CLI for cross-platform signature extraction, ensuring valid update verification even during draft releases.
+- **Robust Updater UI**: The application now displays real-time **download percentage** and provides a clear error state with a retry button if a signature check fails.
+- **Enhanced Diagnostics**: Integrated detailed frontend logging to the updater hook for faster troubleshooting of network or verification issues.
+
 ## 0.2.2 (2026-04-15)
 
 ### 💎 Ultra-Native macOS Experience & Smart Scaling

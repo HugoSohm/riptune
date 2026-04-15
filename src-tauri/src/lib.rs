@@ -32,6 +32,13 @@ pub fn run() {
                         .set_size(tauri::Size::Logical(tauri::LogicalSize { width, height }))
                         .ok();
                     window.center().ok();
+
+                    // Disable decorations on Windows to use the custom TitleBar
+                    #[cfg(any(target_os = "windows", target_os = "linux"))]
+                    {
+                        window.set_decorations(false).ok();
+                        window.set_shadow(true).ok();
+                    }
                 }
             }
             Ok(())
