@@ -3,23 +3,22 @@
   <h1>RipTune</h1>
   <p>Ultra-Fast Music Analyzer (BPM & Key) with Integrated YouTube Downloader.</p>
 
-  [![Tauri 2.0](https://img.shields.io/badge/Tauri-2.0-blue?logo=tauri)](https://tauri.app/)
-  [![React](https://img.shields.io/badge/React-19-blue?logo=react)](https://react.dev/)
-  [![Rust](https://img.shields.io/badge/Rust-Latest-orange?logo=rust)](https://www.rust-lang.org/)
-  [![Support on Ko-fi](https://img.shields.io/badge/Support%20on%20Ko--fi-F16061?logo=ko-fi&logoColor=white)](https://ko-fi.com/riptune)
+  [![Latest Release](https://img.shields.io/github/v/release/HugoSohm/rip-tune?style=flat-square&color=A855F7)](https://github.com/HugoSohm/rip-tune/releases/latest)
+  [![Tauri 2.0](https://img.shields.io/badge/Tauri-2.0-2496ED?style=flat-square&logo=tauri&logoColor=white)](https://tauri.app/)
+  [![React](https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=black)](https://react.dev/)
+  [![Rust](https://img.shields.io/badge/Rust-Latest-E34C26?style=flat-square&logo=rust&logoColor=white)](https://www.rust-lang.org/)
+  [![Support on Ko-fi](https://img.shields.io/badge/Support%20on%20Ko--fi-F16061?style=flat-square&logo=ko-fi&logoColor=white)](https://ko-fi.com/riptune)
 </div>
 
 ---
 
-**RipTune** is a modern Desktop application designed for anyone recording on a DAW with a "typebeat". It instantly finds the **BPM** and **Key** you need to perfectly set up your Auto-Tune and DAW session in a flash.
+**RipTune** is a modern Desktop application designed for **DJs and Music Producers**. Whether you're mixing live or recording on a DAW with a "typebeat", it instantly finds the **BPM** and **Key** you need to perfectly set up your session in a flash.
 
 ### ✨ Features
 
 - 🚀 **Flash Analysis**: Thanks to partial extraction via FFmpeg, BPM & Key analysis takes less than 3 seconds.
+- 📥 **YouTube & Playlist Downloader**: Download individual tracks or **entire YouTube playlists** directly to WAV/MP3.
 - 🎵 **Pro Quality**: High-precision acoustic analysis powered by the Essentia engine (UPF).
-- 📥 **YouTube Downloader**: Download your favorite tracks directly to WAV for high-quality audio.
-- 🏷️ **Smart Metadata**: Automatic retrieval of title and artist information.
-- 🛠️ **Robust Filenames**: Fully compatible with complex filenames (accents, emojis, symbols) on Windows.
 - 🔒 **100% Local Processing**: All downloads, BPM calculations, and key extractions are computed entirely on your machine. No cloud APIs are used for core features (we only use Resend for bug reporting and Aptabase for anonymous telemetry).
 
 ---

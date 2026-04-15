@@ -150,9 +150,14 @@ jobs:
           chmod +x scripts/macos/build.sh
           ARCH_OVERRIDE="${{ matrix.arch }}" ./scripts/macos/build.sh
           
-          # Re-sign the final custom DMG
+          # Re-sign the final custom DMG and extract ONLY the base64 signature
           DMG_FILE=$(ls dist/RipTune_${VERSION}_*.dmg | head -n 1)
-          npx tauri signer sign -k "${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}" "$DMG_FILE" --password "${{ secrets.TAURI_SIGNING_PASSWORD }}" > "${DMG_FILE}.sig"
+          # We run the signer, find the line after "Public signature:", and take it. 
+          # Or better: most tauri signers output the signature as the very last lines of the block.
+          # Let's use a more robust way to get just the base64 string.
+          npx tauri signer sign -k "${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}" "$DMG_FILE" --password "${{ secrets.TAURI_SIGNING_PASSWORD }}" > raw_output.txt
+          # The signature is usually the block of text after "Public signature:"
+          sed -n '/Public signature:/,$p' raw_output.txt | sed '1d' | sed '/Make sure to/d' | tr -d '\n' | tr -d '\r' > "${DMG_FILE}.sig"
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v7
@@ -230,7 +235,14 @@ jobs:
             local sig_name=$(echo "$ASSETS" | jq -r ".[] | select(.name | contains(\"$pattern\") and (if \"$exclude\" != \"\" then contains(\"$exclude\") | not else true end) and endswith(\".sig\")) | .name" | head -n 1)
             if [ "$sig_name" != "null" ] && [ -n "$sig_name" ]; then
               # Use gh release download to get the file content safely (handles draft permissions)
-              gh release download $VERSION -p "$sig_name" -O -
+              # Also ensure we only take the base64 part if there's any preamble, and remove all newlines
+              local raw_sig=$(gh release download $VERSION -p "$sig_name" -O -)
+              # If it contains "Public signature:", extract only what's after it. Otherwise take everything.
+              if echo "$raw_sig" | grep -q "Public signature:"; then
+                echo "$raw_sig" | sed -n '/Public signature:/,$p' | sed '1d' | sed '/Make sure to/d' | tr -d '\n' | tr -d '\r'
+              else
+                echo "$raw_sig" | tr -d '\n' | tr -d '\r'
+              fi
             else
               echo ""
             fi
