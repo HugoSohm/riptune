@@ -1,5 +1,15 @@
 # RipTune Changelog
 
+## 0.2.2 (2026-04-15)
+
+### 💎 Ultra-Native macOS Experience & Smart Scaling
+- **Native Traffic Lights**: Switched to Tauri's native `trafficLightPosition` and `Overlay` title bar style for a 100% authentic macOS window experience.
+- **Improved Responsiveness**: All TitleBar interactions now use `onMouseDown` to bypass macOS system focus delays, making the UI feel instantaneous.
+- **Dynamic Window Scaling**: The application now automatically calculates the optimal window size based on the user's monitor resolution (70% width, 80% height) and centers itself on startup.
+- **Clean Architecture**: Simplified the codebase by removing custom CSS traffic light logic and deprecated macOS repair scripts.
+- **System Integration**: Enabled `macos-private-api` and refined window configurations to ensure perfect rounded corners and native system shadows.
+- **CI/CD Refinement**: Updated the release workflow for better stability and leaner artifact packaging.
+
 ## 0.2.1 (2026-04-09)
 
 ### 🎨 Native macOS Aesthetics & CI/CD Restoration
