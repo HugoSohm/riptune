@@ -8,7 +8,7 @@ import { Lang } from "../i18n";
 export default function Settings() {
   const {
     customDir, setCustomDir, defaultDir, cookies, setCookies,
-    keepFilesOnHistoryDelete, setKeepFilesOnHistoryDelete,
+    deleteFilesOnHistoryDelete, setDeleteFilesOnHistoryDelete,
     lang, setLang, t
   } = useApp();
 
@@ -67,7 +67,7 @@ export default function Settings() {
               >
                 {customDir || defaultDir || "Fetching path..."}
               </button>
-              <div className="flex items-center gap-1 pr-2">
+              <div className="flex items-center gap-1 pr-1">
                 {customDir && (
                   <button onClick={() => setCustomDir(null)} className="p-2 text-slate-500 hover:text-red-400 transition-colors rounded-lg hover:bg-white/5">
                     <X className="w-4 h-4" />
@@ -88,12 +88,12 @@ export default function Settings() {
           </h3>
           <div className="flex items-center justify-between gap-4 py-2">
             <div className="flex-1">
-              <p className="text-white font-medium mb-1">{t.settings.keepFiles}</p>
-              <p className="text-slate-400 text-xs text-pretty">{t.settings.keepFilesDesc}</p>
+              <p className="text-white font-medium mb-1">{t.settings.deleteFiles}</p>
+              <p className="text-slate-400 text-xs text-pretty">{t.settings.deleteFilesDesc}</p>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" className="sr-only peer" checked={keepFilesOnHistoryDelete} onChange={(e) => setKeepFilesOnHistoryDelete(e.target.checked)} />
-              <div className="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600 shadow-inner"></div>
+              <input type="checkbox" className="sr-only peer" checked={deleteFilesOnHistoryDelete} onChange={(e) => setDeleteFilesOnHistoryDelete(e.target.checked)} />
+              <div className="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-400 shadow-inner"></div>
             </label>
           </div>
         </div>
@@ -104,7 +104,7 @@ export default function Settings() {
             <UploadCloud className="w-5 h-5 text-amber-400" />
             {t.settings.cookies}
           </h3>
-          <p 
+          <p
             className="text-slate-400 text-sm mb-4"
             dangerouslySetInnerHTML={{ __html: t.settings.cookiesDesc }}
           />

@@ -26,6 +26,7 @@ export const en = {
     entry: "Entry",
     empty: "History is empty.",
     emptyDesc: "Download or rip a track to see it here.",
+    deleteAll: "Clear history",
     tableTrack: "Track details",
     tableDate: "Date & time",
     tableBpm: "BPM",
@@ -38,6 +39,7 @@ export const en = {
     },
     tooltips: {
       analyze: "Analyze BPM & key",
+      download: "Download audio file",
       open: "Open file in Explorer",
       delete: "Delete from history"
     }
@@ -51,8 +53,8 @@ export const en = {
     cookies: "YouTube cookies",
     cookiesDesc: "Paste your YouTube cookies here <i class='italic'>(JSON format from EditThisCookie or Netscape format)</i> to bypass rate limits or access private playlists.",
     cleanup: "History & cleanup",
-    keepFiles: "Keep physical files",
-    keepFilesDesc: "When active, the original audio files will NOT be deleted when you remove tracks from your history.",
+    deleteFiles: "Delete physical files",
+    deleteFilesDesc: "When active, the original audio files will be permanently deleted from your computer when you remove tracks from your history.",
     language: "Language",
     about: "About RipTune",
     aboutDesc: "Open source project developed by @HugoSohm. Built with yt-dlp, Tauri, React, and Essentia Engine https://github.com/HugoSohm/rip-tune"
@@ -67,9 +69,14 @@ export const en = {
     disabledDesc: "The physical audio file will NOT be deleted. Only the entry is removed from RipTune.",
     manageSettings: "Manage this in Settings",
     confirm: "Delete",
+    confirmAll: "Clear All",
     cancel: "Cancel",
     warning: "Warning",
-    fileWillBeDeleted: "The original audio file will be permanently deleted from your computer if found."
+    fileWillBeDeleted: "The original audio file will be permanently deleted from your computer if found.",
+    titleAll: "Clear All History?",
+    descriptionAll: "Are you sure you want to permanently clear your entire history? This action cannot be undone.",
+    confirmWord: "DELETE",
+    typeWordToConfirm: "Type [WORD] to confirm",
   },
   bugModal: {
     title: "Report a bug",
@@ -105,6 +112,7 @@ export const en = {
     errorDownload: "Download error",
     cancelling: "Cancelling download",
     trackRemoved: "Track removed from history",
+    historyCleared: "History cleared",
     notif: "Notification",
     task: "Task",
     success: "Success",

@@ -1,5 +1,21 @@
 # RipTune Changelog
 
+## 0.2.4 (2026-04-16)
+
+### 🎨 UI Polish & Robust File Management
+- **Smart Metadata Embedding**: RipTune now automatically writes the Title and Artist (Channel Name) directly into the audio file's ID3 tags using FFmpeg, compatible with all major music players.
+- **Clear History Feature**: Added a "Clear History" global action with a secure confirmation modal, allowing for instant database management.
+- **Visual Stability in History**: Standardized action icon sizes and spacing in the History table to prevent layout shifts during hover and interaction.
+- **Ergonomic Tooltip Management**: Smarter tooltip logic that automatically silences popups when select menus or modals are active, reducing UI noise.
+- **Optimized History UX**: Refined table hover effects with rectangular middle-rows and rounded-corner last-row logic for a cleaner visual hierarchy.
+- **Premium Badge Redesign**: Restored high-vibrancy BPM and Key badges with subtle `bg-gradient-to-br` "fades" and high-contrast `font-black` typography, matching the original design.
+- **Rich Status Indicators**: Reintroduced context-specific status icons (Analysis, Download, Full) with specialized tooltips and distinct color profiles.
+- **UX Boundaries**: Homepage Title and Subtitle are now non-selectable to prevent accidental highlighting, while BPM and Key data are explicitly selectable for easy copying.
+- **"Beautiful" Filenames**: Removed aggressive sanitization; RipTune now preserves original video names including spaces (instead of underscores), parentheses, and commas.
+- **Robust Path Resolution**: Re-engineered the `open_file` command on Windows to use a properly argumented `explorer /select` syntax, ensuring complex filenames are opened correctly even with commas or dots.
+- **Backend Hygiene**: Optimized Rust downloader logic by removing redundant string clones and silencing compiler warnings for a leaner, more robust application.
+
+
 ## 0.2.3 (2026-04-15)
 
 ### 🛠️ Critical Updater & Deployment Fixes

@@ -3538,7 +3538,7 @@ dependencies = [
 
 [[package]]
 name = "rip-tune"
-version = "0.2.2"
+version = "0.2.4"
 dependencies = [
  "base64 0.22.1",
  "chrono",

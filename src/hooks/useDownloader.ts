@@ -16,15 +16,21 @@ export function useDownloader() {
 
   const [playlistProgress, setPlaylistProgress] = useState<PlaylistProgress | null>(null);
 
-  const handleDownload = async () => {
-    if (!url) return;
-    const isYoutube = /^(https?:\/\/)?(www\.|m\.|music\.)?(youtube\.com|youtu\.be)\/.+$/.test(url);
+  const handleDownload = async (overrideUrl?: string, overrideShouldDownload?: boolean, overrideAutoAnalyze?: boolean) => {
+    // Ensure we only use overrideUrl if it's actually a string (not an Event)
+    const validOverrideUrl = typeof overrideUrl === "string" ? overrideUrl : undefined;
+    const targetUrl = (validOverrideUrl || url).trim();
+    const targetShouldDownload = overrideShouldDownload !== undefined ? overrideShouldDownload : shouldDownload;
+    const targetAutoAnalyze = overrideAutoAnalyze !== undefined ? overrideAutoAnalyze : autoAnalyze;
+    
+    if (!targetUrl) return;
+    const isYoutube = /^(https?:\/\/)?([a-z0-9-]+\.)?(youtube\.com|youtu\.be|youtube-nocookie\.com)\/.+$/i.test(targetUrl);
     if (!isYoutube) {
       addNotification(`${t.notifications.errorDownload}: Only YouTube links are supported.`, "error");
       return;
     }
 
-    if (!shouldDownload && !autoAnalyze) {
+    if (!targetShouldDownload && !targetAutoAnalyze) {
       addNotification("Required: Please enable Download or Analyze to proceed.", "info");
       return;
     }
@@ -58,34 +64,53 @@ export function useDownloader() {
 
       addNotification(t.notifications.downloading, "info", true);
       const result = await invoke<{ filepath: string, title: string, artist: string }>("download_audio", {
-        url,
+        url: targetUrl,
         format,
-        customPath: !shouldDownload ? "TMP_ANALYSIS" : customDir,
+        customPath: !targetShouldDownload ? "TMP_ANALYSIS" : customDir,
         cookies,
         downloadPlaylist
       });
 
       clearNotificationsFor(t.notifications.downloading);
 
-      if (autoAnalyze) {
-        await processFile(result.filepath, result.title, result.artist, !shouldDownload);
-        if (!shouldDownload) {
+      if (targetAutoAnalyze) {
+        await processFile(result.filepath, result.title, result.artist, !targetShouldDownload, targetUrl);
+        if (!targetShouldDownload) {
           try {
             await invoke("delete_file", { filepath: result.filepath });
           } catch(e) {
             console.error("Failed to delete temp analysis file", e);
           }
         }
-      } else if (shouldDownload) {
-        const newEntry: HistoryEntry = {
-          id: crypto.randomUUID(),
-          title: result.title,
-          artist: result.artist,
-          filepath: result.filepath,
-          date: new Date().toISOString()
-        };
-        saveHistory([newEntry, ...history]);
-        setLatest(newEntry);
+      } else if (targetShouldDownload) {
+        const existingEntryIndex = history.findIndex(item => item.url === targetUrl && item.isTemp);
+        
+        if (existingEntryIndex !== -1) {
+          const updatedHistory = [...history];
+          const oldEntry = updatedHistory[existingEntryIndex];
+          const updatedEntry: HistoryEntry = {
+            ...oldEntry,
+            filepath: result.filepath,
+            title: result.title,
+            artist: result.artist,
+            date: new Date().toISOString(),
+            isTemp: false
+          };
+          updatedHistory[existingEntryIndex] = updatedEntry;
+          saveHistory(updatedHistory);
+          setLatest(updatedEntry);
+        } else {
+          const newEntry: HistoryEntry = {
+            id: crypto.randomUUID(),
+            title: result.title,
+            artist: result.artist,
+            filepath: result.filepath,
+            date: new Date().toISOString(),
+            url: targetUrl
+          };
+          saveHistory([newEntry, ...history]);
+          setLatest(newEntry);
+        }
         setPlaylistProgress(null);
         addNotification(t.notifications.downloadComplete, "success");
         loadingRef.current = false;

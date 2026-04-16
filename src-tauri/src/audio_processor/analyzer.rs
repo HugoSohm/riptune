@@ -7,6 +7,7 @@ pub async fn update_metadata(
     title: String,
     artist: String,
     bpm: f64,
+    key: String,
 ) -> Result<(), String> {
     if !std::path::Path::new(&filepath).exists() {
         return Err("File not found on disk".to_string());
@@ -21,10 +22,20 @@ pub async fn update_metadata(
     tag.set_title(title);
     tag.set_artist(artist);
 
-    tag.add_frame(Frame::with_content(
-        "TBPM",
-        Content::Text((bpm.round() as u32).to_string()),
-    ));
+    if bpm > 0.0 {
+        let bpm_str = format!("{:03}", bpm.round() as u32);
+        tag.add_frame(Frame::with_content(
+            "TBPM",
+            Content::Text(bpm_str),
+        ));
+    }
+
+    if !key.is_empty() {
+        tag.add_frame(Frame::with_content(
+            "TKEY",
+            Content::Text(key),
+        ));
+    }
 
     tag.write_to_path(&filepath, id3::Version::Id3v24)
         .map_err(|e| e.to_string())?;

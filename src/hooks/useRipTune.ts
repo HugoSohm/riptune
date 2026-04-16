@@ -15,7 +15,7 @@ export function useRipTune() {
     customDir, setCustomDir, autoAnalyze, setAutoAnalyze, activeTab, setActiveTab,
     isPlaylist, setIsPlaylist, downloadPlaylist, setDownloadPlaylist,
     shouldDownload, setShouldDownload, cookies, setCookies, defaultDir, setDefaultDir,
-    keepFilesOnHistoryDelete, setKeepFilesOnHistoryDelete, lang, setLang, t,
+    deleteFilesOnHistoryDelete, setDeleteFilesOnHistoryDelete, lang, setLang, t,
     history, latest, setLatest, deleteConfirmId, setDeleteConfirmId, setPlaylistProgress
   } = useApp();
 
@@ -92,8 +92,8 @@ export function useRipTune() {
     customDir, setCustomDir, autoAnalyze, setAutoAnalyze, activeTab, setActiveTab,
     latest, isPlaylist, playlistProgress, deleteConfirmId, setDeleteConfirmId,
     downloadPlaylist, setDownloadPlaylist, shouldDownload, setShouldDownload,
-    history, cookies, setCookies, defaultDir, keepFilesOnHistoryDelete,
-    setKeepFilesOnHistoryDelete, lang, setLang, t,
+    history, cookies, setCookies, defaultDir, deleteFilesOnHistoryDelete,
+    setDeleteFilesOnHistoryDelete, lang, setLang, t,
     removeNotification, processFile, handleDownload, handleCancelDownload,
     handleSelectDir, handleOpenFolder, handleOpenFile, handleResetCurrent,
     handleDeleteHistoryItem: handleHistoryDelete, confirmDelete: historyConfirmDelete

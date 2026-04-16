@@ -9,7 +9,7 @@ export function useAudioProcessor() {
     history, saveHistory, setLatest, addNotification, clearNotificationsFor, setLoading, t 
   } = useApp();
 
-  const processFile = async (filepath: string, titleHint?: string, artistHint?: string, isTemp: boolean = false) => {
+  const processFile = async (filepath: string, titleHint?: string, artistHint?: string, isTemp: boolean = false, url?: string) => {
     setLoading(true);
     addNotification(t.notifications.analyzing, "info", true);
     
@@ -38,10 +38,22 @@ export function useAudioProcessor() {
         }
       }
 
-      try {
-        await invoke("update_metadata", { filepath, title, artist, bpm });
-      } catch (e) {
-        console.error("Failed to update file metadata:", e);
+      // Update metadata with results
+      if (!isTemp) {
+        try {
+          // Convert UI format (A maj / A min) to DJ standard (A / Am) for ID3 tags
+          const djKey = keyStr.replace(" maj", "").replace(" min", "m");
+          
+          await invoke("update_metadata", { 
+            filepath, 
+            title, 
+            artist, 
+            bpm,
+            key: djKey
+          });
+        } catch (e) {
+          console.error("Failed to update file metadata", e);
+        }
       }
 
       clearNotificationsFor(t.notifications.analyzing);
@@ -54,26 +66,37 @@ export function useAudioProcessor() {
         bpm,
         key: keyStr,
         date: new Date().toISOString(),
-        isTemp
+        isTemp,
+        url
       };
 
-      if (!isTemp) {
-        const existingEntryIndex = history.findIndex(item => item.filepath === filepath);
-        if (existingEntryIndex !== -1) {
-          const updatedHistory = [...history];
-          updatedHistory[existingEntryIndex] = {
-            ...updatedHistory[existingEntryIndex],
-            bpm,
-            key: keyStr
-          };
-          saveHistory(updatedHistory);
-          setLatest(updatedHistory[existingEntryIndex]);
-        } else {
-          saveHistory([entry, ...history]);
-          setLatest(entry);
-        }
+      // Check if we should update an existing entry
+      // Search by filepath first, then by URL if it exists
+      const existingEntryIndex = history.findIndex(item => 
+        item.filepath === filepath || (url && item.url === url)
+      );
+
+      if (existingEntryIndex !== -1) {
+        const updatedHistory = [...history];
+        const oldEntry = updatedHistory[existingEntryIndex];
+        
+        // If we are upgrading from temp to permanent, or just updating analysis
+        const updatedEntry: HistoryEntry = {
+          ...oldEntry,
+          bpm,
+          key: keyStr,
+          title: title || oldEntry.title,
+          artist: artist || oldEntry.artist,
+          filepath: isTemp ? oldEntry.filepath : filepath,
+          isTemp: isTemp ? oldEntry.isTemp : false, // once it's permanent, it stays permanent
+          url: url || oldEntry.url,
+          date: new Date().toISOString() // refresh date to bring to top? Or keep old? Let's refresh.
+        };
+        
+        updatedHistory[existingEntryIndex] = updatedEntry;
+        saveHistory(updatedHistory);
+        setLatest(updatedEntry);
       } else {
-        // Still add to history for display, but it's temporary
         saveHistory([entry, ...history]);
         setLatest(entry);
       }

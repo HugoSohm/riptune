@@ -26,6 +26,7 @@ export const es = {
     entry: "Entrada",
     empty: "El historial está vacío.",
     emptyDesc: "Descarga una pista para verla aquí.",
+    deleteAll: "Borrar historial",
     tableTrack: "Detalles de la pista",
     tableDate: "Fecha y hora",
     tableBpm: "BPM",
@@ -38,6 +39,7 @@ export const es = {
     },
     tooltips: {
       analyze: "Analizar BPM y Clave",
+      download: "Descargar archivo de audio",
       open: "Abrir en el Explorador",
       delete: "Eliminar del historial"
     }
@@ -51,8 +53,8 @@ export const es = {
     cookies: "cookies de YouTube",
     cookiesDesc: "Pega tus cookies <i class='italic'>(formato JSON EditThisCookie o Netscape)</i> para evitar límites o acceder a listas privadas.",
     cleanup: "Historial y limpieza",
-    keepFiles: "Mantener archivos físicos",
-    keepFilesDesc: "Si está activo, los archivos de audio NO se borrarán al quitar pistas del historial.",
+    deleteFiles: "Borrar archivos físicos",
+    deleteFilesDesc: "Si está activo, los archivos de audio se borrarán permanentemente de tu equipo al quitar pistas del historial.",
     language: "Idioma",
     about: "Acerca de RipTune",
     aboutDesc: "Proyecto de código abierto desarrollado por @HugoSohm. Impulsado por yt-dlp, Tauri, React y el motor de análisis Essentia. Repositorio en GitHub: https://github.com/HugoSohm/rip-tune"
@@ -67,9 +69,14 @@ export const es = {
     disabledDesc: "El archivo de audio físico NO se borrará. Solo se quitará del historial.",
     manageSettings: "Configurar esto en Ajustes",
     confirm: "Eliminar",
+    confirmAll: "Borrar todo",
     cancel: "Cancelar",
     warning: "Atención",
-    fileWillBeDeleted: "El archivo de audio original se borrará permanentemente de tu equipo si se encuentra."
+    fileWillBeDeleted: "El archivo de audio original se borrará permanentemente de tu equipo si se encuentra.",
+    titleAll: "¿Borrar todo el historial?",
+    descriptionAll: "¿Estás seguro de que quieres borrar permanentemente todo tu historial? Esta acción no se puede deshacer.",
+    confirmWord: "BORRAR",
+    typeWordToConfirm: "Escribe [WORD] para confirmar",
   },
   bugModal: {
     title: "Reportar un bug",
@@ -105,6 +112,7 @@ export const es = {
     errorDownload: "Error de descarga",
     cancelling: "Cancelando descarga",
     trackRemoved: "Pista eliminada del historial",
+    historyCleared: "Historial borrado",
     notif: "Notificación",
     task: "Tarea",
     success: "Éxito",

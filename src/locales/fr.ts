@@ -26,6 +26,7 @@ export const fr = {
     entry: "Entrée",
     empty: "L'historique est vide.",
     emptyDesc: "Téléchargez un titre pour le voir ici.",
+    deleteAll: "Tout supprimer",
     tableTrack: "Détails du titre",
     tableDate: "Date & Heure",
     tableBpm: "BPM",
@@ -38,6 +39,7 @@ export const fr = {
     },
     tooltips: {
       analyze: "Analyser BPM & clé",
+      download: "Télécharger le fichier audio",
       open: "Ouvrir dans l'explorateur",
       delete: "Supprimer de l'historique"
     }
@@ -51,8 +53,8 @@ export const fr = {
     cookies: "cookies YouTube",
     cookiesDesc: "Collez vos cookies <i class='italic'>(format JSON EditThisCookie ou Netscape)</i> pour éviter les limitations ou accéder aux playlists privées.",
     cleanup: "Historique & nettoyage",
-    keepFiles: "Garder les fichiers physiques",
-    keepFilesDesc: "Si activé, les fichiers audio ne seront PAS supprimés de votre disque lors de la suppression de l'historique.",
+    deleteFiles: "Supprimer les fichiers physiques",
+    deleteFilesDesc: "Si activé, les fichiers audio seront définitivement supprimés de votre disque lors de la suppression de l'historique.",
     language: "Langue",
     about: "À propos de RipTune",
     aboutDesc: "Projet open source développé par @HugoSohm. Propulsé par yt-dlp, Tauri, React, et le moteur d'analyse Essentia. Code disponible sur GitHub : https://github.com/HugoSohm/rip-tune"
@@ -67,9 +69,14 @@ export const fr = {
     disabledDesc: "Le fichier audio physique ne sera PAS supprimé. Seule l'entrée est retirée de RipTune.",
     manageSettings: "Gérer cela dans les Paramètres",
     confirm: "Supprimer",
+    confirmAll: "Tout supprimer",
     cancel: "Annuler",
     warning: "Attention",
-    fileWillBeDeleted: "Le fichier audio original sera définitivement supprimé de votre disque s'il est trouvé."
+    fileWillBeDeleted: "Le fichier audio original sera définitivement supprimé de votre disque s'il est trouvé.",
+    titleAll: "Vider l'historique ?",
+    descriptionAll: "Êtes-vous sûr de vouloir supprimer définitivement tout votre historique ? Cette action est irréversible.",
+    confirmWord: "SUPPRIMER",
+    typeWordToConfirm: "Tapez [WORD] pour confirmer",
   },
   bugModal: {
     title: "Signaler un bug",
@@ -105,6 +112,7 @@ export const fr = {
     errorDownload: "Erreur de téléchargement",
     cancelling: "Annulation du téléchargement",
     trackRemoved: "Titre retiré de l'historique",
+    historyCleared: "Historique vidé",
     notif: "Notification",
     task: "Tâche",
     success: "Succès",

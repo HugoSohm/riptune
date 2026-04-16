@@ -8,3 +8,6 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
     <App />
   </React.StrictMode>,
 );
+
+// Disable context menu (right-click)
+document.addEventListener('contextmenu', (e) => e.preventDefault());

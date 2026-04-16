@@ -1,16 +1,19 @@
 import { useState, useRef, useEffect } from "react";
-import { List, Trash2, FolderOpen, Loader2, Sparkles, Download, Music } from "lucide-react";
+import { List, Trash2, FolderOpen, Loader2, Sparkles, Download, Music, ExternalLink } from "lucide-react";
 import { invoke } from "@tauri-apps/api/core";
+import { openUrl } from "@tauri-apps/plugin-opener";
 import { useApp } from "../context/AppContext";
 import { useAudioProcessor } from "../hooks/useAudioProcessor";
+import { useDownloader } from "../hooks/useDownloader";
 
 interface TruncatedTextProps {
   text: string;
   className?: string;
   tooltipClassName?: string;
+  wrapperClassName?: string;
 }
 
-const TruncatedText = ({ text, className, tooltipClassName }: TruncatedTextProps) => {
+const TruncatedText = ({ text, className, tooltipClassName, wrapperClassName }: TruncatedTextProps) => {
   const [isOverflowing, setIsOverflowing] = useState(false);
   const textRef = useRef<HTMLDivElement>(null);
 
@@ -28,7 +31,7 @@ const TruncatedText = ({ text, className, tooltipClassName }: TruncatedTextProps
   }, [text]);
 
   return (
-    <div className="group relative w-full">
+    <div className={`group relative ${wrapperClassName || 'w-full'}`}>
       <div
         ref={textRef}
         className={`${className} truncate max-w-full`}
@@ -46,11 +49,39 @@ const TruncatedText = ({ text, className, tooltipClassName }: TruncatedTextProps
 
 export default function History() {
   const {
-    history, loading, keepFilesOnHistoryDelete, setKeepFilesOnHistoryDelete, t,
-    handleDeleteHistoryItem
+    history, loading, deleteFilesOnHistoryDelete, setDeleteFilesOnHistoryDelete, t,
+    handleDeleteHistoryItem, setUrl, setShouldDownload, setAutoAnalyze
   } = useApp();
 
   const { processFile } = useAudioProcessor();
+  const { handleDownload } = useDownloader();
+  const [activeActionId, setActiveActionId] = useState<string | null>(null);
+
+  const handleDownloadFromHistory = async (item: any) => {
+    if (!item.url) return;
+    setActiveActionId(item.id);
+
+    // Configure global state for context
+    setUrl(item.url);
+    setShouldDownload(true);
+    setAutoAnalyze(false);
+
+    try {
+      // Pass overrides to bypass stale global state
+      await handleDownload(item.url, true, false);
+    } finally {
+      setActiveActionId(null);
+    }
+  };
+
+  const handleAnalyzeFromHistory = async (item: any) => {
+    setActiveActionId(item.id);
+    try {
+      await processFile(item.filepath, item.title, item.artist, item.isTemp, item.url);
+    } finally {
+      setActiveActionId(null);
+    }
+  };
 
   const handleOpenFile = async (filepath: string) => {
     try { await invoke("open_file", { filepath }); }
@@ -64,22 +95,35 @@ export default function History() {
           <h2 className="text-4xl font-black text-white tracking-tight">{t.history.title}</h2>
           <p className="text-slate-400 mt-2 text-lg">{t.history.description}</p>
         </div>
-        <div className="flex items-center gap-4 bg-[#111728] px-4 py-2 rounded-xl border border-white/5 shadow-inner">
-          <div
-            className="flex items-center gap-2 pr-4 border-r border-white/10 cursor-pointer group transition-all"
-            onClick={() => setKeepFilesOnHistoryDelete(!keepFilesOnHistoryDelete)}
-          >
-            <div className={`h-1.5 w-1.5 rounded-full ${!keepFilesOnHistoryDelete ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.4)]' : 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]'}`} />
-            <span 
-              className="text-[9px] font-bold uppercase tracking-[0.15em] text-slate-500 group-hover:text-purple-400 transition-colors"
-              dangerouslySetInnerHTML={{ 
-                __html: `${t.deleteModal.fileDeletion}: ${!keepFilesOnHistoryDelete ? t.deleteModal.active : t.deleteModal.disabled}` 
+        <div className="flex items-center gap-6 bg-[#111728] px-5 py-2.5 rounded-2xl border border-white/5 shadow-2xl">
+          <label className="flex items-center gap-3 cursor-pointer group">
+            <div className="relative inline-flex items-center">
+              <input
+                type="checkbox"
+                className="sr-only peer"
+                checked={deleteFilesOnHistoryDelete}
+                onChange={() => setDeleteFilesOnHistoryDelete(!deleteFilesOnHistoryDelete)}
+              />
+              <div className="w-9 h-5 bg-white/5 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-slate-400 after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-red-400 peer-checked:after:bg-white shadow-inner border border-white/5"></div>
+            </div>
+            <span
+              className="text-[10px] font-black uppercase tracking-[0.1em] text-slate-500 group-hover:text-slate-300 transition-colors"
+              dangerouslySetInnerHTML={{
+                __html: `${t.deleteModal.fileDeletion}`
               }}
             />
-          </div>
-          <div className="text-slate-400 text-xs font-bold tracking-tight">
-            {history.length} {history.length === 1 ? t.history.entry : t.history.entries}
-          </div>
+          </label>
+          {history.length > 0 && (
+            <div className="flex items-center gap-2 pl-2 border-l border-white/10">
+              <button
+                onClick={() => handleDeleteHistoryItem("all")}
+                className="p-1.5 px-2 rounded-lg text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-all flex items-center gap-2 group border border-transparent hover:border-red-500/20"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span className="text-[10px] font-bold uppercase tracking-wider">{t.history.deleteAll}</span>
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -88,12 +132,12 @@ export default function History() {
           <table className="w-full text-left border-separate border-spacing-0 relative table-fixed min-w-[1150px]">
             <thead className="shadow-md border-b border-white/10">
               <tr className="text-[10px] uppercase tracking-widest text-slate-400">
-                <th className="pl-10 pr-6 py-5 font-semibold w-[8%] min-w-[90px] rounded-tl-3xl bg-[#141b2e]/95 backdrop-blur-md text-center"></th>
-                <th className="px-8 py-5 font-semibold w-[42%] min-w-[400px] bg-[#141b2e]/95 backdrop-blur-md text-left">{t.history.tableTrack}</th>
-                <th className="px-8 py-5 font-semibold w-[15%] min-w-[160px] bg-[#141b2e]/95 backdrop-blur-md text-center">{t.history.tableDate}</th>
-                <th className="px-8 py-5 font-semibold text-center w-[8%] min-w-[90px] bg-[#141b2e]/95 backdrop-blur-md">{t.history.tableBpm}</th>
-                <th className="px-8 py-5 font-semibold text-center w-[8%] min-w-[90px] bg-[#141b2e]/95 backdrop-blur-md">{t.history.tableKey}</th>
-                <th className="px-8 py-5 font-semibold text-center w-[19%] min-w-[210px] rounded-tr-3xl bg-[#141b2e]/95 backdrop-blur-md">{t.history.tableAction}</th>
+                <th className="pl-10 pr-6 py-5 font-semibold w-[6%] min-w-[70px] rounded-tl-3xl bg-[#141b2e]/95 backdrop-blur-md text-center"></th>
+                <th className="px-8 py-5 font-semibold w-[38%] min-w-[350px] bg-[#141b2e]/95 backdrop-blur-md text-left">{t.history.tableTrack}</th>
+                <th className="px-8 py-5 font-semibold w-[15%] min-w-[150px] bg-[#141b2e]/95 backdrop-blur-md text-left">{t.history.tableDate}</th>
+                <th className="px-4 py-5 font-semibold text-center w-[9%] min-w-[90px] bg-[#141b2e]/95 backdrop-blur-md">{t.history.tableBpm}</th>
+                <th className="px-4 py-5 font-semibold text-center w-[10%] min-w-[110px] bg-[#141b2e]/95 backdrop-blur-md">{t.history.tableKey}</th>
+                <th className="px-8 py-5 font-semibold text-center w-[22%] min-w-[250px] rounded-tr-3xl bg-[#141b2e]/95 backdrop-blur-md">{t.history.tableAction}</th>
               </tr>
             </thead>
             <tbody>
@@ -108,137 +152,181 @@ export default function History() {
                   </td>
                 </tr>
               ) : (
-                history.map((item) => (
-                  <tr key={item.id} className="border-b border-white/5 last:border-b-0 hover:bg-white/[0.03] transition-colors last:rounded-b-3xl group/row">
-                    <td className="pl-10 pr-6 py-5 text-center align-middle last:rounded-bl-3xl">
-                      <div className="flex items-center justify-center group/status relative">
-                        {item.isTemp ? (
-                          <div className="w-10 h-10 shrink-0 aspect-square rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-400 border border-purple-500/20 shadow-sm transition-all duration-300">
-                            <Sparkles className="w-[18px] h-[18px]" />
+                history.map((item, index) => {
+                  const isLastRow = index === history.length - 1;
+                  return (
+                    <tr
+                      key={item.id}
+                      className="group/row transition-all duration-300 border-b border-white/[0.02] last:border-none"
+                    >
+                      <td className={`pl-10 pr-6 py-5 text-center transition-colors duration-300 group-hover/row:bg-[#141b2e]/30 ${isLastRow ? 'rounded-bl-3xl' : ''}`}>
+                        <div className="flex items-center justify-center group/status relative">
+                          {item.isTemp ? (
+                            <div className="w-10 h-10 shrink-0 aspect-square rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-400 border border-purple-500/20 shadow-sm transition-all duration-300">
+                              <Sparkles className="w-[18px] h-[18px]" />
+                            </div>
+                          ) : item.bpm !== undefined ? (
+                            <div className="w-10 h-10 shrink-0 aspect-square rounded-xl bg-gradient-to-br from-indigo-500/20 to-purple-500/10 flex items-center justify-center text-indigo-400 border border-indigo-500/20 shadow-lg transition-all duration-300">
+                              <Music className="w-[18px] h-[18px] text-indigo-400" />
+                            </div>
+                          ) : (
+                            <div className="w-10 h-10 shrink-0 aspect-square rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-400 border border-blue-500/20 shadow-sm transition-all duration-300">
+                              <Download className="w-[18px] h-[18px]" />
+                            </div>
+                          )}
+                          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-slate-900/95 backdrop-blur-md border border-white/10 text-white text-[10px] rounded-xl opacity-0 group-hover/status:opacity-100 transition-all duration-300 pointer-events-none whitespace-nowrap z-[100] shadow-2xl scale-95 group-hover/status:scale-100 font-bold uppercase tracking-wider">
+                            {item.isTemp
+                              ? (t.history.status?.analysis || "analyse seule")
+                              : item.bpm !== undefined
+                                ? (t.history.status?.full || "téléchargement + analyse")
+                                : (t.history.status?.download || "téléchargement seul")}
                           </div>
-                        ) : item.bpm !== undefined ? (
-                          <div className="w-10 h-10 shrink-0 aspect-square rounded-xl bg-gradient-to-br from-indigo-500/20 to-purple-500/10 flex items-center justify-center text-indigo-400 border border-indigo-500/20 shadow-lg transition-all duration-300">
-                            <Music className="w-[18px] h-[18px] text-indigo-400" />
-                          </div>
-                        ) : (
-                          <div className="w-10 h-10 shrink-0 aspect-square rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-400 border border-blue-500/20 shadow-sm transition-all duration-300">
-                            <Download className="w-[18px] h-[18px]" />
-                          </div>
-                        )}
-                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-slate-900/95 backdrop-blur-md border border-white/10 text-white text-[10px] rounded-xl opacity-0 group-hover/status:opacity-100 transition-all duration-300 pointer-events-none whitespace-nowrap z-[100] shadow-2xl scale-95 group-hover/status:scale-100 font-bold uppercase tracking-wider">
-                          {item.isTemp
-                            ? (t.history.status?.analysis || "analyse seule")
-                            : item.bpm !== undefined
-                              ? (t.history.status?.full || "téléchargement + analyse")
-                              : (t.history.status?.download || "téléchargement seul")}
                         </div>
-                      </div>
-                    </td>
-                    <td className="px-8 py-5 min-w-0">
-                      <div className="flex-1 min-w-0">
-                        <TruncatedText
-                          text={item.title}
-                          className="font-bold text-slate-200 text-base"
-                          tooltipClassName="whitespace-nowrap"
-                        />
-
-                        {item.artist && (
-                          <div className="text-xs text-purple-400 font-medium mt-0.5 truncate max-w-full">
-                            {item.artist}
-                          </div>
-                        )}
-
-                        {!item.isTemp && (
-                          <div className="mt-1.5">
+                      </td>
+                      <td className="px-8 py-5 min-w-0 transition-colors duration-300 group-hover/row:bg-[#141b2e]/30">
+                        <div className="flex-2 min-w-0">
+                          <div className="flex items-center gap-2 max-w-full">
                             <TruncatedText
-                              text={item.filepath}
-                              className="text-xs text-slate-500"
-                              tooltipClassName="whitespace-normal break-all max-w-xs leading-relaxed"
+                              text={item.title}
+                              className="font-bold text-white text-base"
+                              wrapperClassName="flex-1 min-w-0"
+                              tooltipClassName="whitespace-nowrap"
                             />
                           </div>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-8 py-5 whitespace-nowrap">
-                      <div className="text-sm font-medium text-slate-300">
-                        {new Date(item.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
-                      </div>
-                      <div className="text-xs font-semibold text-slate-500 mt-1">
-                        {new Date(item.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </div>
-                    </td>
-                    <td className="px-8 py-5 text-center whitespace-nowrap">
-                      {item.bpm !== undefined ? (
-                        <span className="inline-flex items-center justify-center min-w-[60px] px-3 py-1.5 rounded-lg bg-gradient-to-br from-purple-500/20 to-purple-500/5 border border-purple-500/20 text-purple-400 font-bold text-lg shadow-sm">
-                          {item.bpm}
-                        </span>
-                      ) : (
-                        <span className="text-slate-600 font-bold">-</span>
-                      )}
-                    </td>
-                    <td className="px-8 py-5 text-center whitespace-nowrap">
-                      {item.key !== undefined ? (
-                        <span className="inline-flex items-center justify-center min-w-[70px] px-3 py-1.5 rounded-lg bg-gradient-to-br from-blue-500/20 to-blue-500/5 border border-blue-500/20 text-blue-400 font-bold text-lg shadow-sm">
-                          {item.key}
-                        </span>
-                      ) : (
-                        <span className="text-slate-600 font-bold">-</span>
-                      )}
-                    </td>
-                    <td className="px-8 py-5 text-right last:rounded-br-3xl">
-                      <div className="flex items-center justify-end gap-2">
-                        <div className="w-10 flex justify-center">
-                          {item.bpm === undefined && (
-                            <div className="group relative">
-                              <button
-                                onClick={() => processFile(item.filepath, item.title, item.artist)}
-                                className="w-10 h-10 rounded-full bg-purple-500/20 hover:bg-purple-500 text-purple-400 hover:text-white flex items-center justify-center transition-all group-hover:shadow-[0_0_15px_rgba(168,85,247,0.4)] duration-300"
-                                disabled={loading}
-                              >
-                                {loading ? (
-                                  <Loader2 className="w-4 h-4 animate-spin" />
-                                ) : (
+                          {item.artist && (
+                            <div className="text-xs text-purple-400 font-medium mt-0.5 truncate max-w-full">
+                              {item.artist}
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-8 py-5 whitespace-nowrap transition-colors duration-300 group-hover/row:bg-[#141b2e]/30">
+                        <div className="text-sm font-medium text-slate-300">
+                          {new Date(item.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                        </div>
+                        <div className="text-xs font-semibold text-slate-500 mt-1">
+                          {new Date(item.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </div>
+                      </td>
+                      <td className={`px-2 py-5 text-center transition-colors duration-300 group-hover/row:bg-[#141b2e]/30`}>
+                        <div className="w-20 h-10 rounded-xl bg-gradient-to-br from-purple-500/20 to-purple-500/5 flex items-center justify-center border border-purple-500/20 mx-auto shadow-sm">
+                          <span className="text-base font-black text-purple-400 select-text">
+                            {item.bpm !== undefined ? item.bpm : "-"}
+                          </span>
+                        </div>
+                      </td>
+                      <td className={`px-2 py-5 text-center transition-colors duration-300 group-hover/row:bg-[#141b2e]/30`}>
+                        <div className="w-24 h-10 rounded-xl bg-gradient-to-br from-blue-500/20 to-blue-500/5 flex items-center justify-center border border-blue-500/20 mx-auto shadow-sm">
+                          <span className="text-base font-black text-blue-400 whitespace-nowrap select-text">
+                            {item.key !== undefined ? item.key : "-"}
+                          </span>
+                        </div>
+                      </td>
+                      <td className={`px-8 py-5 text-right transition-colors duration-300 group-hover/row:bg-[#141b2e]/30 ${isLastRow ? 'rounded-br-3xl' : ''}`}>
+                        <div className="flex items-center justify-end gap-2 pr-2">
+                          {/* Slot 1: Analyze */}
+                          <div className="w-10 flex justify-center">
+                            {activeActionId === item.id && item.bpm === undefined && !item.isTemp ? (
+                              <div className="w-10 h-10 rounded-full bg-purple-500/10 flex items-center justify-center border border-purple-500/20">
+                                <Loader2 className="w-4 h-4 animate-spin text-purple-400" />
+                              </div>
+                            ) : (
+                              <div className="group relative">
+                                <button
+                                  onClick={() => item.bpm === undefined && !item.isTemp && handleAnalyzeFromHistory(item)}
+                                  className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${
+                                    item.bpm === undefined && !item.isTemp 
+                                      ? "bg-purple-500/20 text-purple-400 hover:bg-purple-500 hover:text-white group-hover:shadow-[0_0_15px_rgba(168,85,247,0.4)]" 
+                                      : "bg-white/5 text-slate-700 cursor-default opacity-20"
+                                  }`}
+                                  disabled={loading || (item.bpm !== undefined || item.isTemp)}
+                                >
                                   <Sparkles className="w-4 h-4" />
-                                )}
-                              </button>
-                              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-slate-900/90 backdrop-blur-md border border-white/10 text-white text-[11px] rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-300 delay-0 group-hover:delay-500 pointer-events-none whitespace-nowrap z-[100] shadow-2xl scale-95 group-hover:scale-100 font-medium capitalize">
-                                {t.history.tooltips.analyze}
+                                </button>
+                                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-slate-900/90 backdrop-blur-md border border-white/10 text-white text-[10px] rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-300 delay-0 group-hover:delay-500 pointer-events-none whitespace-nowrap z-[100] shadow-2xl scale-95 group-hover:scale-100 font-bold uppercase tracking-wider">
+                                  {item.bpm === undefined && !item.isTemp ? t.history.tooltips.analyze : "Analyzed"}
+                                </div>
                               </div>
-                            </div>
-                          )}
-                        </div>
-                        <div className="w-10 flex justify-center">
-                          {!item.isTemp && (
+                            )}
+                          </div>
+
+                          {/* Slot 2: Download / Open Folder */}
+                          <div className="w-10 flex justify-center">
+                            {activeActionId === item.id && item.isTemp && item.url ? (
+                              <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center border border-blue-500/20">
+                                <Loader2 className="w-4 h-4 animate-spin text-blue-400" />
+                              </div>
+                            ) : item.isTemp && item.url ? (
+                              <div className="group relative">
+                                <button
+                                  onClick={() => handleDownloadFromHistory(item)}
+                                  className="w-10 h-10 rounded-full bg-blue-500/20 hover:bg-blue-500 text-blue-400 hover:text-white flex items-center justify-center transition-all group-hover:shadow-[0_0_15px_rgba(59,130,246,0.4)] duration-300"
+                                >
+                                  <Download className="w-4 h-4" />
+                                </button>
+                                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-slate-900/90 backdrop-blur-md border border-white/10 text-white text-[10px] rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-300 delay-0 group-hover:delay-500 pointer-events-none whitespace-nowrap z-[100] shadow-2xl scale-95 group-hover:scale-100 font-bold uppercase tracking-wider">
+                                  {t.history.tooltips.download || "Download"}
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="group relative">
+                                <button
+                                  onClick={() => !item.isTemp && handleOpenFile(item.filepath)}
+                                  className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${
+                                    !item.isTemp 
+                                      ? "bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white" 
+                                      : "bg-white/5 text-slate-700 cursor-default opacity-20"
+                                  }`}
+                                  disabled={item.isTemp}
+                                >
+                                  <FolderOpen className="w-4 h-4" />
+                                </button>
+                                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-slate-900/90 backdrop-blur-md border border-white/10 text-white text-[10px] rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-300 delay-0 group-hover:delay-500 pointer-events-none whitespace-nowrap z-[100] shadow-2xl scale-95 group-hover:scale-100 font-bold uppercase tracking-wider">
+                                  {!item.isTemp ? t.history.tooltips.open : "Not downloaded"}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Slot 3: External Link */}
+                          <div className="w-10 flex justify-center">
                             <div className="group relative">
                               <button
-                                onClick={() => handleOpenFile(item.filepath)}
-                                className="w-10 h-10 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition-all duration-300"
+                                onClick={() => item.url && openUrl(item.url)}
+                                className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${
+                                  item.url 
+                                    ? "bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white" 
+                                    : "bg-white/5 text-slate-700 cursor-default opacity-20"
+                                }`}
+                                disabled={!item.url}
                               >
-                                <FolderOpen className="w-4 h-4" />
+                                <ExternalLink className="w-4 h-4" />
                               </button>
-                              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-slate-900/90 backdrop-blur-md border border-white/10 text-white text-[11px] rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-300 delay-0 group-hover:delay-500 pointer-events-none whitespace-nowrap z-[100] shadow-2xl scale-95 group-hover:scale-100 font-medium capitalize">
-                                {t.history.tooltips.open}
+                              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-slate-900/90 backdrop-blur-md border border-white/10 text-white text-[10px] rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-300 delay-0 group-hover:delay-500 pointer-events-none whitespace-nowrap z-[100] shadow-2xl scale-95 group-hover:scale-100 font-bold uppercase tracking-wider">
+                                {item.url ? "Open source URL" : "No Source URL"}
                               </div>
                             </div>
-                          )}
-                        </div>
-                        <div className="w-10 flex justify-center">
-                          <div className="group relative">
-                            <button
-                              onClick={() => handleDeleteHistoryItem(item.id)}
-                              className="w-10 h-10 rounded-full bg-slate-800 hover:bg-red-500/20 hover:text-red-400 text-slate-400 flex items-center justify-center transition-all duration-300"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-slate-900/90 backdrop-blur-md border border-white/10 text-white text-[11px] rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-300 delay-0 group-hover:delay-500 pointer-events-none whitespace-nowrap z-50 shadow-2xl scale-95 group-hover:scale-100 font-medium capitalize">
-                              {t.history.tooltips.delete}
+                          </div>
+
+                          {/* Slot 4: Delete */}
+                          <div className="w-10 flex justify-center">
+                            <div className="group relative">
+                              <button
+                                onClick={() => handleDeleteHistoryItem(item.id)}
+                                className="w-10 h-10 rounded-full bg-slate-800 hover:bg-red-500/20 hover:text-red-400 text-slate-400 flex items-center justify-center transition-all duration-300"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-slate-900/90 backdrop-blur-md border border-white/10 text-white text-[10px] rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-300 delay-0 group-hover:delay-500 pointer-events-none whitespace-nowrap z-50 shadow-2xl scale-95 group-hover:scale-100 font-bold uppercase tracking-wider">
+                                {t.history.tooltips.delete}
+                              </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>

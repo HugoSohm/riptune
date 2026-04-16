@@ -194,40 +194,14 @@ pub async fn download_audio(
         line_buf.clear();
 
         if line.starts_with("FILEPATH:") {
-            let original_path = line.replace("FILEPATH:", "");
-            let path_buf = std::path::PathBuf::from(&original_path);
-
-            let sanitized_path = if let (Some(parent), Some(file_name)) =
-                (path_buf.parent(), path_buf.file_name())
-            {
-                let name_str = file_name.to_string_lossy();
-                let sanitized_name = name_str
-                    .replace(" - ", "-")
-                    .replace(" ", "_")
-                    .replace("(", "")
-                    .replace(")", "")
-                    .replace("[", "")
-                    .replace("]", "")
-                    .replace("__", "_");
-
-                let new_path = parent.join(sanitized_name);
-                if original_path != new_path.to_string_lossy() {
-                    match std::fs::rename(&original_path, &new_path) {
-                        Ok(_) => new_path.to_string_lossy().to_string(),
-                        Err(_) => original_path,
-                    }
-                } else {
-                    original_path
-                }
-            } else {
-                original_path
-            };
-
+            let filepath = line.replace("FILEPATH:", "");
             last_valid_result = Some(DownloadResult {
-                filepath: sanitized_path,
+                filepath,
                 title: last_title.clone(),
                 artist: last_artist.clone(),
             });
+
+
             current_track_count += 1;
             let _ = app_handle.emit(
                 "download-progress",
@@ -238,14 +212,14 @@ pub async fn download_audio(
                 },
             );
         } else if line.starts_with("TITLE:") {
-            last_title = line.replace("TITLE:", "").trim().to_string();
+            let val = line.replace("TITLE:", "").trim().to_string();
+            if !val.is_empty() && !val.contains("%") {
+                last_title = val;
+            }
         } else if line.starts_with("ARTIST:") {
-            last_artist = line.replace("ARTIST:", "").trim().to_string();
-        } else if line.contains("%") && line.contains("of") {
-            if last_title.is_empty() {
-                last_title = line;
-            } else if last_artist.is_empty() {
-                last_artist = line;
+            let val = line.replace("ARTIST:", "").trim().to_string();
+            if !val.is_empty() && !val.contains("%") {
+                last_artist = val;
             }
         }
     }

@@ -12,12 +12,17 @@ interface CustomSelectProps {
   onChange: (value: string) => void;
   className?: string;
   variant?: 'large' | 'small';
+  onOpenChange?: (isOpen: boolean) => void;
 }
 
-export default function CustomSelect({ options, value, onChange, className = "", variant = 'large' }: CustomSelectProps) {
+export default function CustomSelect({ options, value, onChange, className = "", variant = 'large', onOpenChange }: CustomSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const selectedOption = options.find(opt => opt.value === value) || options[0];
+
+  useEffect(() => {
+    onOpenChange?.(isOpen);
+  }, [isOpen]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

@@ -7,6 +7,7 @@ export interface HistoryEntry {
   key?: string;
   date: string;
   isTemp?: boolean;
+  url?: string;
 }
 
 export interface Notification {

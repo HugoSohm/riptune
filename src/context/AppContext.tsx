@@ -54,8 +54,8 @@ interface AppContextType {
   setDefaultDir: (dir: string) => void;
   cookies: string;
   setCookies: (cookies: string) => void;
-  keepFilesOnHistoryDelete: boolean;
-  setKeepFilesOnHistoryDelete: (keep: boolean) => void;
+  deleteFilesOnHistoryDelete: boolean;
+  setDeleteFilesOnHistoryDelete: (del: boolean) => void;
 
   // Playlist Progress (Global for Notifications)
   playlistProgress: PlaylistProgress | null;
@@ -89,7 +89,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   // New Global UI States for Hooks
   const [url, setUrl] = useState("");
-  const [format, setFormat] = useState("wav");
+  const [format, setFormat] = useState("mp3");
 
   // Internationalization
   const [lang, setLang] = useState<Lang>(() => {
@@ -121,16 +121,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [customDir, setCustomDir] = useState<string | null>(localStorage.getItem("riptune_download_dir"));
   const [defaultDir, setDefaultDir] = useState<string>("");
   const [cookies, setCookies] = useState<string>(localStorage.getItem("riptune_cookies") || "");
-  const [keepFilesOnHistoryDelete, setKeepFilesOnHistoryDelete] = useState<boolean>(() => {
-    const saved = localStorage.getItem("riptune_keep_files_on_history_delete");
-    return saved === null ? false : saved === "true";
+  const [deleteFilesOnHistoryDelete, setDeleteFilesOnHistoryDelete] = useState<boolean>(() => {
+    const saved = localStorage.getItem("riptune_delete_files_on_history_delete");
+    return saved === null ? true : saved === "true";
   });
 
   const [playlistProgress, setPlaylistProgress] = useState<PlaylistProgress | null>(null);
 
   // Persistance & Load
   useEffect(() => { localStorage.setItem("riptune_lang", lang); }, [lang]);
-  useEffect(() => { localStorage.setItem("riptune_keep_files_on_history_delete", keepFilesOnHistoryDelete.toString()); }, [keepFilesOnHistoryDelete]);
+  useEffect(() => { localStorage.setItem("riptune_delete_files_on_history_delete", deleteFilesOnHistoryDelete.toString()); }, [deleteFilesOnHistoryDelete]);
   useEffect(() => {
     if (customDir) localStorage.setItem("riptune_download_dir", customDir);
     else localStorage.removeItem("riptune_download_dir");
@@ -152,9 +152,28 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   const confirmDelete = async () => {
+    if (deleteConfirmId === "all") {
+      if (deleteFilesOnHistoryDelete) {
+        for (const item of history) {
+          if (!item.isTemp && item.filepath) {
+            try {
+              await invoke("delete_file", { filepath: item.filepath });
+            } catch (e) {
+              console.error("Failed to delete physical file", e);
+            }
+          }
+        }
+      }
+      saveHistory([]);
+      setLatest(null);
+      setDeleteConfirmId(null);
+      addNotification(t.notifications.historyCleared || "History cleared", "success");
+      return;
+    }
+
     if (deleteConfirmId) {
       const item = history.find(h => h.id === deleteConfirmId);
-      if (item && !keepFilesOnHistoryDelete) {
+      if (item && deleteFilesOnHistoryDelete && item.filepath) {
         try {
           await invoke("delete_file", { filepath: item.filepath });
         } catch (e) {
@@ -162,6 +181,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         }
       }
       const newHistory = history.filter(item => item.id !== deleteConfirmId);
+      if (deleteConfirmId === latest?.id) {
+        setLatest(null);
+      }
       saveHistory(newHistory);
       setDeleteConfirmId(null);
       addNotification(t.notifications.trackRemoved, "success");
@@ -194,7 +216,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       lang, setLang, t, notifications, addNotification, removeNotification, clearNotificationsFor,
       history, setHistory, saveHistory, latest, setLatest, deleteConfirmId, setDeleteConfirmId,
       handleDeleteHistoryItem, confirmDelete, handleOpenFile,
-      customDir, setCustomDir, defaultDir, setDefaultDir, cookies, setCookies, keepFilesOnHistoryDelete, setKeepFilesOnHistoryDelete,
+      customDir, setCustomDir, defaultDir, setDefaultDir, cookies, setCookies, deleteFilesOnHistoryDelete, setDeleteFilesOnHistoryDelete,
       playlistProgress, setPlaylistProgress,
       loadingRef,
       url, setUrl, format, setFormat,
