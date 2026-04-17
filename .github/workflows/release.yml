@@ -237,10 +237,8 @@ jobs:
           LINUX_URL="${BASE_URL}/${LINUX_NAME}"
 
           get_sig() {
-            local pattern=$1
-            local pattern2=$2
-            local exclude=$3
-            local sig_name=$(echo "$ASSETS" | jq -r ".[] | select(.name | contains(\"$pattern\") and contains(\"$pattern2\") and (if \"$exclude\" != \"\" then contains(\"$exclude\") | not else true end) and endswith(\".sig\")) | .name" | head -n 1)
+            local bundle_name=$1
+            local sig_name=$(echo "$ASSETS" | jq -r ".[] | select(.name == \"${bundle_name}.sig\") | .name" | head -n 1)
             if [ "$sig_name" != "null" ] && [ -n "$sig_name" ]; then
               local raw_sig=$(gh release download $VERSION -p "$sig_name" -O -)
               if echo "$raw_sig" | grep -q "Public signature:"; then
@@ -253,16 +251,11 @@ jobs:
             fi
           }
 
-          WIN_X64_SIG=$(get_sig ".exe" "_x64" "_arm64")
-          # Fallback for Windows x64 sig if _x64 is not set
-          if [ -z "$WIN_X64_SIG" ]; then
-             WIN_X64_SIG=$(get_sig ".exe" ".sig" "_arm64")
-          fi
-          
-          WIN_ARM64_SIG=$(get_sig ".exe" "_arm64" "")
-          MAC_X64_SIG=$(get_sig ".dmg" "_x64" "")
-          MAC_ARM_SIG=$(get_sig ".dmg" "_aarch64" "")
-          LINUX_SIG=$(get_sig ".AppImage" ".sig" "")
+          WIN_X64_SIG=$(get_sig "$WIN_X64_NAME")
+          WIN_ARM64_SIG=$(get_sig "$WIN_ARM64_NAME")
+          MAC_X64_SIG=$(get_sig "$MAC_X64_NAME")
+          MAC_ARM_SIG=$(get_sig "$MAC_ARM_NAME")
+          LINUX_SIG=$(get_sig "$LINUX_NAME")
 
           # JSON construction with correct arch mapping
           cat <<EOF > latest.json

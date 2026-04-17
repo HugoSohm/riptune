@@ -267,7 +267,7 @@ export default function BugReportModal() {
         {/* Footer */}
         <div className="px-8 py-6 bg-white/[0.02] border-t border-white/5 flex items-center justify-between">
           <button
-            onClick={() => openUrl("https://github.com/HugoSohm/rip-tune/issues")}
+            onClick={() => openUrl("https://github.com/HugoSohm/riptune/issues")}
             className="group flex items-center gap-2 text-xs font-bold text-slate-500 hover:text-purple-400 transition-colors uppercase tracking-widest"
           >
             <ExternalLink className="w-3.5 h-3.5 opacity-50 group-hover:opacity-100 transition-opacity" />

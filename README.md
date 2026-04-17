@@ -3,7 +3,7 @@
   <h1>RipTune</h1>
   <p>Ultra-Fast Music Analyzer (BPM & Key) with Integrated YouTube Downloader.</p>
 
-  [![Latest Release](https://img.shields.io/github/v/release/HugoSohm/rip-tune?style=flat-square&color=A855F7)](https://github.com/HugoSohm/rip-tune/releases/latest)
+  [![Latest Release](https://img.shields.io/github/v/release/HugoSohm/riptune?style=flat-square&color=A855F7)](https://github.com/HugoSohm/riptune/releases/latest)
   [![Tauri 2.0](https://img.shields.io/badge/Tauri-2.0-2496ED?style=flat-square&logo=tauri&logoColor=white)](https://tauri.app/)
   [![React](https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=black)](https://react.dev/)
   [![Rust](https://img.shields.io/badge/Rust-Latest-E34C26?style=flat-square&logo=rust&logoColor=white)](https://www.rust-lang.org/)

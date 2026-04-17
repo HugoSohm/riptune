@@ -191,7 +191,7 @@ export default function TitleBar() {
 
             <div className="group relative">
               <button
-                onMouseDown={() => openUrl("https://github.com/HugoSohm/rip-tune")}
+                onMouseDown={() => openUrl("https://github.com/HugoSohm/riptune")}
                 className="w-10 h-10 rounded-xl flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/5 transition-all duration-300"
               >
                 <div className="relative">

@@ -70,7 +70,10 @@ export const es = {
     deepAnalysisWarning: "El análisis tomará significativamente más tiempo.",
     language: "Idioma",
     about: "Acerca de RipTune",
-    aboutDesc: "Proyecto de código abierto desarrollado por @HugoSohm. Impulsado por yt-dlp, Tauri, React y el motor de análisis Essentia. Repositorio en GitHub: https://github.com/HugoSohm/rip-tune"
+    aboutDesc: "Proyecto de código abierto desarrollado por @HugoSohm. Impulsado por yt-dlp, Tauri, React y el motor de análisis Essentia. Repositorio en GitHub: https://github.com/HugoSohm/riptune",
+    website: "Sitio web",
+    github: "Ver el código fuente en GitHub",
+    koFi: "Apoyar en Ko-fi"
   },
   deleteModal: {
     title: "¿Eliminar pista?",

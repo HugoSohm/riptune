@@ -1,13 +1,13 @@
 {
-  "name": "rip-tune",
+  "name": "riptune",
   "private": true,
-  "version": "0.2.6",
+  "version": "0.2.7",
   "description": "RipTune - Analyze and download music from YouTube (BPM, Key, Metadata)",
-  "author": "Hugo Sohm <no-reply@riptune.hugosohm.fr>",
+  "author": "Hugo Sohm <no-reply@riptune.app>",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/HugoSohm/rip-tune.git"
+    "url": "git+https://github.com/HugoSohm/riptune.git"
   },
   "funding": {
     "type": "ko-fi",
@@ -17,9 +17,9 @@
     "node": ">=24.0.0"
   },
   "bugs": {
-    "url": "https://github.com/HugoSohm/rip-tune/issues"
+    "url": "https://github.com/HugoSohm/riptune/issues"
   },
-  "homepage": "https://github.com/HugoSohm/rip-tune#readme",
+  "homepage": "https://riptune.app",
   "keywords": [
     "tauri",
     "rust",

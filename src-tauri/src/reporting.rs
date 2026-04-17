@@ -1,6 +1,11 @@
 /// Send a bug report email using Resend API
 #[tauri::command]
-pub async fn send_bug_report(handle: tauri::AppHandle, message: String, email: String, screenshot: Option<String>) -> Result<(), String> {
+pub async fn send_bug_report(
+    handle: tauri::AppHandle,
+    message: String,
+    email: String,
+    screenshot: Option<String>,
+) -> Result<(), String> {
     let version = handle.package_info().version.to_string();
     // Injected at compile time. No hardcoded fallback for security in open-source.
     let api_key = option_env!("RESEND_API_KEY").unwrap_or("");
@@ -19,7 +24,11 @@ pub async fn send_bug_report(handle: tauri::AppHandle, message: String, email: S
               <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
               <p><strong>Status:</strong> {}</p>
             </div>"#,
-        if email.is_empty() { "Not provided" } else { &email },
+        if email.is_empty() {
+            "Not provided"
+        } else {
+            &email
+        },
         message.replace("\n", "<br>"),
         version,
         screenshot
@@ -29,8 +38,8 @@ pub async fn send_bug_report(handle: tauri::AppHandle, message: String, email: S
     );
 
     let mut body = serde_json::json!({
-        "from": "RipTune App <no-reply@riptune.hugosohm.fr>",
-        "to": ["help@riptune.hugosohm.fr"],
+        "from": "RipTune App <no-reply@riptune.app>",
+        "to": ["help@riptune.app"],
         "subject": "[Bug Report] RipTune",
         "html": html
     });

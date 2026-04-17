@@ -70,7 +70,10 @@ export const en = {
     deepAnalysisWarning: "The analysis will take significantly more time.",
     language: "Language",
     about: "About RipTune",
-    aboutDesc: "Open source project developed by @HugoSohm. Built with yt-dlp, Tauri, React, and Essentia Engine https://github.com/HugoSohm/rip-tune"
+    aboutDesc: "Open source project developed by @HugoSohm. Built with yt-dlp, Tauri, React, and Essentia Engine https://github.com/HugoSohm/riptune",
+    website: "Website",
+    github: "View source code on GitHub",
+    koFi: "Support on Ko-fi"
   },
   deleteModal: {
     title: "Delete Track?",

@@ -1,6 +1,6 @@
 [package]
-name = "rip-tune"
-version = "0.2.6"
+name = "riptune"
+version = "0.2.7"
 description = "RipTune - Analyze and download music from YouTube"
 authors = ["HugoSohm"]
 edition = "2021"
@@ -11,7 +11,7 @@ edition = "2021"
 # The `_lib` suffix may seem redundant but it is necessary
 # to make the lib name unique and wouldn't conflict with the bin name.
 # This seems to be only an issue on Windows, see https://github.com/rust-lang/cargo/issues/8519
-name = "rip_tune_lib"
+name = "riptune_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]

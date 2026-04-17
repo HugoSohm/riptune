@@ -1,5 +1,14 @@
 # RipTune Changelog
 
+## 0.2.7 (2026-04-17)
+
+### 🌐 Rebranding & Website Launch
+- **Domain Migration**: Officially rebranded repository to `riptune` and updated all internal links to point the newly registered domain: `riptune.app`.
+- **Security Updates**: Updated bug report and security emails to utilize the new `@riptune.app` addresses for increased professionalism.
+- **Settings UI Enhancement**: Added a dedicated `Website` button in the Settings footer next to the GitHub repository and Ko-fi support items.
+- **Translation Completeness**: Localized the new Settings footer buttons for French, Spanish, and English.
+- **Clean Configuration**: Updated internal manifest files, crate names, and `latest.json` fetching configurations to match the new GitHub address without redirections.
+
 ## 0.2.6 (2026-04-17)
 
 ### 🌍 Global Reach & Infrastructure Polish

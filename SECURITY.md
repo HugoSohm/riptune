@@ -11,7 +11,7 @@ RipTune is currently in its early stages. We recommend using the latest version 
 
 ## Reporting a Vulnerability
 
-If you discover a security vulnerability in RipTune, please DO NOT report it as a public GitHub issue. Instead, report it privately by emailing us at: **security@riptune.hugosohm.fr**.
+If you discover a security vulnerability in RipTune, please DO NOT report it as a public GitHub issue. Instead, report it privately by emailing us at: **security@riptune.app**.
 
 Please include:
 1. A description of the vulnerability.
