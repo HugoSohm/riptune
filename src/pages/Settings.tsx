@@ -1,4 +1,4 @@
-import { FolderOpen, UploadCloud, Trash2, Info, X, Languages, ExternalLink } from "lucide-react";
+import { FolderOpen, UploadCloud, Trash2, Info, X, Languages, ExternalLink, Activity, AlertTriangle } from "lucide-react";
 import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
 import CustomSelect from "../components/CustomSelect";
@@ -9,6 +9,7 @@ export default function Settings() {
   const {
     customDir, setCustomDir, defaultDir, cookies, setCookies,
     deleteFilesOnHistoryDelete, setDeleteFilesOnHistoryDelete,
+    deepAnalysis, setDeepAnalysis,
     lang, setLang, t
   } = useApp();
 
@@ -98,7 +99,26 @@ export default function Settings() {
           </div>
         </div>
 
-
+        <div className="mb-6 border-b border-white/10 pb-6">
+          <h3 className="text-xl font-bold text-white mb-2 flex items-center gap-2">
+            <Activity className="w-5 h-5 text-indigo-400" />
+            {t.settings.audioEngine}
+          </h3>
+          <div className="flex items-center justify-between gap-4 py-2">
+            <div className="flex-1">
+              <p className="text-white font-medium mb-1">{t.settings.deepAnalysis}</p>
+              <p className="text-slate-400 text-xs text-pretty">{t.settings.deepAnalysisDesc}</p>
+              <div className="flex items-end gap-1.5 mt-1.5">
+                <AlertTriangle className="w-3 h-3 text-amber-500/80 shrink-0" />
+                <p className="text-amber-500/80 text-[10px] leading-none font-semibold uppercase tracking-wider">{t.settings.deepAnalysisWarning}</p>
+              </div>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" className="sr-only peer" checked={deepAnalysis} onChange={(e) => setDeepAnalysis(e.target.checked)} />
+              <div className="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-500 shadow-inner"></div>
+            </label>
+          </div>
+        </div>
         <div className="mb-6 border-b border-white/10 pb-6">
           <h3 className="text-xl font-bold text-white mb-2 flex items-center gap-2">
             <UploadCloud className="w-5 h-5 text-amber-400" />

@@ -44,7 +44,7 @@ export default function Notifications() {
               <div className="mt-2.5 w-full h-1 bg-white/5 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-gradient-to-r from-purple-500 to-blue-500 transition-all duration-500"
-                  style={{ width: `${(playlistProgress.current / playlistProgress.total) * 100}%` }}
+                  style={{ width: `${playlistProgress.total > 0 ? (playlistProgress.current / playlistProgress.total) * 100 : 0}%` }}
                 />
               </div>
             )}

@@ -4,8 +4,6 @@ import { listen } from "@tauri-apps/api/event";
 import { open } from "@tauri-apps/plugin-dialog";
 import { useApp } from "../context/AppContext";
 
-import { useNotifications } from "./useNotifications";
-import { useHistory } from "./useHistory";
 import { useAudioProcessor } from "./useAudioProcessor";
 import { useDownloader } from "./useDownloader";
 
@@ -16,12 +14,12 @@ export function useRipTune() {
     isPlaylist, setIsPlaylist, downloadPlaylist, setDownloadPlaylist,
     shouldDownload, setShouldDownload, cookies, setCookies, defaultDir, setDefaultDir,
     deleteFilesOnHistoryDelete, setDeleteFilesOnHistoryDelete, lang, setLang, t,
-    history, latest, setLatest, deleteConfirmId, setDeleteConfirmId, setPlaylistProgress
+    history, latest, setLatest, deleteConfirmId, setDeleteConfirmId, setPlaylistProgress,
+    notifications, removeNotification, addNotification,
+    handleDeleteHistoryItem: handleHistoryDelete, confirmDelete: historyConfirmDelete
   } = useApp();
 
-  // Modules (now using context internally)
-  const { notifications, removeNotification, addNotification } = useNotifications();
-  const { handleDeleteHistoryItem: handleHistoryDelete, confirmDelete: historyConfirmDelete } = useHistory();
+  // Modules
   const { processFile } = useAudioProcessor();
   const { handleDownload, handleCancelDownload, playlistProgress } = useDownloader();
 
@@ -48,7 +46,10 @@ export function useRipTune() {
     const unlistenDragEnter = listen("tauri://drag-enter", () => setDragActive(true));
     const unlistenDragLeave = listen("tauri://drag-leave", () => setDragActive(false));
     const unlistenProgress = listen<{ current: number, total: number, title: string }>("download-progress", (event) => {
-      setPlaylistProgress({ current: event.payload.current, total: event.payload.total });
+      setPlaylistProgress(prev => ({ 
+        current: event.payload.current, 
+        total: event.payload.total > 0 ? event.payload.total : (prev?.total || 0) 
+      }));
     });
 
     return () => {

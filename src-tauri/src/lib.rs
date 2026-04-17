@@ -2,7 +2,6 @@
 pub mod audio_processor;
 pub mod reporting;
 pub mod telemetry;
-pub mod updater;
 pub mod utils;
 use tauri::Manager;
 
@@ -16,9 +15,6 @@ pub fn run() {
         .plugin(tauri_plugin_updater::Builder::new().build())
         .manage(audio_processor::ProcessState(std::sync::Mutex::new(None)))
         .setup(|app| {
-            // Automatic update check on startup
-            updater::setup_update_check(app.handle().clone());
-
             if let Some(monitor) = app.primary_monitor().ok().flatten() {
                 let size = monitor.size();
                 let scale_factor = monitor.scale_factor();

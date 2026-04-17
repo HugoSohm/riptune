@@ -22,7 +22,7 @@ export default function CustomSelect({ options, value, onChange, className = "",
 
   useEffect(() => {
     onOpenChange?.(isOpen);
-  }, [isOpen]);
+  }, [isOpen, onOpenChange]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

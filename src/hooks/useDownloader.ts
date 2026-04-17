@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { HistoryEntry, PlaylistProgress } from "../types";
 import { useApp } from "../context/AppContext";
@@ -9,14 +8,13 @@ export function useDownloader() {
   const { 
     loadingRef, customDir, cookies, t, addNotification, clearNotificationsFor, 
     saveHistory, history, setLoading, setLatest,
-    url, setUrl, format, downloadPlaylist, shouldDownload, autoAnalyze, isPlaylist
+    url, setUrl, format, downloadPlaylist, shouldDownload, autoAnalyze, isPlaylist,
+    playlistProgress, setPlaylistProgress
   } = useApp();
 
   const { processFile } = useAudioProcessor();
 
-  const [playlistProgress, setPlaylistProgress] = useState<PlaylistProgress | null>(null);
-
-  const handleDownload = async (overrideUrl?: string, overrideShouldDownload?: boolean, overrideAutoAnalyze?: boolean) => {
+  const handleDownload = async (overrideUrl?: string, overrideShouldDownload?: boolean, overrideAutoAnalyze?: boolean, overrideId?: string) => {
     // Ensure we only use overrideUrl if it's actually a string (not an Event)
     const validOverrideUrl = typeof overrideUrl === "string" ? overrideUrl : undefined;
     const targetUrl = (validOverrideUrl || url).trim();
@@ -63,7 +61,7 @@ export function useDownloader() {
       trackEvent("download_started", { format, downloadPlaylist: downloadPlaylist ? 1 : 0 });
 
       addNotification(t.notifications.downloading, "info", true);
-      const result = await invoke<{ filepath: string, title: string, artist: string }>("download_audio", {
+      const results = await invoke<{ filepath: string, title: string, artist: string, url: string }[]>("download_audio", {
         url: targetUrl,
         format,
         customPath: !targetShouldDownload ? "TMP_ANALYSIS" : customDir,
@@ -74,43 +72,54 @@ export function useDownloader() {
       clearNotificationsFor(t.notifications.downloading);
 
       if (targetAutoAnalyze) {
-        await processFile(result.filepath, result.title, result.artist, !targetShouldDownload, targetUrl);
-        if (!targetShouldDownload) {
-          try {
-            await invoke("delete_file", { filepath: result.filepath });
-          } catch(e) {
-            console.error("Failed to delete temp analysis file", e);
+        for (const res of results) {
+          await processFile(res.filepath, res.title, res.artist, !targetShouldDownload, res.url);
+          if (!targetShouldDownload) {
+            try {
+              await invoke("delete_file", { filepath: res.filepath });
+            } catch(e) {
+              console.error("Failed to delete temp analysis file", e);
+            }
           }
         }
       } else if (targetShouldDownload) {
-        const existingEntryIndex = history.findIndex(item => item.url === targetUrl && item.isTemp);
-        
-        if (existingEntryIndex !== -1) {
-          const updatedHistory = [...history];
-          const oldEntry = updatedHistory[existingEntryIndex];
-          const updatedEntry: HistoryEntry = {
-            ...oldEntry,
-            filepath: result.filepath,
-            title: result.title,
-            artist: result.artist,
-            date: new Date().toISOString(),
-            isTemp: false
-          };
-          updatedHistory[existingEntryIndex] = updatedEntry;
-          saveHistory(updatedHistory);
-          setLatest(updatedEntry);
-        } else {
-          const newEntry: HistoryEntry = {
-            id: crypto.randomUUID(),
-            title: result.title,
-            artist: result.artist,
-            filepath: result.filepath,
-            date: new Date().toISOString(),
-            url: targetUrl
-          };
-          saveHistory([newEntry, ...history]);
-          setLatest(newEntry);
+        let updatedHistory = [...history];
+        let latestEntry = null;
+
+        for (const res of results) {
+          const existingEntryIndex = updatedHistory.findIndex(item => 
+            (overrideId ? item.id === overrideId : item.url === res.url) && item.isTemp
+          );
+          
+          if (existingEntryIndex !== -1) {
+            const oldEntry = updatedHistory[existingEntryIndex];
+            const updatedEntry: HistoryEntry = {
+              ...oldEntry,
+              filepath: res.filepath,
+              title: res.title,
+              artist: res.artist,
+              date: new Date().toISOString(),
+              isTemp: false
+            };
+            updatedHistory[existingEntryIndex] = updatedEntry;
+            latestEntry = updatedEntry;
+          } else {
+            const newEntry: HistoryEntry = {
+              id: crypto.randomUUID(),
+              title: res.title,
+              artist: res.artist,
+              filepath: res.filepath,
+              date: new Date().toISOString(),
+              url: res.url
+            };
+            updatedHistory = [newEntry, ...updatedHistory];
+            latestEntry = newEntry;
+          }
         }
+        
+        saveHistory(updatedHistory);
+        if (latestEntry) setLatest(latestEntry);
+        
         setPlaylistProgress(null);
         addNotification(t.notifications.downloadComplete, "success");
         loadingRef.current = false;

@@ -37,7 +37,7 @@ export default function Home() {
   };
 
   return (
-    <div className="w-full flex-1 flex flex-col justify-center items-center max-w-2xl animate-in fade-in slide-in-from-bottom-4 duration-500 gap-6">
+    <div className="w-full flex flex-col items-center max-w-2xl animate-in fade-in slide-in-from-bottom-4 duration-500 gap-5 my-auto py-2">
       <div className="text-center w-full">
         <h1 className="text-4xl md:text-5xl font-black tracking-tighter mb-4 bg-clip-text text-transparent bg-gradient-to-r from-purple-500 via-indigo-400 to-blue-500 pb-2 drop-shadow-sm select-none">
           {t.home.title}
@@ -196,10 +196,10 @@ export default function Home() {
           </div>
         </div>
 
-        {latest && (
-          <div className="mt-8 text-center animate-in fade-in slide-in-from-top-4 duration-1000 w-full flex justify-center">
+        <div className="mt-8 text-center w-full flex justify-center min-h-[64px]">
+          {latest ? (
             <div
-              className={`w-full max-w-lg relative flex items-center gap-3 bg-[#111728]/40 backdrop-blur-md border border-white/5 rounded-2xl p-2.5 pr-4 transition-all group/file ${!latest.isTemp ? 'hover:bg-white/[0.02] cursor-pointer' : 'cursor-default'}`}
+              className={`w-full max-w-lg relative flex items-center gap-3 bg-[#111728]/40 backdrop-blur-md border border-white/5 rounded-2xl p-2.5 pr-4 transition-all group/file animate-in fade-in slide-in-from-top-4 duration-500 ${!latest.isTemp ? 'hover:bg-white/[0.02] cursor-pointer' : 'cursor-default'}`}
               onClick={() => !latest.isTemp && handleOpenFile(latest.filepath)}
             >
               <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-purple-500/10 to-blue-500/5 border border-white/5 flex items-center justify-center shrink-0">
@@ -222,8 +222,18 @@ export default function Home() {
                 </div>
               )}
             </div>
-          </div>
-        )}
+          ) : (
+            <div className="w-full max-w-lg relative flex items-center gap-3 bg-[#111728]/20 backdrop-blur-md border border-white/5 border-dashed rounded-2xl p-2.5 pr-4 transition-all opacity-40 select-none">
+              <div className="w-11 h-11 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center shrink-0">
+                <Music className="w-5 h-5 text-slate-500/30" />
+              </div>
+              <div className="flex-1 text-left min-w-0">
+                <div className="h-4 w-32 bg-white/5 rounded-md mb-2 animate-pulse" />
+                <div className="h-3 w-20 bg-white/5 rounded-md animate-pulse" />
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

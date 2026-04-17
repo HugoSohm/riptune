@@ -23,4 +23,5 @@ pub struct DownloadResult {
     pub filepath: String,
     pub title: String,
     pub artist: String,
+    pub url: String,
 }

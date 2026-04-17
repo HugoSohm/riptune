@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { List, Trash2, FolderOpen, Loader2, Sparkles, Download, Music, ExternalLink } from "lucide-react";
+import { List, Trash2, FolderOpen, Loader2, Sparkles, Download, Music, ExternalLink, Search } from "lucide-react";
 import { invoke } from "@tauri-apps/api/core";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { useApp } from "../context/AppContext";
@@ -56,6 +56,40 @@ export default function History() {
   const { processFile } = useAudioProcessor();
   const { handleDownload } = useDownloader();
   const [activeActionId, setActiveActionId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [visibleCount, setVisibleCount] = useState(50);
+  const observerTarget = useRef<HTMLTableRowElement>(null);
+
+  useEffect(() => {
+    setVisibleCount(50);
+  }, [searchQuery]);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setVisibleCount(prev => prev + 20);
+        }
+      },
+      { threshold: 0.1, rootMargin: "200px" }
+    );
+
+    if (observerTarget.current) {
+      observer.observe(observerTarget.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
+
+  const filteredHistory = history.filter(item => {
+    if (!searchQuery.trim()) return true;
+    const query = searchQuery.toLowerCase().trim();
+    const matchTitle = item.title?.toLowerCase().includes(query);
+    const matchArtist = item.artist?.toLowerCase().includes(query);
+    return matchTitle || matchArtist;
+  });
+
+  const displayedHistory = filteredHistory.slice(0, visibleCount);
 
   const handleDownloadFromHistory = async (item: any) => {
     if (!item.url) return;
@@ -68,7 +102,7 @@ export default function History() {
 
     try {
       // Pass overrides to bypass stale global state
-      await handleDownload(item.url, true, false);
+      await handleDownload(item.url, true, false, item.id);
     } finally {
       setActiveActionId(null);
     }
@@ -90,70 +124,88 @@ export default function History() {
 
   return (
     <div className="w-full h-full flex flex-col max-w-6xl animate-in fade-in slide-in-from-right-8 duration-500">
-      <div className="flex flex-col md:flex-row md:items-end justify-between mb-6 gap-4 shrink-0">
-        <div>
+      <div className="flex items-end justify-between mb-6 gap-x-8 gap-y-4 shrink-0 flex-wrap">
+        <div className="shrink-0">
           <h2 className="text-4xl font-black text-white tracking-tight">{t.history.title}</h2>
           <p className="text-slate-400 mt-2 text-lg">{t.history.description}</p>
         </div>
-        <div className="flex items-center gap-6 bg-[#111728] px-5 py-2.5 rounded-2xl border border-white/5 shadow-2xl">
-          <label className="flex items-center gap-3 cursor-pointer group">
-            <div className="relative inline-flex items-center">
-              <input
-                type="checkbox"
-                className="sr-only peer"
-                checked={deleteFilesOnHistoryDelete}
-                onChange={() => setDeleteFilesOnHistoryDelete(!deleteFilesOnHistoryDelete)}
-              />
-              <div className="w-9 h-5 bg-white/5 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-slate-400 after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-red-400 peer-checked:after:bg-white shadow-inner border border-white/5"></div>
-            </div>
-            <span
-              className="text-[10px] font-black uppercase tracking-[0.1em] text-slate-500 group-hover:text-slate-300 transition-colors"
-              dangerouslySetInnerHTML={{
-                __html: `${t.deleteModal.fileDeletion}`
-              }}
-            />
-          </label>
+
+        <div className="flex items-center gap-4 shrink-0 ml-auto justify-end flex-1">
           {history.length > 0 && (
-            <div className="flex items-center gap-2 pl-2 border-l border-white/10">
-              <button
-                onClick={() => handleDeleteHistoryItem("all")}
-                className="p-1.5 px-2 rounded-lg text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-all flex items-center gap-2 group border border-transparent hover:border-red-500/20"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-                <span className="text-[10px] font-bold uppercase tracking-wider">{t.history.deleteAll}</span>
-              </button>
+            <div className="flex items-center bg-[#111728] px-4 py-2 rounded-2xl border border-white/5 shadow-2xl shrink h-[46px] relative z-[100] w-full max-w-[280px] min-w-[140px] group transition-colors focus-within:border-purple-500/50">
+              <Search className="w-4 h-4 text-slate-500 group-focus-within:text-purple-400 shrink-0 transition-colors" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder={t.history.searchPlaceholder || "Search by title..."}
+                className="w-full bg-transparent border-none text-white text-[13px] font-medium ml-3 focus:outline-none focus:ring-0 placeholder-slate-500 min-w-0"
+              />
             </div>
           )}
+
+          <div className="flex items-center gap-6 bg-[#111728] px-5 py-2.5 rounded-2xl border border-white/5 shadow-2xl shrink-0 min-w-fit">
+            <label className="flex items-center gap-3 cursor-pointer group">
+              <div className="relative inline-flex items-center">
+                <input
+                  type="checkbox"
+                  className="sr-only peer"
+                  checked={deleteFilesOnHistoryDelete}
+                  onChange={() => setDeleteFilesOnHistoryDelete(!deleteFilesOnHistoryDelete)}
+                />
+                <div className="w-9 h-5 bg-white/5 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-slate-400 after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-red-400 peer-checked:after:bg-white shadow-inner border border-white/5"></div>
+              </div>
+              <span
+                className="text-[10px] font-black uppercase tracking-[0.1em] text-slate-500 group-hover:text-slate-300 transition-colors"
+                dangerouslySetInnerHTML={{
+                  __html: `${t.deleteModal.fileDeletion}`
+                }}
+              />
+            </label>
+            {history.length > 0 && (
+              <div className="flex items-center gap-2 pl-2 border-l border-white/10">
+                <button
+                  onClick={() => handleDeleteHistoryItem("all")}
+                  className="p-1.5 px-2 rounded-lg text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-all flex items-center gap-2 group border border-transparent hover:border-red-500/20"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span className="text-[10px] font-bold uppercase tracking-wider">{t.history.deleteAll}</span>
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
       <div className="w-full flex-1 rounded-3xl bg-[#111728]/80 backdrop-blur-xl border border-white/5 shadow-2xl flex flex-col">
         <div className="relative scroll-smooth overflow-visible custom-scrollbar pb-2">
-          <table className="w-full text-left border-separate border-spacing-0 relative table-fixed min-w-[1150px]">
+          <table className="w-full text-left border-separate border-spacing-0 relative table-fixed min-w-[1000px]">
             <thead className="shadow-md border-b border-white/10">
               <tr className="text-[10px] uppercase tracking-widest text-slate-400">
-                <th className="pl-10 pr-6 py-5 font-semibold w-[6%] min-w-[70px] rounded-tl-3xl bg-[#141b2e]/95 backdrop-blur-md text-center"></th>
-                <th className="px-8 py-5 font-semibold w-[38%] min-w-[350px] bg-[#141b2e]/95 backdrop-blur-md text-left">{t.history.tableTrack}</th>
+                <th className="px-4 py-5 font-semibold text-center w-[7%] min-w-[70px] rounded-tl-3xl bg-[#141b2e]/95 backdrop-blur-md"></th>
+                <th className="px-8 py-5 font-semibold w-[30%] min-w-[280px] bg-[#141b2e]/95 backdrop-blur-md text-left">{t.history.tableTrack}</th>
                 <th className="px-8 py-5 font-semibold w-[15%] min-w-[150px] bg-[#141b2e]/95 backdrop-blur-md text-left">{t.history.tableDate}</th>
-                <th className="px-4 py-5 font-semibold text-center w-[9%] min-w-[90px] bg-[#141b2e]/95 backdrop-blur-md">{t.history.tableBpm}</th>
-                <th className="px-4 py-5 font-semibold text-center w-[10%] min-w-[110px] bg-[#141b2e]/95 backdrop-blur-md">{t.history.tableKey}</th>
-                <th className="px-8 py-5 font-semibold text-center w-[22%] min-w-[250px] rounded-tr-3xl bg-[#141b2e]/95 backdrop-blur-md">{t.history.tableAction}</th>
+                <th className="px-4 py-5 font-semibold text-center w-[11%] min-w-[110px] bg-[#141b2e]/95 backdrop-blur-md">{t.history.tableBpm}</th>
+                <th className="px-4 py-5 font-semibold text-center w-[11%] min-w-[110px] bg-[#141b2e]/95 backdrop-blur-md">{t.history.tableKey}</th>
+                <th className="px-4 py-5 font-semibold text-center w-[28%] min-w-[300px] rounded-tr-3xl bg-[#141b2e]/95 backdrop-blur-md">{t.history.tableAction}</th>
               </tr>
             </thead>
             <tbody>
-              {history.length === 0 ? (
+              {filteredHistory.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-8 py-24 text-center text-slate-500">
                     <div className="w-20 h-20 mx-auto bg-white/5 rounded-full flex items-center justify-center mb-4">
                       <List className="w-10 h-10 opacity-40" />
                     </div>
-                    <p className="text-xl font-medium text-slate-400">{t.history.empty}</p>
-                    <p className="mt-1">{t.history.emptyDesc}</p>
+                    <p className="text-xl font-medium text-slate-400">
+                      {history.length === 0 ? t.history.empty : (t.history.emptySearch || "No tracks match your search.")}
+                    </p>
+                    <p className="mt-1">{history.length === 0 ? t.history.emptyDesc : ""}</p>
                   </td>
                 </tr>
               ) : (
-                history.map((item, index) => {
-                  const isLastRow = index === history.length - 1;
+                displayedHistory.map((item, index) => {
+                  const isLastRow = index === displayedHistory.length - 1 && displayedHistory.length === filteredHistory.length;
                   return (
                     <tr
                       key={item.id}
@@ -209,7 +261,7 @@ export default function History() {
                         </div>
                       </td>
                       <td className={`px-2 py-5 text-center transition-colors duration-300 group-hover/row:bg-[#141b2e]/30`}>
-                        <div className="w-20 h-10 rounded-xl bg-gradient-to-br from-purple-500/20 to-purple-500/5 flex items-center justify-center border border-purple-500/20 mx-auto shadow-sm">
+                        <div className="w-24 h-10 rounded-xl bg-gradient-to-br from-purple-500/20 to-purple-500/5 flex items-center justify-center border border-purple-500/20 mx-auto shadow-sm">
                           <span className="text-base font-black text-purple-400 select-text">
                             {item.bpm !== undefined ? item.bpm : "-"}
                           </span>
@@ -222,8 +274,8 @@ export default function History() {
                           </span>
                         </div>
                       </td>
-                      <td className={`px-8 py-5 text-right transition-colors duration-300 group-hover/row:bg-[#141b2e]/30 ${isLastRow ? 'rounded-br-3xl' : ''}`}>
-                        <div className="flex items-center justify-end gap-2 pr-2">
+                      <td className={`px-4 py-5 text-center transition-colors duration-300 group-hover/row:bg-[#141b2e]/30 ${isLastRow ? 'rounded-br-3xl' : ''}`}>
+                        <div className="flex items-center justify-center gap-2">
                           {/* Slot 1: Analyze */}
                           <div className="w-10 flex justify-center">
                             {activeActionId === item.id && item.bpm === undefined && !item.isTemp ? (
@@ -234,11 +286,10 @@ export default function History() {
                               <div className="group relative">
                                 <button
                                   onClick={() => item.bpm === undefined && !item.isTemp && handleAnalyzeFromHistory(item)}
-                                  className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${
-                                    item.bpm === undefined && !item.isTemp 
-                                      ? "bg-purple-500/20 text-purple-400 hover:bg-purple-500 hover:text-white group-hover:shadow-[0_0_15px_rgba(168,85,247,0.4)]" 
-                                      : "bg-white/5 text-slate-700 cursor-default opacity-20"
-                                  }`}
+                                  className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${item.bpm === undefined && !item.isTemp
+                                    ? "bg-purple-500/20 text-purple-400 hover:bg-purple-500 hover:text-white group-hover:shadow-[0_0_15px_rgba(168,85,247,0.4)]"
+                                    : "bg-white/5 text-slate-700 cursor-default opacity-20"
+                                    }`}
                                   disabled={loading || (item.bpm !== undefined || item.isTemp)}
                                 >
                                   <Sparkles className="w-4 h-4" />
@@ -272,11 +323,10 @@ export default function History() {
                               <div className="group relative">
                                 <button
                                   onClick={() => !item.isTemp && handleOpenFile(item.filepath)}
-                                  className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${
-                                    !item.isTemp 
-                                      ? "bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white" 
-                                      : "bg-white/5 text-slate-700 cursor-default opacity-20"
-                                  }`}
+                                  className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${!item.isTemp
+                                    ? "bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white"
+                                    : "bg-white/5 text-slate-700 cursor-default opacity-20"
+                                    }`}
                                   disabled={item.isTemp}
                                 >
                                   <FolderOpen className="w-4 h-4" />
@@ -293,11 +343,10 @@ export default function History() {
                             <div className="group relative">
                               <button
                                 onClick={() => item.url && openUrl(item.url)}
-                                className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${
-                                  item.url 
-                                    ? "bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white" 
-                                    : "bg-white/5 text-slate-700 cursor-default opacity-20"
-                                }`}
+                                className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${item.url
+                                  ? "bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white"
+                                  : "bg-white/5 text-slate-700 cursor-default opacity-20"
+                                  }`}
                                 disabled={!item.url}
                               >
                                 <ExternalLink className="w-4 h-4" />
@@ -328,6 +377,9 @@ export default function History() {
                   );
                 })
               )}
+              <tr ref={observerTarget} className="h-px">
+                <td colSpan={6} className="p-0 border-none"></td>
+              </tr>
             </tbody>
           </table>
         </div>

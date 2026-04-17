@@ -13,12 +13,12 @@ export function useUpdater() {
     try {
       const updateResult = await check();
       if (updateResult) {
-        console.log("Update available:", updateResult.version);
+
         setUpdate(updateResult);
         setStatus('available');
         return updateResult;
       } else {
-        console.log("No updates available");
+
         setStatus('idle');
         return null;
       }
@@ -37,7 +37,7 @@ export function useUpdater() {
     setProgress(0);
     setErrorMessage(null);
 
-    console.log("Starting download and install...");
+
 
     try {
       let downloaded = 0;
@@ -47,7 +47,6 @@ export function useUpdater() {
         switch (event.event) {
           case 'Started':
             total = event.data.contentLength || 0;
-            console.log(`Download started. Total: ${total} bytes`);
             setStatus('downloading');
             break;
           case 'Progress':
@@ -55,17 +54,15 @@ export function useUpdater() {
             if (total > 0) {
               const p = Math.round((downloaded / total) * 100);
               setProgress(p);
-              console.log(`Download progress: ${p}%`);
             }
             break;
           case 'Finished':
-            console.log("Download finished. Installing...");
             setStatus('installing');
             break;
         }
       });
 
-      console.log("Update installed successfully. Relaunching...");
+
       // Stay in 'installing' or similar state until relaunch
       await relaunch();
     } catch (error: any) {

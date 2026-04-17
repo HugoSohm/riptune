@@ -1,5 +1,18 @@
 # RipTune Changelog
 
+## 0.2.5 (2026-04-17)
+
+### 🚀 Layout Stability & Engine Refinement
+- **Deep Analysis Engine**: Added a new "Deep Analysis" setting for more precise BPM and Key detection, using the entire track instead of a 60-second snippet.
+- **History Search Dashboard**: Implemented a fluid search bar in the History tab that shrinks progressively to maximize space, with an integrated search-by-title-or-artist feature.
+- **Home Page Stabilization**: Added dynamic skeleton placeholders for the latest analysis card to eliminate layout shifts when results appear.
+- **Improved Window Constraints**: Enforced a strict 1080x800 minimum window size to prevent UI clipping and ensure a consistent, professional layout across all resolutions.
+- **History UI Refinement**: 
+    - Fixed icon overlap in the Actions column by increasing its minimum width and centering content.
+    - Standardized BPM and Key column sizes for perfect visual symmetry.
+- **Playlist Progress Fix**: Resolved a critical state-sync bug where the playlist download progress would get stuck as `--` during updates.
+- **Smart Notification Management**: Isolated task notifications with unique IDs to prevent interference between processes.
+
 ## 0.2.4 (2026-04-16)
 
 ### 🎨 UI Polish & Robust File Management

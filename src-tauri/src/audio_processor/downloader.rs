@@ -95,7 +95,7 @@ pub async fn download_audio(
     custom_path: Option<String>,
     cookies: Option<String>,
     download_playlist: bool,
-) -> Result<DownloadResult, String> {
+) -> Result<Vec<DownloadResult>, String> {
     let downloads_dir = if let Some(path) = custom_path {
         if path == "TMP_ANALYSIS" {
             std::env::temp_dir().join("riptune_analysis")
@@ -139,7 +139,7 @@ pub async fn download_audio(
     }
 
     cmd.arg("--ffmpeg-location")
-        .arg(&bin_dir)
+        .arg(bin_dir)
         .arg("-x")
         .arg("--audio-format")
         .arg(&format)
@@ -151,6 +151,8 @@ pub async fn download_audio(
         .arg("TITLE:%(title)s")
         .arg("--print")
         .arg("ARTIST:%(uploader)s")
+        .arg("--print")
+        .arg("URL:%(webpage_url)s")
         .arg("--print")
         .arg("after_move:FILEPATH:%(filepath)s")
         .arg("--newline")
@@ -180,7 +182,8 @@ pub async fn download_audio(
 
     let mut last_title = String::new();
     let mut last_artist = String::new();
-    let mut last_valid_result: Option<DownloadResult> = None;
+    let mut last_url = String::new();
+    let mut results: Vec<DownloadResult> = Vec::new();
     let mut current_track_count = 0;
     let mut reader = BufReader::new(stdout);
     let mut line_buf = Vec::new();
@@ -195,13 +198,12 @@ pub async fn download_audio(
 
         if line.starts_with("FILEPATH:") {
             let filepath = line.replace("FILEPATH:", "");
-            last_valid_result = Some(DownloadResult {
+            results.push(DownloadResult {
                 filepath,
                 title: last_title.clone(),
                 artist: last_artist.clone(),
+                url: if last_url.is_empty() { url.clone() } else { last_url.clone() },
             });
-
-
             current_track_count += 1;
             let _ = app_handle.emit(
                 "download-progress",
@@ -221,6 +223,11 @@ pub async fn download_audio(
             if !val.is_empty() && !val.contains("%") {
                 last_artist = val;
             }
+        } else if line.starts_with("URL:") {
+            let val = line.replace("URL:", "").trim().to_string();
+            if !val.is_empty() && !val.contains("%") {
+                last_url = val;
+            }
         }
     }
 
@@ -232,5 +239,9 @@ pub async fn download_audio(
         *lock = None;
     }
 
-    last_valid_result.ok_or_else(|| "Download failed or interrupted".to_string())
+    if results.is_empty() {
+        return Err("Download failed or interrupted".to_string());
+    }
+    
+    Ok(results)
 }

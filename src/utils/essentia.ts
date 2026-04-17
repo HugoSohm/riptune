@@ -24,7 +24,7 @@ export async function initEssentia() {
     wasmModule = await wasmModule;
   }
 
-  console.log("WASM Module keys:", Object.keys(wasmModule || {}));
+
   
   if (!wasmModule || !(wasmModule as any).EssentiaJS) {
     console.error("EssentiaJS not found in WASM module. Available keys:", Object.keys(wasmModule || {}));
@@ -32,7 +32,7 @@ export async function initEssentia() {
   }
 
   essentia = new Essentia(wasmModule);
-  console.log("Essentia initialized successfully");
+
   return essentia;
 }
 
@@ -40,17 +40,19 @@ export async function initEssentia() {
  * Analyzes an audio file from its local path
  * Returns [bpm, key]
  */
-export async function analyzeAudioFile(filepath: string): Promise<[number, string]> {
+export async function analyzeAudioFile(filepath: string, deepAnalysis: boolean = false): Promise<[number, string]> {
   const ess = await initEssentia();
-  console.log("Reading file:", filepath);
+
   const audioData = await readFile(filepath);
   
   const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
   const audioBuffer = await audioCtx.decodeAudioData(audioData.buffer);
   
-  // 1. Get first 60 seconds of audio to be fast
+  // 1. Extract desired audio segment (full track if deepAnalysis, else first 60 seconds)
   const sampleRate = audioBuffer.sampleRate;
-  const signal = audioBuffer.getChannelData(0).slice(0, Math.min(audioBuffer.length, 60 * sampleRate));
+  const signal = deepAnalysis
+    ? audioBuffer.getChannelData(0)
+    : audioBuffer.getChannelData(0).slice(0, Math.min(audioBuffer.length, 60 * sampleRate));
   
   // 2. Compute BPM using PercivalBpmEstimator
   const vectorSignal = ess.arrayToVector(signal);
@@ -58,16 +60,16 @@ export async function analyzeAudioFile(filepath: string): Promise<[number, strin
   let keyStr = "Unknown";
 
   try {
-    console.log("Computing BPM...");
+
     const bpmResult = ess.PercivalBpmEstimator(vectorSignal);
     bpm = Math.round(bpmResult.bpm * 10) / 10;
     
     // 3. Compute Key
-    console.log("Computing Key...");
+
     const keyResult = ess.KeyExtractor(vectorSignal);
     keyStr = `${keyResult.key} ${keyResult.scale === 'minor' ? 'min' : 'maj'}`;
     
-    console.log(`Analysis complete: ${bpm} BPM, ${keyStr}`);
+
   } catch (err) {
     console.error("Error during Essentia analysis:", err);
   } finally {

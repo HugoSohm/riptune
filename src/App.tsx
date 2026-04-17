@@ -25,7 +25,10 @@ function AppContent() {
 
     let unlistenProgress: Promise<UnlistenFn>;
     unlistenProgress = listen<{ current: number, total: number, title: string }>("download-progress", (event) => {
-      setPlaylistProgress({ current: event.payload.current, total: event.payload.total });
+      setPlaylistProgress(prev => ({
+        current: event.payload.current,
+        total: event.payload.total > 0 ? event.payload.total : (prev?.total || 0)
+      }));
     });
 
     return () => {
@@ -56,8 +59,8 @@ function AppContent() {
       )}
 
       {/* Main Content Scroll Wrapper */}
-      <div className="flex-1 w-full overflow-y-auto custom-scrollbar scroll-smooth z-10 flex flex-col">
-        <main className={`w-full max-w-7xl mx-auto px-6 pb-12 flex-1 flex flex-col items-center ${activeTab !== 'home' ? 'pt-8' : ''}`}>
+      <div className="flex-1 w-full overflow-y-auto [scrollbar-gutter:stable] custom-scrollbar scroll-smooth z-10 flex flex-col">
+        <main className="w-full max-w-7xl mx-auto px-6 pt-10 pb-12 flex-1 flex flex-col items-center">
           {activeTab === 'home' && <Home />}
           {activeTab === 'history' && <History />}
           {activeTab === 'settings' && <Settings />}
