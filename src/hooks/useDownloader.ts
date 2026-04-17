@@ -1,5 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
-import { HistoryEntry, PlaylistProgress } from "../types";
+import { HistoryEntry } from "../types";
 import { useApp } from "../context/AppContext";
 import { useAudioProcessor } from "./useAudioProcessor";
 import { trackEvent } from "../utils/analytics";
