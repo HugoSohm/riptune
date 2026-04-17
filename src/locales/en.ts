@@ -18,6 +18,9 @@ export const en = {
     dropDesc: "We'll instantly extract the BPM and Key.",
     bpm: "BPM",
     key: "Key",
+    unsupportedFile: "File not supported",
+    unsupportedFileDesc: "Only MP3, WAV and FLAC files are accepted.",
+    unknownArtist: "Unknown Artist",
   },
   history: {
     title: "Your history",
@@ -43,7 +46,11 @@ export const en = {
       analyze: "Analyze BPM & key",
       download: "Download audio file",
       open: "Open file in Explorer",
-      delete: "Delete from history"
+      delete: "Delete from history",
+      analyzed: "Analyzed",
+      notDownloaded: "Not downloaded",
+      openSourceUrl: "Open source URL",
+      noSourceUrl: "No source URL"
     }
   },
   settings: {
@@ -94,6 +101,9 @@ export const en = {
     placeholder: "Explain what happened and how to reproduce the bug...",
     screenshot: "Screenshot <i class='italic'>(Drag & drop or paste supported)</i>",
     dropTitle: "Drop your screenshot here",
+    remove: "Remove",
+    upload: "Upload Image",
+    sending: "Sending...",
     cancel: "Cancel",
     send: "Send report"
   },
@@ -123,6 +133,10 @@ export const en = {
     notif: "Notification",
     task: "Task",
     success: "Success",
-    error: "Error"
+    error: "Error",
+    bugReportSuccess: "Bug report sent successfully",
+    bugReportError: "Failed to send report",
+    imageAttached: "Image attached",
+    imageError: "Could not read image file"
   }
 };

@@ -7,7 +7,7 @@ import { listen, UnlistenFn } from "@tauri-apps/api/event";
 import { trackEvent } from "../utils/analytics";
 
 export default function BugReportModal() {
-  const { isBugModalOpen, setIsBugModalOpen, addNotification, lang, t } = useApp();
+  const { isBugModalOpen, setIsBugModalOpen, addNotification, t } = useApp();
   const [message, setMessage] = useState("");
   const [email, setEmail] = useState("");
   const [screenshot, setScreenshot] = useState<string | null>(null);
@@ -51,10 +51,10 @@ export default function BugReportModal() {
                     try {
                         const dataUrl = await invoke<string>("read_image_base64", { path });
                         setScreenshot(dataUrl);
-                        addNotification("Image attached", "success");
+                        addNotification(t.notifications.imageAttached, "success");
                     } catch (error) {
                         console.error("Failed to read image", error);
-                        addNotification("Could not read image file", "error");
+                        addNotification(t.notifications.imageError, "error");
                     }
                 }
             }
@@ -108,14 +108,14 @@ export default function BugReportModal() {
       
       trackEvent("bug_report_sent", { hasScreenshot: screenshot ? 1 : 0 });
 
-      addNotification("Bug report sent successfully", "success");
+      addNotification(t.notifications.bugReportSuccess, "success");
       setIsBugModalOpen(false);
       setMessage("");
       setEmail("");
       setScreenshot(null);
     } catch (error: any) {
       console.error(error);
-      addNotification(`Failed to send report: ${error}`, "error");
+      addNotification(`${t.notifications.bugReportError}: ${error}`, "error");
     } finally {
       setIsSending(false);
     }
@@ -205,7 +205,7 @@ export default function BugReportModal() {
                     className="text-[10px] uppercase font-bold text-red-400 hover:text-red-300 flex items-center gap-1.5 transition-colors"
                   >
                     <Trash2 className="w-3 h-3" />
-                    Remove
+                    {t.bugModal.remove}
                   </button>
                 )}
               </div>
@@ -228,7 +228,7 @@ export default function BugReportModal() {
                   />
                   <Image className="w-6 h-6 text-slate-600 group-hover:text-yellow-400 group-hover:scale-110 transition-all" />
                   <span className="mt-2 text-xs text-slate-500 group-hover:text-yellow-400 transition-colors uppercase tracking-widest font-bold">
-                    Upload Image
+                    {t.bugModal.upload}
                   </span>
                 </label>
               ) : (
@@ -290,7 +290,7 @@ export default function BugReportModal() {
             {isSending ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                {lang === 'fr' ? 'Envoi...' : 'Sending...'}
+                {t.bugModal.sending}
               </>
             ) : (
               t.bugModal.send

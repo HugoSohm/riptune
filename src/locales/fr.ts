@@ -18,6 +18,9 @@ export const fr = {
     dropDesc: "Nous extrairons instantanément le BPM et la clé.",
     bpm: "BPM",
     key: "Clé",
+    unsupportedFile: "Fichier non supporté",
+    unsupportedFileDesc: "Seuls les fichiers MP3, WAV et FLAC sont acceptés.",
+    unknownArtist: "Artiste inconnu",
   },
   history: {
     title: "Votre historique",
@@ -43,7 +46,11 @@ export const fr = {
       analyze: "Analyser BPM & clé",
       download: "Télécharger le fichier audio",
       open: "Ouvrir dans l'explorateur",
-      delete: "Supprimer de l'historique"
+      delete: "Supprimer de l'historique",
+      analyzed: "Analysé",
+      notDownloaded: "Non téléchargé",
+      openSourceUrl: "Ouvrir l'URL source",
+      noSourceUrl: "Pas d'URL source"
     }
   },
   settings: {
@@ -94,6 +101,9 @@ export const fr = {
     placeholder: "Expliquez ce qu'il s'est passé et comment reproduire le bug...",
     screenshot: "Capture d'écran <i class='italic'>(Glisser-déposer ou coller supporté)</i>",
     dropTitle: "Déposez votre capture ici",
+    remove: "Supprimer",
+    upload: "Charger une image",
+    sending: "Envoi...",
     cancel: "Annuler",
     send: "Envoyer le rapport"
   },
@@ -123,6 +133,10 @@ export const fr = {
     notif: "Notification",
     task: "Tâche",
     success: "Succès",
-    error: "Erreur"
+    error: "Erreur",
+    bugReportSuccess: "Rapport d'erreur envoyé avec succès",
+    bugReportError: "Échec de l'envoi du rapport",
+    imageAttached: "Image ajoutée",
+    imageError: "Impossible de lire le fichier image"
   }
 };

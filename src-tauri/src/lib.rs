@@ -1,9 +1,9 @@
 #![allow(unexpected_cfgs)]
 pub mod audio_processor;
 pub mod reporting;
+pub mod setup;
 pub mod telemetry;
 pub mod utils;
-use tauri::Manager;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -14,31 +14,7 @@ pub fn run() {
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .manage(audio_processor::ProcessState(std::sync::Mutex::new(None)))
-        .setup(|app| {
-            if let Some(monitor) = app.primary_monitor().ok().flatten() {
-                let size = monitor.size();
-                let scale_factor = monitor.scale_factor();
-
-                // Target 70% of screen width and height, but ensure it's at least the design minimum
-                let width = (size.width as f64 * 0.7 / scale_factor).max(1280.0);
-                let height = (size.height as f64 * 0.8 / scale_factor).max(750.0);
-
-                if let Some(window) = app.get_webview_window("main") {
-                    window
-                        .set_size(tauri::Size::Logical(tauri::LogicalSize { width, height }))
-                        .ok();
-                    window.center().ok();
-
-                    // Disable decorations on Windows to use the custom TitleBar
-                    #[cfg(any(target_os = "windows", target_os = "linux"))]
-                    {
-                        window.set_decorations(false).ok();
-                        window.set_shadow(true).ok();
-                    }
-                }
-            }
-            Ok(())
-        })
+        .setup(|app| setup::init(app))
         .invoke_handler(tauri::generate_handler![
             reporting::send_bug_report,
             telemetry::track_event,

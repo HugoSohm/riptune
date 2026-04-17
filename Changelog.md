@@ -1,5 +1,15 @@
 # RipTune Changelog
 
+## 0.2.6 (2026-04-17)
+
+### 🌍 Global Reach & Infrastructure Polish
+- **Full i18n Support**: Completed the internationalization engine and systematically replaced all remaining hardcoded UI strings with i18n tokens for a 100% localized experience across all supported languages.
+- **TitleBar Refactoring**: Re-engineered the backend architecture by moving window setup logic to a dedicated `setup.rs` module for better maintainability.
+- **Linux UX Fix**: Resolved an issue where the native title bar would sporadically reappear on Linux/Wayland by ensuring window decorations are disabled regardless of monitor detection status.
+- **Robust Release Pipeline**:
+    - Fixed specialized GitHub download URLs in `latest.json` to prevent invalid "untagged" links during draft releases.
+    - Improved signature verification logic to eliminate cross-platform signature mixups (e.g., Windows installers using macOS signatures).
+
 ## 0.2.5 (2026-04-17)
 
 ### 🚀 Layout Stability & Engine Refinement

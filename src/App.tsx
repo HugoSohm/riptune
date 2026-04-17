@@ -16,7 +16,7 @@ import { useFullscreenShortcut } from "./hooks/useFullscreenShortcut";
 import { listen, UnlistenFn } from "@tauri-apps/api/event";
 
 function AppContent() {
-  const { activeTab, dragActive, t, lang, setPlaylistProgress } = useApp();
+  const { activeTab, dragActive, t, setPlaylistProgress } = useApp();
   const { isValidDrag } = useDragDrop();
   useFullscreenShortcut();
 
@@ -49,10 +49,10 @@ function AppContent() {
               <UploadCloud className={`w-12 h-12 ${isValidDrag ? 'text-purple-400' : 'text-red-400'}`} />
             </div>
             <h2 className="text-3xl md:text-4xl font-black text-white tracking-tight">
-              {isValidDrag ? t.home.dropTitle : (lang === 'fr' ? 'Fichier non supporté' : 'File not supported')}
+              {isValidDrag ? t.home.dropTitle : t.home.unsupportedFile}
             </h2>
             <p className={`${isValidDrag ? 'text-purple-300' : 'text-red-300'} mt-2 text-lg px-8`}>
-              {isValidDrag ? t.home.dropDesc : (lang === 'fr' ? 'Seuls les fichiers MP3, WAV et FLAC sont acceptés.' : 'Only MP3, WAV and FLAC files are accepted.')}
+              {isValidDrag ? t.home.dropDesc : t.home.unsupportedFileDesc}
             </p>
           </div>
         </div>

@@ -211,8 +211,7 @@ export default function Home() {
                   {latest.title}
                 </h3>
                 <p className="text-[10px] text-purple-400/60 font-bold uppercase tracking-[0.1em] truncate flex items-center gap-2">
-                  <span className="w-1 h-1 rounded-full bg-purple-500/30" />
-                  {latest.artist || "Unknown Artist"}
+                  {latest.artist || t.home.unknownArtist}
                 </p>
               </div>
 

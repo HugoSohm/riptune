@@ -18,6 +18,9 @@ export const es = {
     dropDesc: "Extraeremos el BPM y la Clave al instante.",
     bpm: "BPM",
     key: "Clave",
+    unsupportedFile: "Archivo no compatible",
+    unsupportedFileDesc: "Solo se aceptan archivos MP3, WAV y FLAC.",
+    unknownArtist: "Artista desconocido",
   },
   history: {
     title: "Su historial",
@@ -43,7 +46,11 @@ export const es = {
       analyze: "Analizar BPM y Clave",
       download: "Descargar archivo de audio",
       open: "Abrir en el Explorador",
-      delete: "Eliminar del historial"
+      delete: "Eliminar del historial",
+      analyzed: "Analizado",
+      notDownloaded: "No descargado",
+      openSourceUrl: "Abrir URL de origen",
+      noSourceUrl: "Sin URL de origen"
     }
   },
   settings: {
@@ -94,6 +101,9 @@ export const es = {
     placeholder: "Explica lo que pasó y cómo reproducir el error...",
     screenshot: "Captura de pantalla <i class='italic'>(Arrastrar y soltar o pegar compatible)</i>",
     dropTitle: "Suelte su captura aquí",
+    remove: "Quitar",
+    upload: "Subir imagen",
+    sending: "Enviando...",
     cancel: "Cancelar",
     send: "Enviar informe"
   },
@@ -123,6 +133,10 @@ export const es = {
     notif: "Notificación",
     task: "Tarea",
     success: "Éxito",
-    error: "Error"
+    error: "Error",
+    bugReportSuccess: "Informe de error enviado con éxito",
+    bugReportError: "Error al enviar el informe",
+    imageAttached: "Imagen adjunta",
+    imageError: "No se pudo leer el archivo de imagen"
   }
 };

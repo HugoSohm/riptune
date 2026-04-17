@@ -198,7 +198,7 @@ export default function History() {
                       <List className="w-10 h-10 opacity-40" />
                     </div>
                     <p className="text-xl font-medium text-slate-400">
-                      {history.length === 0 ? t.history.empty : (t.history.emptySearch || "No tracks match your search.")}
+                      {history.length === 0 ? t.history.empty : t.history.emptySearch}
                     </p>
                     <p className="mt-1">{history.length === 0 ? t.history.emptyDesc : ""}</p>
                   </td>
@@ -228,10 +228,10 @@ export default function History() {
                           )}
                           <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-slate-900/95 backdrop-blur-md border border-white/10 text-white text-[10px] rounded-xl opacity-0 group-hover/status:opacity-100 transition-all duration-300 pointer-events-none whitespace-nowrap z-[100] shadow-2xl scale-95 group-hover/status:scale-100 font-bold uppercase tracking-wider">
                             {item.isTemp
-                              ? (t.history.status?.analysis || "analyse seule")
+                              ? t.history.status.analysis
                               : item.bpm !== undefined
-                                ? (t.history.status?.full || "téléchargement + analyse")
-                                : (t.history.status?.download || "téléchargement seul")}
+                                ? t.history.status.full
+                                : t.history.status.download}
                           </div>
                         </div>
                       </td>
@@ -245,11 +245,9 @@ export default function History() {
                               tooltipClassName="whitespace-nowrap"
                             />
                           </div>
-                          {item.artist && (
-                            <div className="text-xs text-purple-400 font-medium mt-0.5 truncate max-w-full">
-                              {item.artist}
-                            </div>
-                          )}
+                          <div className="text-xs text-purple-400 font-medium mt-0.5 truncate max-w-full">
+                            {item.artist || t.home.unknownArtist}
+                          </div>
                         </div>
                       </td>
                       <td className="px-8 py-5 whitespace-nowrap transition-colors duration-300 group-hover/row:bg-[#141b2e]/30">
@@ -295,7 +293,7 @@ export default function History() {
                                   <Sparkles className="w-4 h-4" />
                                 </button>
                                 <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-slate-900/90 backdrop-blur-md border border-white/10 text-white text-[10px] rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-300 delay-0 group-hover:delay-500 pointer-events-none whitespace-nowrap z-[100] shadow-2xl scale-95 group-hover:scale-100 font-bold uppercase tracking-wider">
-                                  {item.bpm === undefined && !item.isTemp ? t.history.tooltips.analyze : "Analyzed"}
+                                  {item.bpm === undefined && !item.isTemp ? t.history.tooltips.analyze : t.history.tooltips.analyzed}
                                 </div>
                               </div>
                             )}
@@ -316,7 +314,7 @@ export default function History() {
                                   <Download className="w-4 h-4" />
                                 </button>
                                 <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-slate-900/90 backdrop-blur-md border border-white/10 text-white text-[10px] rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-300 delay-0 group-hover:delay-500 pointer-events-none whitespace-nowrap z-[100] shadow-2xl scale-95 group-hover:scale-100 font-bold uppercase tracking-wider">
-                                  {t.history.tooltips.download || "Download"}
+                                  {t.history.tooltips.download}
                                 </div>
                               </div>
                             ) : (
@@ -332,7 +330,7 @@ export default function History() {
                                   <FolderOpen className="w-4 h-4" />
                                 </button>
                                 <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-slate-900/90 backdrop-blur-md border border-white/10 text-white text-[10px] rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-300 delay-0 group-hover:delay-500 pointer-events-none whitespace-nowrap z-[100] shadow-2xl scale-95 group-hover:scale-100 font-bold uppercase tracking-wider">
-                                  {!item.isTemp ? t.history.tooltips.open : "Not downloaded"}
+                                  {!item.isTemp ? t.history.tooltips.open : t.history.tooltips.notDownloaded}
                                 </div>
                               </div>
                             )}
@@ -352,7 +350,7 @@ export default function History() {
                                 <ExternalLink className="w-4 h-4" />
                               </button>
                               <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-slate-900/90 backdrop-blur-md border border-white/10 text-white text-[10px] rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-300 delay-0 group-hover:delay-500 pointer-events-none whitespace-nowrap z-[100] shadow-2xl scale-95 group-hover:scale-100 font-bold uppercase tracking-wider">
-                                {item.url ? "Open source URL" : "No Source URL"}
+                                {item.url ? t.history.tooltips.openSourceUrl : t.history.tooltips.noSourceUrl}
                               </div>
                             </div>
                           </div>
