@@ -37,8 +37,6 @@ export function useUpdater() {
     setProgress(0);
     setErrorMessage(null);
 
-
-
     try {
       let downloaded = 0;
       let total = 0;
@@ -61,7 +59,6 @@ export function useUpdater() {
             break;
         }
       });
-
 
       // Stay in 'installing' or similar state until relaunch
       await relaunch();

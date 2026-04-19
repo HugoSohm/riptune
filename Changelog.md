@@ -1,5 +1,13 @@
 # RipTune Changelog
 
+## 0.2.8 (2026-04-19)
+
+### 🛠️ Critical Auto-Update Fix
+- **Corrected Public Key**: Fixed a critical "Invalid input length: 57" error by restoring the valid 56-character public key for the Tauri updater.
+- **Robust Signature Pipeline**: Re-engineered the release workflow to correctly preserve multi-line minisign signatures, ensuring valid update verification across all platforms.
+- **Improved Build Artifacts**: Enabled `createUpdaterArtifacts` in the Tauri configuration to guarantee that signing assets are correctly generated and published.
+- **Secure Key Management**: Transitioned to a new password-protected signing key architecture with automated credential management in the release pipeline.
+
 ## 0.2.7 (2026-04-17)
 
 ### 🌐 Rebranding & Website Launch

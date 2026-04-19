@@ -157,7 +157,7 @@ jobs:
           # Let's use a more robust way to get just the base64 string.
           npx tauri signer sign -k "${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}" "$DMG_FILE" --password "${{ secrets.TAURI_SIGNING_PASSWORD }}" > raw_output.txt
           # The signature is usually the block of text after "Public signature:"
-          sed -n '/Public signature:/,$p' raw_output.txt | sed '1d' | sed '/Make sure to/d' | tr -d '\n' | tr -d '\r' > "${DMG_FILE}.sig"
+          sed -n '/Public signature:/,$p' raw_output.txt | sed '1d' | sed '/Make sure to/d' > "${DMG_FILE}.sig"
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v7
@@ -238,13 +238,20 @@ jobs:
 
           get_sig() {
             local bundle_name=$1
+            if [ -z "$bundle_name" ] || [ "$bundle_name" == "null" ]; then
+              echo ""
+              return
+            fi
+            
             local sig_name=$(echo "$ASSETS" | jq -r ".[] | select(.name == \"${bundle_name}.sig\") | .name" | head -n 1)
             if [ "$sig_name" != "null" ] && [ -n "$sig_name" ]; then
               local raw_sig=$(gh release download $VERSION -p "$sig_name" -O -)
               if echo "$raw_sig" | grep -q "Public signature:"; then
-                echo "$raw_sig" | sed -n '/Public signature:/,$p' | sed '1d' | sed '/Make sure to/d' | tr -d '\n' | tr -d '\r'
+                # Extract only the signature part but keep internal newlines
+                echo "$raw_sig" | sed -n '/Public signature:/,$p' | sed '1d' | sed '/Make sure to/d'
               else
-                echo "$raw_sig" | tr -d '\n' | tr -d '\r'
+                # Keep whole content for standard files
+                echo "$raw_sig"
               fi
             else
               echo ""
@@ -257,23 +264,31 @@ jobs:
           MAC_ARM_SIG=$(get_sig "$MAC_ARM_NAME")
           LINUX_SIG=$(get_sig "$LINUX_NAME")
 
-          # JSON construction with correct arch mapping
-          cat <<EOF > latest.json
-          {
-            "version": "$VERSION",
-            "notes": "Version $VERSION release",
-            "pub_date": "$DATE",
-            "platforms": {
-              "windows-x86_64": { "url": "$WIN_X64_URL", "signature": "$WIN_X64_SIG" },
-              "windows-aarch64": { "url": "$WIN_ARM64_URL", "signature": "$WIN_ARM64_SIG" },
-              "darwin-x86_64": { "url": "$MAC_X64_URL", "signature": "$MAC_X64_SIG" },
-              "darwin-aarch64": { "url": "$MAC_ARM_URL", "signature": "$MAC_ARM_SIG" },
-              "linux-x86_64": { "url": "$LINUX_URL", "signature": "$LINUX_SIG" }
-            }
-          }
-          EOF
+          # JSON construction using jq to handle escaping correctly
+          jq -n \
+            --arg version "$VERSION" \
+            --arg notes "Version $VERSION release" \
+            --arg pub_date "$DATE" \
+            --arg win_x64_url "$WIN_X64_URL" --arg win_x64_sig "$WIN_X64_SIG" \
+            --arg win_arm_url "$WIN_ARM64_URL" --arg win_arm_sig "$WIN_ARM64_SIG" \
+            --arg mac_x64_url "$MAC_X64_URL" --arg mac_x64_sig "$MAC_X64_SIG" \
+            --arg mac_arm_url "$MAC_ARM_URL" --arg mac_arm_sig "$MAC_ARM_SIG" \
+            --arg linux_url "$LINUX_URL" --arg linux_sig "$LINUX_SIG" \
+            '{
+              version: $version,
+              notes: $notes,
+              pub_date: $pub_date,
+              platforms: {
+                "windows-x86_64": { url: $win_x64_url, signature: $win_x64_sig },
+                "windows-aarch64": { url: $win_arm_url, signature: $win_arm_sig },
+                "darwin-x86_64": { url: $mac_x64_url, signature: $mac_x64_sig },
+                "darwin-aarch64": { url: $mac_arm_url, signature: $mac_arm_sig },
+                "linux-x86_64": { url: $linux_url, signature: $linux_sig }
+              }
+            }' > latest.json
           
           gh release upload $VERSION latest.json --clobber
+
 
       - name: Make release public
         env:

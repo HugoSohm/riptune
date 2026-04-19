@@ -1,7 +1,7 @@
 {
   "name": "riptune",
   "private": true,
-  "version": "0.2.7",
+  "version": "0.2.8",
   "description": "RipTune - Analyze and download music from YouTube (BPM, Key, Metadata)",
   "author": "Hugo Sohm <no-reply@riptune.app>",
   "license": "MIT",
@@ -30,8 +30,8 @@
   ],
   "type": "module",
   "scripts": {
-    "dev": "tauri dev",
-    "build": "tauri build",
+    "dev": "dotenv -e .env -- tauri dev",
+    "build": "dotenv -e .env -- tauri build",
     "frontend:dev": "vite",
     "frontend:build": "tsc && vite build",
     "tauri": "tauri",
@@ -55,6 +55,7 @@
     "@types/react-dom": "^19.1.6",
     "@vitejs/plugin-react": "^4.6.0",
     "autoprefixer": "^10.4.27",
+    "dotenv-cli": "^11.0.0",
     "postcss": "^8.5.8",
     "tailwindcss": "^3.4.19",
     "typescript": "~5.8.3",
