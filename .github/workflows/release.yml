@@ -136,7 +136,7 @@ jobs:
         uses: tauri-apps/tauri-action@v0
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-          TAURI_SIGNING_PASSWORD: ${{ secrets.TAURI_SIGNING_PASSWORD }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
           APTABASE_API_KEY: ${{ secrets.APTABASE_API_KEY }}
         with:
@@ -150,9 +150,9 @@ jobs:
           chmod +x scripts/macos/build.sh
           ARCH_OVERRIDE="${{ matrix.arch }}" ./scripts/macos/build.sh
           
-          # Re-sign the final custom DMG using the standard environment variable
+          # Re-sign the final custom DMG using the correct environment variable
           DMG_FILE=$(ls dist/RipTune_${VERSION}_*.dmg | head -n 1)
-          npx tauri signer sign -k "${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}" "$DMG_FILE" --password "${{ secrets.TAURI_SIGNING_PASSWORD }}" > raw_output.txt
+          npx tauri signer sign -k "${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}" "$DMG_FILE" --password "${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}" > raw_output.txt
           
           # Extract ONLY the base64 signature
           sed -n '/Public signature:/,$p' raw_output.txt | sed '1d' | sed '/Make sure to/d' > "${DMG_FILE}.sig"
