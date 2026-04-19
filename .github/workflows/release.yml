@@ -237,37 +237,45 @@ jobs:
             get_sig() {
               local bundle_name=$1
               if [ -z "$bundle_name" ] || [ "$bundle_name" == "null" ]; then
-                echo ""
+                printf ""
                 return
               fi
               
               local sig_name=$(echo "$ASSETS" | jq -r ".[] | select(.name == \"${bundle_name}.sig\") | .name" | head -n 1)
               if [ "$sig_name" != "null" ] && [ -n "$sig_name" ]; then
-                # Download the signature and use $(...) to let Bash strip ONLY the trailing newline
-                local content=$(gh release download $VERSION -p "$sig_name" -O -)
-                # Use printf %s to encode exactly the 4 lines in Base64
-                printf "%s" "$content" | base64 -w 0
+                # The .sig file is plain-text Minisign format (2 lines):
+                #   untrusted comment: ...
+                #   <base64 signature data>
+                # Tauri's updater parses this text directly — do NOT base64-encode it again.
+                # We strip only trailing/leading blank lines but PRESERVE the internal newline.
+                gh release download $VERSION -p "$sig_name" -O - | sed '/^[[:space:]]*$/d'
               else
-                echo ""
+                printf ""
               fi
             }
 
-          WIN_X64_SIG=$(get_sig "$WIN_X64_NAME")
-          WIN_ARM64_SIG=$(get_sig "$WIN_ARM64_NAME")
-          MAC_X64_SIG=$(get_sig "$MAC_X64_NAME")
-          MAC_ARM_SIG=$(get_sig "$MAC_ARM_NAME")
-          LINUX_SIG=$(get_sig "$LINUX_NAME")
+          # Write each sig to a temp file so jq --rawfile can read multi-line content safely
+          get_sig "$WIN_X64_NAME"  > /tmp/win_x64.sig
+          get_sig "$WIN_ARM64_NAME" > /tmp/win_arm64.sig
+          get_sig "$MAC_X64_NAME"  > /tmp/mac_x64.sig
+          get_sig "$MAC_ARM_NAME"  > /tmp/mac_arm.sig
+          get_sig "$LINUX_NAME"    > /tmp/linux.sig
 
-          # JSON construction using jq to handle escaping correctly
+          # JSON construction using jq --rawfile to handle multi-line signatures correctly
           jq -n \
             --arg version "$VERSION" \
             --arg notes "Version $VERSION release" \
             --arg pub_date "$DATE" \
-            --arg win_x64_url "$WIN_X64_URL" --arg win_x64_sig "$WIN_X64_SIG" \
-            --arg win_arm_url "$WIN_ARM64_URL" --arg win_arm_sig "$WIN_ARM64_SIG" \
-            --arg mac_x64_url "$MAC_X64_URL" --arg mac_x64_sig "$MAC_X64_SIG" \
-            --arg mac_arm_url "$MAC_ARM_URL" --arg mac_arm_sig "$MAC_ARM_SIG" \
-            --arg linux_url "$LINUX_URL" --arg linux_sig "$LINUX_SIG" \
+            --arg win_x64_url "$WIN_X64_URL" \
+            --arg win_arm_url "$WIN_ARM64_URL" \
+            --arg mac_x64_url "$MAC_X64_URL" \
+            --arg mac_arm_url "$MAC_ARM_URL" \
+            --arg linux_url "$LINUX_URL" \
+            --rawfile win_x64_sig /tmp/win_x64.sig \
+            --rawfile win_arm_sig /tmp/win_arm64.sig \
+            --rawfile mac_x64_sig /tmp/mac_x64.sig \
+            --rawfile mac_arm_sig /tmp/mac_arm.sig \
+            --rawfile linux_sig   /tmp/linux.sig \
             '{
               version: $version,
               notes: $notes,

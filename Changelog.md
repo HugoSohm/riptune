@@ -1,5 +1,10 @@
 # RipTune Changelog
 
+## 0.3.0 (2026-04-20)
+
+### 🛠️ Critical Updater Fix
+- **Signature Integrity**: Fixed a multi-line encoding bug that was causing "Invalid encoding" errors during app updates.
+
 ## 0.2.9 (2026-04-19)
 
 ### 🛠️ Ultimate Updater Fix
