@@ -34,4 +34,7 @@ RipTune is a premium music analyzer and downloader built with **Tauri v2** and *
 ## 6. Communication & Workflow
 *   **Tone**: Concise, technical, and direct.
 *   **Pre-Implementation Analysis**: Always check if a desired feature exists natively in Tauri v2 configuration before writing custom Rust code.
+*   **Version-Specific Validation**: Before proposing any configuration or environment variable changes, the agent MUST explicitly check `package.json` or `Cargo.toml` to identify exact dependency versions. 
+*   **Version Fidelity**: The agent must exclusively use documentation and best practices corresponding to the versions discovered in the project (Current: **Tauri v2**). Applying "legacy" knowledge (e.g., Tauri v1 conventions) without explicit verification is strictly prohibited.
+*   **Documentation First**: For breaking version transitions (e.g., Tauri v1 -> v2), the agent is prohibited from relying on memory. It MUST use research tools to verify the current official documentation for that specific version.
 *   **Code Hygiene**: Systematically remove unused imports and debug comments before finalizing a task.

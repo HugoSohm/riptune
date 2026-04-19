@@ -234,27 +234,23 @@ jobs:
           MAC_ARM_URL="${BASE_URL}/${MAC_ARM_NAME}"
           LINUX_URL="${BASE_URL}/${LINUX_NAME}"
 
-          get_sig() {
-            local bundle_name=$1
-            if [ -z "$bundle_name" ] || [ "$bundle_name" == "null" ]; then
-              echo ""
-              return
-            fi
-            
-            local sig_name=$(echo "$ASSETS" | jq -r ".[] | select(.name == \"${bundle_name}.sig\") | .name" | head -n 1)
-            if [ "$sig_name" != "null" ] && [ -n "$sig_name" ]; then
-              local raw_sig=$(gh release download $VERSION -p "$sig_name" -O -)
-              if echo "$raw_sig" | grep -q "Public signature:"; then
-                # Extract only the signature part but keep internal newlines
-                echo "$raw_sig" | sed -n '/Public signature:/,$p' | sed '1d' | sed '/Make sure to/d'
-              else
-                # Keep whole content for standard files
-                echo "$raw_sig"
+            get_sig() {
+              local bundle_name=$1
+              if [ -z "$bundle_name" ] || [ "$bundle_name" == "null" ]; then
+                echo ""
+                return
               fi
-            else
-              echo ""
-            fi
-          }
+              
+              local sig_name=$(echo "$ASSETS" | jq -r ".[] | select(.name == \"${bundle_name}.sig\") | .name" | head -n 1)
+              if [ "$sig_name" != "null" ] && [ -n "$sig_name" ]; then
+                # Download the signature and use $(...) to let Bash strip ONLY the trailing newline
+                local content=$(gh release download $VERSION -p "$sig_name" -O -)
+                # Use printf %s to encode exactly the 4 lines in Base64
+                printf "%s" "$content" | base64 -w 0
+              else
+                echo ""
+              fi
+            }
 
           WIN_X64_SIG=$(get_sig "$WIN_X64_NAME")
           WIN_ARM64_SIG=$(get_sig "$WIN_ARM64_NAME")

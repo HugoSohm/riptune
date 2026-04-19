@@ -1,5 +1,10 @@
 # RipTune Changelog
 
+## 0.2.9 (2026-04-19)
+
+### 🛠️ Ultimate Updater Fix
+- **Signature Extraction**: Implemented zero-newline Base64 signature extraction for robust update verification.
+
 ## 0.2.8 (2026-04-19)
 
 ### 🛠️ Critical Auto-Update Fix
