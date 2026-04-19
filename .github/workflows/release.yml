@@ -131,23 +131,11 @@ jobs:
       - name: install frontend dependencies
         run: npm install
 
-      - name: Prepare signing key
-        shell: bash
-        run: |
-          mkdir -p "$RUNNER_TEMP/keys"
-          # On détecte si le secret est encodé en Base64 (commence par dW50 = 'unt')
-          # ou s'il est au format brut (commence par 'untrusted')
-          if [[ "${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}" == dW50* ]]; then
-            echo "${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}" | base64 -d > "$RUNNER_TEMP/keys/tauri.key"
-          else
-            echo "${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}" > "$RUNNER_TEMP/keys/tauri.key"
-          fi
-          echo "TAURI_SIGNING_PRIVATE_KEY=$RUNNER_TEMP/keys/tauri.key" >> $GITHUB_ENV
-
       - name: build and bundle
         id: tauri_build
         uses: tauri-apps/tauri-action@v0
         env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PASSWORD: ${{ secrets.TAURI_SIGNING_PASSWORD }}
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
           APTABASE_API_KEY: ${{ secrets.APTABASE_API_KEY }}
@@ -162,13 +150,11 @@ jobs:
           chmod +x scripts/macos/build.sh
           ARCH_OVERRIDE="${{ matrix.arch }}" ./scripts/macos/build.sh
           
-          # Re-sign the final custom DMG and extract ONLY the base64 signature
+          # Re-sign the final custom DMG using the standard environment variable
           DMG_FILE=$(ls dist/RipTune_${VERSION}_*.dmg | head -n 1)
+          npx tauri signer sign -k "${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}" "$DMG_FILE" --password "${{ secrets.TAURI_SIGNING_PASSWORD }}" > raw_output.txt
           
-          # Use the already prepared signing key from the check-version step environment
-          npx tauri signer sign -k "$TAURI_SIGNING_PRIVATE_KEY" "$DMG_FILE" --password "${{ secrets.TAURI_SIGNING_PASSWORD }}" > raw_output.txt
-          
-          # The signature is usually the block of text after "Public signature:"
+          # Extract ONLY the base64 signature
           sed -n '/Public signature:/,$p' raw_output.txt | sed '1d' | sed '/Make sure to/d' > "${DMG_FILE}.sig"
 
       - name: Upload Artifacts
