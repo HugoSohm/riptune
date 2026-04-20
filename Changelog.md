@@ -1,5 +1,10 @@
 # RipTune Changelog
 
+## 0.3.1 (2026-04-20)
+
+### 🛠️ Critical Updater Fix
+- **Signature Verification**: Regenerated the signing keypair (public & private) to fix a cryptographic algorithm mismatch that caused "The signature verification failed" errors during updates.
+
 ## 0.3.0 (2026-04-20)
 
 ### 🛠️ Critical Updater Fix
