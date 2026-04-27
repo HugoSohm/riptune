@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { UploadCloud } from "lucide-react";
 import TitleBar from "./components/TitleBar";
 import Home from "./pages/Home";
@@ -13,12 +13,20 @@ import { trackEvent } from "./utils/analytics";
 
 import { useDragDrop } from "./hooks/useDragDrop";
 import { useFullscreenShortcut } from "./hooks/useFullscreenShortcut";
+import { useDownloader } from "./hooks/useDownloader";
 import { listen, UnlistenFn } from "@tauri-apps/api/event";
+import { useDeepLink } from "./hooks/useDeepLink";
 
 function AppContent() {
   const { activeTab, dragActive, t, setPlaylistProgress } = useApp();
   const { isValidDrag } = useDragDrop();
+  const { handleDownload } = useDownloader();
   useFullscreenShortcut();
+
+  const handleDownloadRef = useRef(handleDownload);
+  handleDownloadRef.current = handleDownload;
+
+  useDeepLink(handleDownloadRef);
 
   useEffect(() => {
     trackEvent("app_started");
@@ -34,7 +42,7 @@ function AppContent() {
     return () => {
       unlistenProgress.then((f) => f());
     };
-  }, [setPlaylistProgress]);
+  }, []); // Run ONLY once on mount
 
   return (
     <div className="h-screen w-screen bg-[#0a0f1c] text-slate-100 font-sans selection:bg-purple-500/30 flex flex-col items-center overflow-hidden relative">

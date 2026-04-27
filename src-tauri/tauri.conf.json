@@ -65,6 +65,11 @@
         "https://github.com/HugoSohm/riptune/releases/latest/download/latest.json"
       ],
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IERBNUYxRjAyQTM4Q0Y0QTAKUldTZzlJeWpBaDlmMmtKTzBHRXhPUStkTFhnQmZDK29wMzJZdmhIMTZnZjNoLzdzUG1nK3dKRDYK"
+    },
+    "deep-link": {
+      "desktop": {
+        "schemes": ["riptune"]
+      }
     }
   }
 }

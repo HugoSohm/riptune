@@ -16,7 +16,7 @@ export default function TitleBar() {
 
   useEffect(() => {
     getVersion().then(setVersion).catch(console.error);
-    
+
     // Initial check
     appWindow.isMaximized().then(setIsMaximized);
 
@@ -68,13 +68,13 @@ export default function TitleBar() {
               <span className="text-sm font-bold tracking-tight text-white">RipTune</span>
               {version && (
                 <span className="px-1.5 py-0.5 bg-purple-500/20 text-purple-300 text-[9px] font-bold rounded-md border border-purple-500/30 leading-none">
-                   v{version}
+                  v{version}
                 </span>
               )}
             </div>
             <span className="text-[10px] uppercase tracking-widest text-white/30 font-medium">{t.titleBar.audioAnalyzer}</span>
           </div>
-          
+
           {/* Update Button - Not Draggable */}
           {status !== 'idle' && status !== 'checking' && (
             <div className="ml-4">
@@ -82,13 +82,12 @@ export default function TitleBar() {
                 onMouseDown={status === 'error' ? () => window.location.reload() : installUpdate}
                 disabled={status === 'downloading' || status === 'installing'}
                 title={errorMessage || undefined}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px] font-black tracking-wider uppercase transition-all duration-500 border group ${
-                  status === 'available' 
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px] font-black tracking-wider uppercase transition-all duration-500 border group ${status === 'available'
                     ? 'bg-purple-600/20 border-purple-500/30 text-purple-300 hover:bg-purple-500 hover:text-white hover:border-purple-400 hover:shadow-[0_0_20px_rgba(168,85,247,0.4)] animate-pulse'
                     : status === 'error'
-                    ? 'bg-red-500/20 border-red-500/30 text-red-300 hover:bg-red-500 hover:text-white'
-                    : 'bg-emerald-500/20 border-emerald-500/30 text-emerald-300 cursor-wait'
-                }`}
+                      ? 'bg-red-500/20 border-red-500/30 text-red-300 hover:bg-red-500 hover:text-white'
+                      : 'bg-emerald-500/20 border-emerald-500/30 text-emerald-300 cursor-wait'
+                  }`}
               >
                 {status === 'available' ? (
                   <>
@@ -104,8 +103,8 @@ export default function TitleBar() {
                   <>
                     <Loader2 className="w-3 h-3 animate-spin" />
                     <span>
-                      {status === 'downloading' 
-                        ? progress > 0 ? `Downloading ${progress}%` : 'Downloading...' 
+                      {status === 'downloading'
+                        ? progress > 0 ? `Downloading ${progress}%` : 'Downloading...'
                         : 'Installing...'}
                     </span>
                   </>

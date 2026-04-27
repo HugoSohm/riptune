@@ -1,9 +1,10 @@
 [package]
 name = "riptune"
-version = "0.3.1"
+version = "0.3.0"
 description = "RipTune - Analyze and download music from YouTube"
 authors = ["HugoSohm"]
 edition = "2021"
+license = "AGPL-3.0-or-later"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -20,6 +21,7 @@ dotenvy = "0.15"
 
 [dependencies]
 tauri = { version = "2", features = ["macos-private-api"] }
+tiny_http = "0.12"
 tauri-plugin-opener = "2"
 tauri-plugin-dialog = "2"
 tauri-plugin-updater = "2"
@@ -32,6 +34,10 @@ chrono = "0.4.44"
 rand = "0.10.0"
 base64 = "0.22.1"
 tauri-plugin-process = "2"
+tauri-plugin-deep-link = "2"
+
+[target.'cfg(any(target_os = "macos", windows, target_os = "linux"))'.dependencies]
+tauri-plugin-single-instance = { version = "2", features = ["deep-link"] }
 
 [target.'cfg(target_os = "macos")'.dependencies]
 tauri = { version = "2", features = ["macos-private-api"] }

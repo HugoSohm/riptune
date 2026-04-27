@@ -1,10 +1,10 @@
 {
   "name": "riptune",
   "private": true,
-  "version": "0.3.1",
+  "version": "0.3.0",
   "description": "RipTune - Analyze and download music from YouTube (BPM, Key, Metadata)",
   "author": "Hugo Sohm <no-reply@riptune.app>",
-  "license": "MIT",
+  "license": "AGPL-3.0-or-later",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/HugoSohm/riptune.git"
@@ -39,6 +39,7 @@
   },
   "dependencies": {
     "@tauri-apps/api": "^2.10.1",
+    "@tauri-apps/plugin-deep-link": "^2.4.8",
     "@tauri-apps/plugin-dialog": "^2.7.0",
     "@tauri-apps/plugin-fs": "^2.5.0",
     "@tauri-apps/plugin-opener": "^2.5.3",

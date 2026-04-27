@@ -100,5 +100,5 @@ All telemetry implementation is 100% visible in the open-source code.
 
 ### 📜 License
 
-This project is licensed under the [MIT License](LICENSE).
+This project is licensed under the [GNU AGPLv3 License](LICENSE).
 

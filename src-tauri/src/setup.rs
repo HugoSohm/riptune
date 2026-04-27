@@ -1,6 +1,20 @@
-use tauri::{App, Manager, Runtime};
+use tauri::{App, Manager, Runtime, Emitter};
+use tauri_plugin_deep_link::DeepLinkExt;
 
 pub fn init<R: Runtime>(app: &mut App<R>) -> Result<(), Box<dyn std::error::Error>> {
+    // Handle deep link on cold start (app was opened via riptune://)
+    #[cfg(desktop)]
+    {
+        // Force registration of the deep link scheme (essential for dev mode on Windows)
+        let _ = app.deep_link().register("riptune");
+
+        if let Ok(Some(urls)) = app.deep_link().get_current() {
+            for url in urls {
+                let _ = app.emit("deep-link-received", url.to_string());
+            }
+        }
+    }
+
     if let Some(monitor) = app.primary_monitor().ok().flatten() {
         let size = monitor.size();
         let scale_factor = monitor.scale_factor();

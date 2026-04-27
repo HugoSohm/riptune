@@ -1,18 +1,18 @@
 # RipTune Changelog
 
-## 0.3.1 (2026-04-20)
+## 0.3.0 (2026-04-27)
 
-### 🛠️ Critical Updater Fix
-- **Signature Verification**: Regenerated the signing keypair (public & private) to fix a cryptographic algorithm mismatch that caused "The signature verification failed" errors during updates.
+### 🧩 Chrome Extension & Seamless Integration
+- **Extension Server**: Built a lightweight local background server for seamless two-way communication between the desktop app and the RipTune Chrome Extension.
+- **Metadata Polling**: Enabled real-time extraction of BPM and Key data directly to the Chrome extension via a dedicated status endpoint.
+- **Deep-Link Infrastructure**: Implemented robust `riptune://` deep-link parsing to ensure flawless "Analyze & Download" triggers from external sources.
+- **Visual Identity Update**: Completely refreshed application logos and regenerated optimized icon assets for all platforms (macOS, Windows, Linux, iOS, Android).
 
-## 0.3.0 (2026-04-20)
-
-### 🛠️ Critical Updater Fix
-- **Signature Integrity**: Fixed a multi-line encoding bug that was causing "Invalid encoding" errors during app updates.
-
-## 0.2.9 (2026-04-19)
+## 0.2.9 (2026-04-20)
 
 ### 🛠️ Ultimate Updater Fix
+- **Signature Verification**: Regenerated the signing keypair (public & private) to fix a cryptographic algorithm mismatch that caused "The signature verification failed" errors during updates.
+- **Signature Integrity**: Fixed a multi-line encoding bug that was causing "Invalid encoding" errors during app updates.
 - **Signature Extraction**: Implemented zero-newline Base64 signature extraction for robust update verification.
 
 ## 0.2.8 (2026-04-19)

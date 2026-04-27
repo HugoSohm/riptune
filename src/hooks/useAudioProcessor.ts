@@ -58,6 +58,14 @@ export function useAudioProcessor() {
 
       clearNotificationsFor(t.notifications.analyzing);
 
+      if (url) {
+        try {
+          await invoke("report_analysis_result", { url, bpm, key: keyStr });
+        } catch (e) {
+          console.error("Failed to report analysis result", e);
+        }
+      }
+
       const entry: HistoryEntry = {
         id: crypto.randomUUID(),
         title,
