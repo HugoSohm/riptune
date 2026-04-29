@@ -47,12 +47,17 @@ export function useDragDrop() {
     unlistenDrop = listen("tauri://drag-drop", (event: any) => {
       if (isBugModalOpen) return;
       setDragActive(false);
-      const paths = event.payload.paths || [];
-      if (paths.length > 0) {
-        const path = paths[0];
+      const paths: string[] = event.payload.paths || [];
+
+      let processedAny = false;
+      for (const path of paths) {
         const ext = path.toLowerCase().split('.').pop() || "";
         if (audioExtensions.includes(ext)) {
-          setActiveTab("home");
+          if (!processedAny) {
+            setActiveTab("home");
+            processedAny = true;
+          }
+          // Each file gets its own concurrent task
           processFile(path);
         }
       }

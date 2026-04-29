@@ -1,8 +1,9 @@
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use std::process::Child;
 use std::sync::Mutex;
 
-pub struct ProcessState(pub Mutex<Option<Child>>);
+pub struct ProcessState(pub Mutex<HashMap<String, Child>>);
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct UrlInfo {

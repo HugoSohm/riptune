@@ -24,6 +24,15 @@ export function useHistory(deleteFilesOnHistoryDelete: boolean) {
     localStorage.setItem("riptune_history", JSON.stringify(newHistory));
   };
 
+  // Safe for concurrent calls: uses functional update so each call sees the latest state
+  const updateHistory = (updater: (prev: HistoryEntry[]) => HistoryEntry[]) => {
+    setHistory(prev => {
+      const next = updater(prev);
+      localStorage.setItem("riptune_history", JSON.stringify(next));
+      return next;
+    });
+  };
+
   const handleDeleteHistoryItem = (id: string) => {
     setDeleteConfirmId(id);
   };
@@ -66,7 +75,7 @@ export function useHistory(deleteFilesOnHistoryDelete: boolean) {
   };
 
   return {
-    history, setHistory, saveHistory, latest, setLatest,
+    history, setHistory, saveHistory, updateHistory, latest, setLatest,
     deleteConfirmId, setDeleteConfirmId, handleDeleteHistoryItem,
     confirmDelete, handleOpenFile
   };

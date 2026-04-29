@@ -15,13 +15,14 @@ export function useRipTune() {
     shouldDownload, setShouldDownload, cookies, setCookies, defaultDir, setDefaultDir,
     deleteFilesOnHistoryDelete, setDeleteFilesOnHistoryDelete, lang, setLang, t,
     history, latest, setLatest, deleteConfirmId, setDeleteConfirmId, setPlaylistProgress,
+    playlistProgress,
     notifications, removeNotification, addNotification,
     handleDeleteHistoryItem: handleHistoryDelete, confirmDelete: historyConfirmDelete
   } = useApp();
 
   // Modules
   const { processFile } = useAudioProcessor();
-  const { handleDownload, handleCancelDownload, playlistProgress } = useDownloader();
+  const { handleDownload, handleCancelDownload } = useDownloader();
 
   // Initial Load & Event Listeners
   useEffect(() => {
@@ -46,9 +47,9 @@ export function useRipTune() {
     const unlistenDragEnter = listen("tauri://drag-enter", () => setDragActive(true));
     const unlistenDragLeave = listen("tauri://drag-leave", () => setDragActive(false));
     const unlistenProgress = listen<{ current: number, total: number, title: string }>("download-progress", (event) => {
-      setPlaylistProgress(prev => ({ 
-        current: event.payload.current, 
-        total: event.payload.total > 0 ? event.payload.total : (prev?.total || 0) 
+      setPlaylistProgress(prev => ({
+        current: event.payload.current,
+        total: event.payload.total > 0 ? event.payload.total : (prev?.total || 0)
       }));
     });
 

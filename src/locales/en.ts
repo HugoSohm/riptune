@@ -129,6 +129,7 @@ export const en = {
     downloadComplete: "Download complete",
     downloadCancelled: "Download cancelled",
     errorDownload: "Download error",
+    errorPlaylistNotFound: "This playlist does not exist or is private.",
     cancelling: "Cancelling download",
     currentCleared: "Current track cleared",
     trackRemoved: "Track removed from history",

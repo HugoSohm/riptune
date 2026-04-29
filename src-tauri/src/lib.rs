@@ -41,8 +41,8 @@ pub fn run(context: tauri::Context) {
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_deep_link::init())
-        .manage(audio_processor::ProcessState(std::sync::Mutex::new(None)))
-        .manage(local_server::AnalysisResults(std::sync::Mutex::new(None)))
+        .manage(audio_processor::ProcessState(std::sync::Mutex::new(std::collections::HashMap::new())))
+        .manage(local_server::AnalysisResults(std::sync::Mutex::new(std::collections::HashMap::new())))
         .setup(|app| {
             local_server::init(app.handle().clone());
             setup::init(app)

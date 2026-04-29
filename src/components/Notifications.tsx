@@ -3,7 +3,7 @@ import { useApp } from "../context/AppContext";
 
 export default function Notifications() {
   const { notifications, removeNotification, loading, isPlaylist, downloadPlaylist, playlistProgress, t } = useApp();
-  
+
   // Show progress ONLY if it's a playlist AND the user enabled playlist download
   const shouldShowProgress = loading && isPlaylist && downloadPlaylist && playlistProgress;
 

@@ -1,5 +1,21 @@
 # RipTune Changelog
 
+## 0.3.1 (2026-04-29)
+
+### 🔄 Parallel Analysis & Multi-Tasking
+- **Concurrent Web Workers**: Implemented a multi-threaded analysis engine using Web Workers, allowing audio files to be analyzed off the main thread for a fluid experience.
+- **Multi-Task Management**: Enabled concurrent processing of separate download and analysis tasks, allowing users to start new jobs while others are still running.
+- **Private Playlist Detection**: Implemented advanced `stderr` inspection in the Rust downloader to distinguish between generic failures and private/non-existent YouTube playlists.
+- **Smart Playlist Detection**: Automatically detects pure playlist URLs to force playlist mode, while maintaining choice for individual videos within a playlist.
+- **Improved Pre-flight Checks**: Enhanced `check_url_info` to detect unavailable content before attempting a full download, providing immediate visual feedback.
+- **Task-Specific Loading**: Differentiated between "Analysis" and "Download" task types to prevent overlapping loaders on history items during concurrent operations.
+
+### 🏷️ Metadata & UI Synchronization
+- **Windows ID3 Compatibility**: Switched metadata writing from ID3v2.4 to **ID3v2.3**, ensuring that Title, Artist, and BPM are natively visible in Windows File Explorer.
+- **Instant Tagging**: Implemented immediate ID3 tag writing (Title, Artist) upon download completion, even when analysis is not requested.
+- **Persistent Analysis Carry-over**: BPM and Key data from temporary "Analyze-only" tasks are now automatically preserved and written to the final file when downloaded later from history.
+- **Smart Metadata defaults**: Reverted to using Video Title and Channel Name for tags to ensure reliable metadata across varying YouTube naming conventions.
+
 ## 0.3.0 (2026-04-27)
 
 ### 🧩 Chrome Extension & Seamless Integration

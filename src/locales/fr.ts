@@ -129,6 +129,7 @@ export const fr = {
     downloadComplete: "Téléchargement terminé",
     downloadCancelled: "Téléchargement annulé",
     errorDownload: "Erreur de téléchargement",
+    errorPlaylistNotFound: "Cette playlist n'existe pas ou est privée.",
     cancelling: "Annulation du téléchargement",
     currentCleared: "Piste actuelle effacée",
     trackRemoved: "Titre retiré de l'historique",

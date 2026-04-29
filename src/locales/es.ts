@@ -129,6 +129,7 @@ export const es = {
     downloadComplete: "Descarga completada",
     downloadCancelled: "Descarga cancelada",
     errorDownload: "Error de descarga",
+    errorPlaylistNotFound: "Esta lista no existe o es privada.",
     cancelling: "Cancelando descarga",
     currentCleared: "Pista actual eliminada",
     trackRemoved: "Pista eliminada del historial",

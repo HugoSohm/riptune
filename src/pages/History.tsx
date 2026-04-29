@@ -49,13 +49,13 @@ const TruncatedText = ({ text, className, tooltipClassName, wrapperClassName }: 
 
 export default function History() {
   const {
-    history, loading, deleteFilesOnHistoryDelete, setDeleteFilesOnHistoryDelete, t,
-    handleDeleteHistoryItem, setUrl, setShouldDownload, setAutoAnalyze
+    history, deleteFilesOnHistoryDelete, setDeleteFilesOnHistoryDelete, t,
+    handleDeleteHistoryItem, setUrl, setShouldDownload, setAutoAnalyze,
+    isTaskActive
   } = useApp();
 
   const { processFile } = useAudioProcessor();
   const { handleDownload } = useDownloader();
-  const [activeActionId, setActiveActionId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [visibleCount, setVisibleCount] = useState(50);
   const observerTarget = useRef<HTMLTableRowElement>(null);
@@ -93,28 +93,19 @@ export default function History() {
 
   const handleDownloadFromHistory = async (item: any) => {
     if (!item.url) return;
-    setActiveActionId(item.id);
 
     // Configure global state for context
     setUrl(item.url);
     setShouldDownload(true);
     setAutoAnalyze(false);
 
-    try {
-      // Pass overrides to bypass stale global state
-      await handleDownload(item.url, true, false, item.id);
-    } finally {
-      setActiveActionId(null);
-    }
+    // Pass item.id as overrideId so the task is tracked with this ID
+    handleDownload(item.url, true, false, item.id);
   };
 
   const handleAnalyzeFromHistory = async (item: any) => {
-    setActiveActionId(item.id);
-    try {
-      await processFile(item.filepath, item.title, item.artist, item.isTemp, item.url);
-    } finally {
-      setActiveActionId(null);
-    }
+    // Pass item.id as the task ID so the spinner is shown for this specific row
+    processFile(item.filepath, item.title, item.artist, item.isTemp, item.url, item.id);
   };
 
   const handleOpenFile = async (filepath: string) => {
@@ -276,7 +267,9 @@ export default function History() {
                         <div className="flex items-center justify-center gap-2">
                           {/* Slot 1: Analyze */}
                           <div className="w-10 flex justify-center">
-                            {activeActionId === item.id && item.bpm === undefined && !item.isTemp ? (
+                            {/* Spinner shown exclusively based on task activity — not bpm state,
+                                to avoid disappearing when another concurrent analysis updates history */}
+                            {isTaskActive(item.id, 'analysis') ? (
                               <div className="w-10 h-10 rounded-full bg-purple-500/10 flex items-center justify-center border border-purple-500/20">
                                 <Loader2 className="w-4 h-4 animate-spin text-purple-400" />
                               </div>
@@ -288,7 +281,7 @@ export default function History() {
                                     ? "bg-purple-500/20 text-purple-400 hover:bg-purple-500 hover:text-white group-hover:shadow-[0_0_15px_rgba(168,85,247,0.4)]"
                                     : "bg-white/5 text-slate-700 cursor-default opacity-20"
                                     }`}
-                                  disabled={loading || (item.bpm !== undefined || item.isTemp)}
+                                  disabled={item.bpm !== undefined || item.isTemp}
                                 >
                                   <Sparkles className="w-4 h-4" />
                                 </button>
@@ -301,7 +294,7 @@ export default function History() {
 
                           {/* Slot 2: Download / Open Folder */}
                           <div className="w-10 flex justify-center">
-                            {activeActionId === item.id && item.isTemp && item.url ? (
+                            {isTaskActive(item.id, 'download') && item.isTemp && item.url ? (
                               <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center border border-blue-500/20">
                                 <Loader2 className="w-4 h-4 animate-spin text-blue-400" />
                               </div>

@@ -2,6 +2,8 @@ use crate::audio_processor::models::{DownloadResult, ProcessState, ProgressEvent
 use std::fs::File;
 use std::io::{BufRead, BufReader, Write};
 use std::process::{Command, Stdio};
+use std::sync::{Arc, Mutex};
+use std::thread;
 use tauri::{Emitter, Manager};
 
 #[tauri::command]
@@ -49,14 +51,38 @@ pub async fn check_url_info(
     }
 
     if !output.status.success() {
-        return Err(String::from_utf8_lossy(&output.stderr).to_string());
+        let stderr = String::from_utf8_lossy(&output.stderr).to_string();
+        let is_unavailable = stderr.contains("Private video")
+            || stderr.contains("This playlist does not exist")
+            || stderr.contains("This video is private")
+            || stderr.contains("Video unavailable")
+            || stderr.contains("playlist does not exist")
+            || stderr.contains("is not available")
+            || stderr.contains("members-only")
+            || (stderr.contains("ERROR") && stderr.contains("Private"))
+            || (stderr.contains("ERROR") && stderr.contains("does not exist"));
+        return Err(if is_unavailable {
+            "PLAYLIST_NOT_FOUND".to_string()
+        } else {
+            stderr
+        });
     }
 
     let stdout = String::from_utf8_lossy(&output.stdout).to_string();
     let lines: Vec<&str> = stdout.lines().collect();
 
     if lines.is_empty() {
-        return Err("Failed to fetch URL info".to_string());
+        // Empty stdout despite exit 0 — likely a private/empty playlist
+        let stderr = String::from_utf8_lossy(&output.stderr).to_string();
+        let is_unavailable = stderr.contains("Private")
+            || stderr.contains("private")
+            || stderr.contains("does not exist")
+            || stderr.contains("not available");
+        return Err(if is_unavailable {
+            "PLAYLIST_NOT_FOUND".to_string()
+        } else {
+            "Failed to fetch URL info".to_string()
+        });
     }
 
     let mut is_playlist = false;
@@ -78,10 +104,20 @@ pub async fn check_url_info(
 }
 
 #[tauri::command]
-pub async fn cancel_download(state: tauri::State<'_, ProcessState>) -> Result<(), String> {
+pub async fn cancel_download(
+    state: tauri::State<'_, ProcessState>,
+    task_id: Option<String>,
+) -> Result<(), String> {
     let mut lock = state.0.lock().map_err(|e| e.to_string())?;
-    if let Some(mut child) = lock.take() {
-        let _ = child.kill();
+    if let Some(id) = task_id {
+        if let Some(mut child) = lock.remove(&id) {
+            let _ = child.kill();
+        }
+    } else {
+        // Cancel all if no specific task_id
+        for (_, mut child) in lock.drain() {
+            let _ = child.kill();
+        }
     }
     Ok(())
 }
@@ -95,6 +131,7 @@ pub async fn download_audio(
     custom_path: Option<String>,
     cookies: Option<String>,
     download_playlist: bool,
+    task_id: String,
 ) -> Result<Vec<DownloadResult>, String> {
     let downloads_dir = if let Some(path) = custom_path {
         if path == "TMP_ANALYSIS" {
@@ -140,6 +177,7 @@ pub async fn download_audio(
 
     cmd.arg("--ffmpeg-location")
         .arg(bin_dir)
+        .arg("--embed-metadata")
         .arg("-x")
         .arg("--audio-format")
         .arg(&format)
@@ -170,14 +208,29 @@ pub async fn download_audio(
         .map_err(|e| e.to_string())?;
 
     let stdout = child.stdout.take().ok_or("Failed to capture stdout")?;
+    let stderr_handle = child.stderr.take();
 
     if let Some(path) = cookie_path {
         let _ = std::fs::remove_file(path);
     }
 
+    // Collect stderr in a background thread so it doesn't block stdout reading
+    let stderr_buf: Arc<Mutex<String>> = Arc::new(Mutex::new(String::new()));
+    let stderr_buf_clone = Arc::clone(&stderr_buf);
+    if let Some(stderr) = stderr_handle {
+        thread::spawn(move || {
+            let reader = BufReader::new(stderr);
+            let mut buf = stderr_buf_clone.lock().unwrap();
+            for line in reader.lines().flatten() {
+                buf.push_str(&line);
+                buf.push('\n');
+            }
+        });
+    }
+
     {
         let mut lock = state.0.lock().map_err(|e| e.to_string())?;
-        *lock = Some(child);
+        lock.insert(task_id.clone(), child);
     }
 
     let mut last_title = String::new();
@@ -202,7 +255,11 @@ pub async fn download_audio(
                 filepath,
                 title: last_title.clone(),
                 artist: last_artist.clone(),
-                url: if last_url.is_empty() { url.clone() } else { last_url.clone() },
+                url: if last_url.is_empty() {
+                    url.clone()
+                } else {
+                    last_url.clone()
+                },
             });
             current_track_count += 1;
             let _ = app_handle.emit(
@@ -233,15 +290,35 @@ pub async fn download_audio(
 
     {
         let mut lock = state.0.lock().map_err(|e| e.to_string())?;
-        if lock.is_none() {
+        // If our task_id is no longer in the map, we were cancelled
+        if !lock.contains_key(&task_id) {
             return Err("Cancelled".to_string());
         }
-        *lock = None;
+        lock.remove(&task_id);
     }
 
     if results.is_empty() {
+        // Give the stderr thread a moment to finish writing
+        thread::sleep(std::time::Duration::from_millis(200));
+        let stderr_output = stderr_buf.lock().map(|g| g.clone()).unwrap_or_default();
+
+        // Detect private or non-existent playlist/video
+        let is_unavailable = stderr_output.contains("Private video")
+            || stderr_output.contains("This playlist does not exist")
+            || stderr_output.contains("This video is private")
+            || stderr_output.contains("This video has been removed")
+            || stderr_output.contains("Video unavailable")
+            || stderr_output.contains("playlist does not exist")
+            || stderr_output.contains("is not available")
+            || stderr_output.contains("members-only")
+            || (stderr_output.contains("ERROR") && stderr_output.contains("Private"))
+            || (stderr_output.contains("ERROR") && stderr_output.contains("does not exist"));
+
+        if is_unavailable {
+            return Err("PLAYLIST_NOT_FOUND".to_string());
+        }
         return Err("Download failed or interrupted".to_string());
     }
-    
+
     Ok(results)
 }

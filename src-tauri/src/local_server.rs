@@ -1,11 +1,14 @@
 use tauri::{AppHandle, Emitter, Manager};
 
-pub struct AnalysisResults(pub std::sync::Mutex<Option<(f64, String)>>);
+pub struct AnalysisResults(pub std::sync::Mutex<std::collections::HashMap<String, (f64, String)>>);
 
 #[tauri::command]
-pub fn report_analysis_result(_url: String, bpm: f64, key: String, state: tauri::State<AnalysisResults>) {
+pub fn report_analysis_result(url: String, bpm: f64, key: String, state: tauri::State<AnalysisResults>) {
+    if url.is_empty() {
+        return;
+    }
     let mut current = state.0.lock().unwrap();
-    *current = Some((bpm, key));
+    current.insert(url, (bpm, key));
 }
 
 pub fn init(app_handle: AppHandle) {
@@ -80,11 +83,11 @@ pub fn init(app_handle: AppHandle) {
                                 .with_header(cors3.clone())
                                 .with_header(cors4.clone());
                                 
-                            // Clear previous analysis
-                            if action == "analyze" || action == "both" {
+                            // Clear previous analysis for this URL
+                            if (action == "analyze" || action == "both") && !url.is_empty() {
                                 let state = app_handle.state::<AnalysisResults>();
                                 let mut current = state.0.lock().unwrap();
-                                *current = None;
+                                current.remove(url);
                             }
                                 
                             let _ = request.respond(response);
@@ -98,12 +101,20 @@ pub fn init(app_handle: AppHandle) {
                 let mut content = String::new();
                 let _ = request.as_reader().read_to_string(&mut content);
 
-                if let Ok(_json) = serde_json::from_str::<serde_json::Value>(&content) {
-                    // Ignore the URL and just fetch the latest available result
+                if let Ok(json) = serde_json::from_str::<serde_json::Value>(&content) {
+                    let url_key = json["url"].as_str().unwrap_or("").to_string();
                     let state = app_handle.state::<AnalysisResults>();
                     let mut current = state.0.lock().unwrap();
-                    
-                    if let Some((bpm, key)) = current.take() {
+
+                    // Look up by URL if provided, otherwise take any available result
+                    let result = if !url_key.is_empty() {
+                        current.remove(&url_key)
+                    } else {
+                        let key = current.keys().next().cloned();
+                        key.and_then(|k| current.remove(&k))
+                    };
+
+                    if let Some((bpm, key)) = result {
                         let response_body = format!("{{\"status\":\"ok\",\"bpm\":{},\"key\":\"{}\"}}", bpm, key);
                         let response = tiny_http::Response::from_string(response_body)
                             .with_status_code(200)

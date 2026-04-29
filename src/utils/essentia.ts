@@ -1,76 +1,65 @@
-import Essentia from 'essentia.js/dist/essentia.js-core.es.js';
-import { EssentiaWASM } from 'essentia.js/dist/essentia-wasm.es.js';
 import { readFile } from '@tauri-apps/plugin-fs';
 
-let essentia: any = null;
 
-export async function initEssentia() {
-  if (essentia) return essentia;
-
-  let wasmModule = EssentiaWASM;
-
-  // Handle the case where EssentiaWASM is exported as a nested object (common in some UMD/CJS builds)
-  if (wasmModule && (wasmModule as any).EssentiaWASM) {
-    wasmModule = (wasmModule as any).EssentiaWASM;
-  }
-
-  // If it's a factory function (common in some Emscripten configurations), call it
-  if (typeof wasmModule === 'function') {
-    wasmModule = await (wasmModule as any)();
-  }
-
-  // Wait for wasm module to be ready if it has a then method (Promise-like)
-  if (wasmModule && typeof (wasmModule as any).then === 'function') {
-    wasmModule = await wasmModule;
-  }
-
-  if (!wasmModule || !(wasmModule as any).EssentiaJS) {
-    console.error("EssentiaJS not found in WASM module. Available keys:", Object.keys(wasmModule || {}));
-    throw new Error("EssentiaWASM initialization failed: EssentiaJS not found in module");
-  }
-
-  essentia = new Essentia(wasmModule);
-
-  return essentia;
+function getWorker(): Worker {
+  // Reuse an idle worker or spawn a new one (max one per concurrent analysis)
+  const worker = new Worker(new URL('../workers/essentiaWorker.ts', import.meta.url), {
+    type: 'module',
+  });
+  return worker;
 }
 
 /**
- * Analyzes an audio file from its local path
- * Returns [bpm, key]
+ * Analyzes an audio file from its local path.
+ * Decodes audio on the main thread, then offloads WASM computation to a Web Worker
+ * so multiple files can be analyzed concurrently without blocking the UI.
+ * Returns [bpm, keyStr]
  */
 export async function analyzeAudioFile(filepath: string, deepAnalysis: boolean = false): Promise<[number, string]> {
-  const ess = await initEssentia();
+  // Step 1 (main thread): read file + decode audio — uses Tauri fs APIs unavailable in workers
   const audioData = await readFile(filepath);
   const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
-  const audioBuffer = await audioCtx.decodeAudioData(audioData.buffer);
-
-  // 1. Extract desired audio segment (full track if deepAnalysis, else first 60 seconds)
-  const sampleRate = audioBuffer.sampleRate;
-  const signal = deepAnalysis
-    ? audioBuffer.getChannelData(0)
-    : audioBuffer.getChannelData(0).slice(0, Math.min(audioBuffer.length, 60 * sampleRate));
-
-  // 2. Compute BPM using PercivalBpmEstimator
-  const vectorSignal = ess.arrayToVector(signal);
-  let bpm = 0;
-  let keyStr = "Unknown";
-
+  let audioBuffer: AudioBuffer;
   try {
-    const bpmResult = ess.PercivalBpmEstimator(vectorSignal);
-    bpm = Math.round(bpmResult.bpm * 10) / 10;
-
-    // 3. Compute Key
-    const keyResult = ess.KeyExtractor(vectorSignal);
-    keyStr = `${keyResult.key} ${keyResult.scale === 'minor' ? 'min' : 'maj'}`;
-  } catch (err) {
-    console.error("Error during Essentia analysis:", err);
+    audioBuffer = await audioCtx.decodeAudioData(audioData.buffer);
   } finally {
-    // Memory cleanup for WASM vectors
-    if (vectorSignal && typeof vectorSignal.delete === 'function') {
-      vectorSignal.delete();
-    }
     await audioCtx.close();
   }
 
-  return [bpm, keyStr];
+  const sampleRate = audioBuffer.sampleRate;
+  const signal: Float32Array = deepAnalysis
+    ? audioBuffer.getChannelData(0).slice() // slice() to copy — getChannelData returns a live view
+    : audioBuffer.getChannelData(0).slice(0, Math.min(audioBuffer.length, 60 * sampleRate));
+
+  // Step 2 (Web Worker): run CPU-intensive WASM computation off the main thread
+  return new Promise<[number, string]>((resolve, reject) => {
+    const worker = getWorker();
+    const taskId = crypto.randomUUID();
+
+    const onMessage = (e: MessageEvent) => {
+      if (e.data.taskId !== taskId) return;
+      worker.removeEventListener('message', onMessage);
+      worker.removeEventListener('error', onError);
+      worker.terminate();
+
+      if (e.data.error) {
+        reject(new Error(e.data.error));
+      } else {
+        resolve([e.data.bpm, e.data.keyStr]);
+      }
+    };
+
+    const onError = (e: ErrorEvent) => {
+      worker.removeEventListener('message', onMessage);
+      worker.removeEventListener('error', onError);
+      worker.terminate();
+      reject(new Error(e.message));
+    };
+
+    worker.addEventListener('message', onMessage);
+    worker.addEventListener('error', onError);
+
+    // Transfer the Float32Array buffer (zero-copy) to the worker
+    worker.postMessage({ signal, taskId }, [signal.buffer]);
+  });
 }

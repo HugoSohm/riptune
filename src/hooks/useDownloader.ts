@@ -5,11 +5,12 @@ import { useAudioProcessor } from "./useAudioProcessor";
 import { trackEvent } from "../utils/analytics";
 
 export function useDownloader() {
-  const { 
-    loadingRef, customDir, cookies, t, addNotification, clearNotificationsFor, 
-    saveHistory, history, setLoading, setLatest,
+  const {
+    addActiveTask, removeActiveTask, isTaskActive,
+    customDir, cookies, t, addNotification, clearNotificationsFor,
+    updateHistory, setLatest,
     url, setUrl, format, downloadPlaylist, shouldDownload, autoAnalyze, isPlaylist,
-    playlistProgress, setPlaylistProgress
+    setPlaylistProgress
   } = useApp();
 
   const { processFile } = useAudioProcessor();
@@ -20,7 +21,7 @@ export function useDownloader() {
     const targetUrl = (validOverrideUrl || url).trim();
     const targetShouldDownload = overrideShouldDownload !== undefined ? overrideShouldDownload : shouldDownload;
     const targetAutoAnalyze = overrideAutoAnalyze !== undefined ? overrideAutoAnalyze : autoAnalyze;
-    
+
     if (!targetUrl) return;
     const isYoutube = /^(https?:\/\/)?([a-z0-9-]+\.)?(youtube\.com|youtu\.be|youtube-nocookie\.com)\/.+$/i.test(targetUrl);
     if (!isYoutube) {
@@ -33,27 +34,44 @@ export function useDownloader() {
       return;
     }
 
+    const taskId = overrideId || crypto.randomUUID();
     setPlaylistProgress(null);
-    setLoading(true);
-    loadingRef.current = true;
+    addActiveTask(taskId, 'download');
 
     try {
       if (isPlaylist && downloadPlaylist) {
         addNotification(t.notifications.fetchingPlaylist, "info", true);
         try {
-          const info = await invoke<{ count: number }>("check_url_info", { url, cookies });
-          if (!loadingRef.current) {
+          const info = await invoke<{ count: number }>("check_url_info", { url: targetUrl, cookies });
+          if (!isTaskActive(taskId)) {
             clearNotificationsFor(t.notifications.fetchingPlaylist);
             return;
           }
           setPlaylistProgress({ current: 0, total: info.count });
           clearNotificationsFor(t.notifications.fetchingPlaylist);
-        } catch (e) {
-          console.error("Failed to fetch playlist info", e);
+        } catch (e: any) {
+          clearNotificationsFor(t.notifications.fetchingPlaylist);
+          const errStr = e?.toString() || "";
+          // Detect private or non-existent playlist
+          const isPlaylistNotFound =
+            errStr.includes("PLAYLIST_NOT_FOUND") ||
+            errStr.includes("does not exist") ||
+            errStr.includes("YouTube said") ||
+            errStr.includes("Private") ||
+            errStr.includes("private") ||
+            errStr.includes("not available") ||
+            (errStr.includes("The playlist") && errStr.includes("ERROR"));
+          addNotification(
+            isPlaylistNotFound
+              ? t.notifications.errorPlaylistNotFound
+              : `${t.notifications.errorDownload}: ${errStr}`,
+            "error"
+          );
+          return; // Stop — don't attempt to download a broken playlist
         }
       }
 
-      if (!loadingRef.current) {
+      if (!isTaskActive(taskId)) {
         clearNotificationsFor(t.notifications.fetchingPlaylist);
         return;
       }
@@ -66,7 +84,8 @@ export function useDownloader() {
         format,
         customPath: !targetShouldDownload ? "TMP_ANALYSIS" : customDir,
         cookies,
-        downloadPlaylist
+        downloadPlaylist,
+        taskId
       });
 
       clearNotificationsFor(t.notifications.downloading);
@@ -77,81 +96,119 @@ export function useDownloader() {
           if (!targetShouldDownload) {
             try {
               await invoke("delete_file", { filepath: res.filepath });
-            } catch(e) {
+            } catch (e) {
               console.error("Failed to delete temp analysis file", e);
             }
           }
         }
       } else if (targetShouldDownload) {
-        let updatedHistory = [...history];
-        let latestEntry = null;
+        let latestEntry: HistoryEntry | null = null;
 
-        for (const res of results) {
-          const existingEntryIndex = updatedHistory.findIndex(item => 
-            (overrideId ? item.id === overrideId : item.url === res.url) && item.isTemp
-          );
-          
-          if (existingEntryIndex !== -1) {
-            const oldEntry = updatedHistory[existingEntryIndex];
-            const updatedEntry: HistoryEntry = {
-              ...oldEntry,
-              filepath: res.filepath,
-              title: res.title,
-              artist: res.artist,
-              date: new Date().toISOString(),
-              isTemp: false
-            };
-            updatedHistory[existingEntryIndex] = updatedEntry;
-            latestEntry = updatedEntry;
-          } else {
-            const newEntry: HistoryEntry = {
-              id: crypto.randomUUID(),
-              title: res.title,
-              artist: res.artist,
-              filepath: res.filepath,
-              date: new Date().toISOString(),
-              url: res.url
-            };
-            updatedHistory = [newEntry, ...updatedHistory];
-            latestEntry = newEntry;
+        updateHistory(prev => {
+          let updatedHistory = [...prev];
+          for (const res of results) {
+          let displayTitle = res.title;
+          let displayArtist = res.artist;
+
+            const existingEntryIndex = updatedHistory.findIndex(item =>
+              (overrideId ? item.id === overrideId : item.url === res.url) && item.isTemp
+            );
+
+            let bpm = 0.0;
+            let key = "";
+
+            if (existingEntryIndex !== -1) {
+              const oldEntry = updatedHistory[existingEntryIndex];
+              bpm = oldEntry.bpm || 0.0;
+              key = oldEntry.key || "";
+              
+              const updatedEntry: HistoryEntry = {
+                ...oldEntry,
+                filepath: res.filepath,
+                title: displayTitle,
+                artist: displayArtist,
+                date: new Date().toISOString(),
+                isTemp: false
+              };
+              updatedHistory[existingEntryIndex] = updatedEntry;
+              latestEntry = updatedEntry;
+            } else {
+              const newEntry: HistoryEntry = {
+                id: crypto.randomUUID(),
+                title: displayTitle,
+                artist: displayArtist,
+                filepath: res.filepath,
+                date: new Date().toISOString(),
+                url: res.url
+              };
+              updatedHistory = [newEntry, ...updatedHistory];
+              latestEntry = newEntry;
+            }
+
+            // Write metadata to the file (Title, Artist, and analysis if available)
+            if (targetShouldDownload) {
+              try {
+                invoke("update_metadata", {
+                  filepath: res.filepath,
+                  title: displayTitle,
+                  artist: displayArtist,
+                  bpm: bpm,
+                  key: key
+                }).catch(e => console.error("Failed to write metadata during download", e));
+              } catch (e) {
+                console.error("Failed to write metadata during download", e);
+              }
+            }
           }
-        }
-        
-        saveHistory(updatedHistory);
+          return updatedHistory;
+        });
+
         if (latestEntry) setLatest(latestEntry);
-        
         setPlaylistProgress(null);
         addNotification(t.notifications.downloadComplete, "success");
-        loadingRef.current = false;
-        setLoading(false);
       }
       setUrl("");
     } catch (error: any) {
       console.error(error);
-      const isCancel = error?.toString()?.includes("Cancelled");
+      const errStr = error?.toString() || "";
+      const isCancel = errStr.includes("Cancelled");
+      const isPlaylistNotFound =
+        errStr.includes("PLAYLIST_NOT_FOUND") ||
+        errStr.includes("does not exist") ||
+        errStr.includes("Private") ||
+        errStr.includes("private") ||
+        errStr.includes("not available");
       clearNotificationsFor(t.notifications.downloading);
       clearNotificationsFor(t.notifications.fetchingPlaylist);
       clearNotificationsFor(t.notifications.cancelling);
-      addNotification(isCancel ? t.notifications.downloadCancelled : `${t.notifications.errorDownload}: ${error}`, isCancel ? 'info' : 'error');
-      loadingRef.current = false;
-      setLoading(false);
+      addNotification(
+        isCancel
+          ? t.notifications.downloadCancelled
+          : isPlaylistNotFound
+            ? t.notifications.errorPlaylistNotFound
+            : `${t.notifications.errorDownload}: ${error}`,
+        isCancel ? 'info' : 'error'
+      );
       setPlaylistProgress(null);
+    } finally {
+      removeActiveTask(taskId);
     }
   };
 
-  const handleCancelDownload = async () => {
-    loadingRef.current = false;
-    setLoading(false);
+  const handleCancelDownload = async (taskId?: string) => {
+    if (taskId) {
+      removeActiveTask(taskId);
+    }
     setPlaylistProgress(null);
     clearNotificationsFor(t.notifications.downloading);
     clearNotificationsFor(t.notifications.fetchingPlaylist);
     addNotification(t.notifications.cancelling, "info");
     try {
-      await invoke("cancel_download");
+      await invoke("cancel_download", { taskId: taskId ?? null });
     } catch (e) {
       console.error("Cancel failed", e);
     }
   };
 
-  return { handleDownload, handleCancelDownload, playlistProgress, setPlaylistProgress };
+  return { handleDownload, handleCancelDownload, setPlaylistProgress };
 }

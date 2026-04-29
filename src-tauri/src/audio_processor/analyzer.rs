@@ -37,7 +37,7 @@ pub async fn update_metadata(
         ));
     }
 
-    tag.write_to_path(&filepath, id3::Version::Id3v24)
+    tag.write_to_path(&filepath, id3::Version::Id3v23)
         .map_err(|e| e.to_string())?;
     Ok(())
 }

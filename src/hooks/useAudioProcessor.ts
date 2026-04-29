@@ -6,12 +6,14 @@ import { analyzeAudioFile } from "../utils/essentia";
 
 export function useAudioProcessor() {
   const {
-    history, saveHistory, setLatest, addNotification, clearNotificationsFor, setLoading, t, deepAnalysis
+    updateHistory, setLatest, addNotification, removeNotification,
+    addActiveTask, removeActiveTask, t, deepAnalysis
   } = useApp();
 
-  const processFile = async (filepath: string, titleHint?: string, artistHint?: string, isTemp: boolean = false, url?: string) => {
-    setLoading(true);
-    addNotification(t.notifications.analyzing, "info", true);
+  const processFile = async (filepath: string, titleHint?: string, artistHint?: string, isTemp: boolean = false, url?: string, id?: string) => {
+    const taskId = id || crypto.randomUUID();
+    addActiveTask(taskId, 'analysis');
+    const notifId = addNotification(t.notifications.analyzing, "info", true);
 
     trackEvent("analysis_started");
 
@@ -56,7 +58,7 @@ export function useAudioProcessor() {
         }
       }
 
-      clearNotificationsFor(t.notifications.analyzing);
+      removeNotification(notifId);
 
       if (url) {
         try {
@@ -66,60 +68,57 @@ export function useAudioProcessor() {
         }
       }
 
-      const entry: HistoryEntry = {
-        id: crypto.randomUUID(),
-        title,
-        artist,
-        filepath,
-        bpm,
-        key: keyStr,
-        date: new Date().toISOString(),
-        isTemp,
-        url
-      };
+      // Use updateHistory (functional update) to avoid stale closure issues
+      // when multiple analyses run concurrently — each sees the latest history state
+      updateHistory(prev => {
+        // Search by filepath first, then by URL
+        let existingEntryIndex = prev.findIndex(item => item.filepath === filepath);
+        if (existingEntryIndex === -1 && url) {
+          existingEntryIndex = prev.findIndex(item => item.url === url);
+        }
 
-      // Check if we should update an existing entry
-      // Search by filepath first across the whole array
-      let existingEntryIndex = history.findIndex(item => item.filepath === filepath);
-
-      // If we didn't find by filepath, then try finding by URL
-      if (existingEntryIndex === -1 && url) {
-        existingEntryIndex = history.findIndex(item => item.url === url);
-      }
-
-      if (existingEntryIndex !== -1) {
-        const updatedHistory = [...history];
-        const oldEntry = updatedHistory[existingEntryIndex];
-
-        // If we are upgrading from temp to permanent, or just updating analysis
-        const updatedEntry: HistoryEntry = {
-          ...oldEntry,
-          bpm,
-          key: keyStr,
-          title: title || oldEntry.title,
-          artist: artist || oldEntry.artist,
-          filepath: isTemp ? oldEntry.filepath : filepath,
-          isTemp: isTemp ? oldEntry.isTemp : false, // once it's permanent, it stays permanent
-          url: url || oldEntry.url,
-          date: new Date().toISOString() // refresh date to bring to top? Or keep old? Let's refresh.
-        };
-
-        updatedHistory[existingEntryIndex] = updatedEntry;
-        saveHistory(updatedHistory);
-        setLatest(updatedEntry);
-      } else {
-        saveHistory([entry, ...history]);
-        setLatest(entry);
-      }
+        if (existingEntryIndex !== -1) {
+          const updatedHistory = [...prev];
+          const oldEntry = updatedHistory[existingEntryIndex];
+          const updatedEntry: HistoryEntry = {
+            ...oldEntry,
+            bpm,
+            key: keyStr,
+            title: title || oldEntry.title,
+            artist: artist || oldEntry.artist,
+            filepath: isTemp ? oldEntry.filepath : filepath,
+            isTemp: isTemp ? oldEntry.isTemp : false,
+            url: url || oldEntry.url,
+            date: new Date().toISOString()
+          };
+          updatedHistory[existingEntryIndex] = updatedEntry;
+          setLatest(updatedEntry);
+          return updatedHistory;
+        } else {
+          const entry: HistoryEntry = {
+            id: id || crypto.randomUUID(),
+            title: title || "Unknown Audio",
+            artist: artist || "Unknown Artist",
+            filepath,
+            bpm,
+            key: keyStr,
+            date: new Date().toISOString(),
+            isTemp,
+            url
+          };
+          setLatest(entry);
+          return [entry, ...prev];
+        }
+      });
 
       addNotification(t.notifications.analysisComplete, "success");
     } catch (error: any) {
       console.error(error);
-      clearNotificationsFor(t.notifications.analyzing);
+      removeNotification(notifId);
       const isNotFound = error?.toString()?.includes("No such file") || error?.toString()?.includes("not found");
       addNotification(isNotFound ? t.notifications.errorNotFound : `${t.notifications.errorAnalysis}: ${error}`, "error");
     } finally {
-      setLoading(false);
+      removeActiveTask(taskId);
     }
   };
 
