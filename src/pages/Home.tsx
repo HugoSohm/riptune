@@ -13,7 +13,7 @@ export default function Home() {
   } = useApp();
 
   // A pure /playlist URL forces the playlist toggle on and locked
-  const isPurePlaylistUrl = /\/playlist\?list=/i.test(url);
+  const isPurePlaylistUrl = /\/playlist\?list=/i.test(url) || /\/sets\//i.test(url);
 
   const [formatSelectOpen, setFormatSelectOpen] = useState(false);
   // Track the task ID of the download started from Home to show Cancel correctly
@@ -25,7 +25,7 @@ export default function Home() {
   const isHomeTaskActive = homeTaskId !== null && isTaskActive(homeTaskId);
 
   useEffect(() => {
-    if (url.includes("list=")) {
+    if (url.includes("list=") || url.includes("/sets/")) {
       setIsPlaylist(true);
     } else {
       setIsPlaylist(false);
@@ -61,9 +61,11 @@ export default function Home() {
     if (taskId) handleCancelDownload(taskId);
   };
 
-  const isYoutubeUrl = (val: string) => {
+  const isValidUrl = (val: string) => {
     const trimmed = val.trim();
-    return /^(https?:\/\/)?([a-z0-9-]+\.)?(youtube\.com|youtu\.be|youtube-nocookie\.com)\/.+$/i.test(trimmed);
+    const youtubeRegex = /^(https?:\/\/)?([a-z0-9-]+\.)?(youtube\.com|youtu\.be|youtube-nocookie\.com)\/.+$/i;
+    const soundcloudRegex = /^(https?:\/\/)?(www\.)?(on\.)?soundcloud\.com\/.+$/i;
+    return youtubeRegex.test(trimmed) || soundcloudRegex.test(trimmed);
   };
 
   return (
@@ -85,7 +87,8 @@ export default function Home() {
                 options={[
                   { value: 'mp3', label: 'MP3' },
                   { value: 'wav', label: 'WAV' },
-                  { value: 'flac', label: 'FLAC' }
+                  { value: 'flac', label: 'FLAC' },
+                  { value: 'm4a', label: 'M4A' }
                 ]}
                 value={format}
                 onChange={setFormat}
@@ -157,8 +160,8 @@ export default function Home() {
 
         <div className="w-full mb-4">
           <div className="relative group w-full">
-            <div className={`absolute inset-0 bg-gradient-to-r ${url && !isYoutubeUrl(url) ? 'from-red-500 to-orange-500' : 'from-purple-500 to-blue-500'} rounded-3xl blur-xl opacity-20 group-hover:opacity-40 transition-opacity duration-500`} />
-            <div className={`relative bg-[#111728]/80 backdrop-blur-2xl border ${url && !isYoutubeUrl(url) ? 'border-red-500/50' : 'border-white/10'} rounded-[1.25rem] p-1.5 flex items-center shadow-2xl transition-all duration-300`}>
+            <div className={`absolute inset-0 bg-gradient-to-r ${url && !isValidUrl(url) ? 'from-red-500 to-orange-500' : 'from-purple-500 to-blue-500'} rounded-3xl blur-xl opacity-20 group-hover:opacity-40 transition-opacity duration-500`} />
+            <div className={`relative bg-[#111728]/80 backdrop-blur-2xl border ${url && !isValidUrl(url) ? 'border-red-500/50' : 'border-white/10'} rounded-[1.25rem] p-1.5 flex items-center shadow-2xl transition-all duration-300`}>
               <input
                 type="text"
                 value={url}
@@ -169,7 +172,7 @@ export default function Home() {
               />
               <button
                 onClick={() => isHomeTaskActive ? cancelHomeDownload() : startHomeDownload()}
-                disabled={!isHomeTaskActive && (!url || !isYoutubeUrl(url) || (!shouldDownload && !autoAnalyze))}
+                disabled={!isHomeTaskActive && (!url || !isValidUrl(url) || (!shouldDownload && !autoAnalyze))}
                 className="shrink-0 group/cancel relative overflow-hidden h-12 w-12 rounded-xl bg-white text-[#0a0f1c] font-bold text-lg flex items-center justify-center hover:bg-slate-200 transition-all disabled:opacity-50 disabled:cursor-not-allowed border border-white/10"
               >
                 {!isHomeTaskActive ? (
@@ -185,7 +188,7 @@ export default function Home() {
           </div>
 
           <div className="h-6 mt-2 flex items-center justify-center">
-            {url && !isYoutubeUrl(url) && (
+            {url && !isValidUrl(url) && (
               <div className="animate-in slide-in-from-top-1 fade-in duration-300 flex items-center justify-center gap-2 text-red-400 text-xs font-semibold">
                 <XCircle className="w-3 h-3" />
                 <span>{t.home.invalidUrl}</span>

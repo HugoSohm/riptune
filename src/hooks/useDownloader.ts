@@ -23,9 +23,12 @@ export function useDownloader() {
     const targetAutoAnalyze = overrideAutoAnalyze !== undefined ? overrideAutoAnalyze : autoAnalyze;
 
     if (!targetUrl) return;
-    const isYoutube = /^(https?:\/\/)?([a-z0-9-]+\.)?(youtube\.com|youtu\.be|youtube-nocookie\.com)\/.+$/i.test(targetUrl);
-    if (!isYoutube) {
-      addNotification(`${t.notifications.errorDownload}: Only YouTube links are supported.`, "error");
+    const youtubeRegex = /^(https?:\/\/)?([a-z0-9-]+\.)?(youtube\.com|youtu\.be|youtube-nocookie\.com)\/.+$/i;
+    const soundcloudRegex = /^(https?:\/\/)?(www\.)?(on\.)?soundcloud\.com\/.+$/i;
+    const isValid = youtubeRegex.test(targetUrl) || soundcloudRegex.test(targetUrl);
+
+    if (!isValid) {
+      addNotification(`${t.notifications.errorDownload}: ${t.home.invalidUrl}`, "error");
       return;
     }
 

@@ -1,6 +1,6 @@
 [package]
 name = "riptune"
-version = "0.3.1"
+version = "0.3.2"
 description = "RipTune - Analyze and download music from YouTube"
 authors = ["HugoSohm"]
 edition = "2021"

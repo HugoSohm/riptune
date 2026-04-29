@@ -1,5 +1,20 @@
 # RipTune Changelog
 
+## 0.3.2 (2026-04-29)
+
+### 🎵 SoundCloud Integration & Source Awareness
+- **SoundCloud Support**: Added full support for downloading and analyzing SoundCloud tracks and sets (playlists).
+- **Source Identification**: Updated the history view to display the origin platform (YouTube, SoundCloud, or Local) with dedicated colored icons.
+- **Smart SoundCloud Detection**: Implemented specific error handling for SoundCloud's private or non-existent tracks using real-time `stderr` extraction from `yt-dlp`.
+- **New Format Support**: Added **M4A** to the available download formats for high-quality audio without unnecessary re-encoding.
+- **Improved Error Feedback**: Refactored the backend to return the actual error message from `yt-dlp` (e.g., `404: Not Found`) instead of generic failure messages.
+
+### 🧩 UI & Settings Polish
+- **Chrome Extension Link**: Added a direct link to the RipTune Chrome Extension in the Settings page with a dedicated icon.
+- **Refined Settings UX**: Reorganized the "About" section with distinct brand colors for each external link (Website, Extension, GitHub, Ko-fi).
+- **Clean Interface**: Removed redundant "Code available on GitHub" text from descriptions to simplify the layout.
+- **Translation Updates**: Synchronized all new features and messages across English, French, and Spanish.
+
 ## 0.3.1 (2026-04-29)
 
 ### 🔄 Parallel Analysis & Multi-Tasking

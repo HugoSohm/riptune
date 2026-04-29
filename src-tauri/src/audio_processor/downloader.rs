@@ -59,12 +59,23 @@ pub async fn check_url_info(
             || stderr.contains("playlist does not exist")
             || stderr.contains("is not available")
             || stderr.contains("members-only")
+            || stderr.contains("The requested track is not available")
+            || stderr.contains("track has been removed")
+            || stderr.contains("404")
+            || stderr.contains("403")
+            || stderr.contains("Not Found")
+            || stderr.contains("Unable to download JSON metadata")
             || (stderr.contains("ERROR") && stderr.contains("Private"))
             || (stderr.contains("ERROR") && stderr.contains("does not exist"));
+        let stderr_clean = stderr.lines()
+            .find(|l| l.contains("ERROR:"))
+            .map(|l| l.split("ERROR:").last().unwrap_or(l).trim())
+            .unwrap_or(stderr.trim());
+
         return Err(if is_unavailable {
             "PLAYLIST_NOT_FOUND".to_string()
         } else {
-            stderr
+            stderr_clean.to_string()
         });
     }
 
@@ -311,13 +322,28 @@ pub async fn download_audio(
             || stderr_output.contains("playlist does not exist")
             || stderr_output.contains("is not available")
             || stderr_output.contains("members-only")
+            || stderr_output.contains("The requested track is not available")
+            || stderr_output.contains("track has been removed")
+            || stderr_output.contains("404")
+            || stderr_output.contains("403")
+            || stderr_output.contains("Not Found")
+            || stderr_output.contains("Unable to download JSON metadata")
             || (stderr_output.contains("ERROR") && stderr_output.contains("Private"))
             || (stderr_output.contains("ERROR") && stderr_output.contains("does not exist"));
+
+        let stderr_clean = stderr_output.lines()
+            .find(|l| l.contains("ERROR:"))
+            .map(|l| l.split("ERROR:").last().unwrap_or(l).trim())
+            .unwrap_or(stderr_output.trim());
 
         if is_unavailable {
             return Err("PLAYLIST_NOT_FOUND".to_string());
         }
-        return Err("Download failed or interrupted".to_string());
+        return Err(if stderr_clean.is_empty() { 
+            "Download failed or interrupted".to_string() 
+        } else { 
+            stderr_clean.to_string() 
+        });
     }
 
     Ok(results)

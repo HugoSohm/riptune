@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { List, Trash2, FolderOpen, Loader2, Sparkles, Download, Music, ExternalLink, Search } from "lucide-react";
+import { List, Trash2, FolderOpen, Loader2, Sparkles, Download, ExternalLink, Search, Play, Cloud, HardDrive } from "lucide-react";
 import { invoke } from "@tauri-apps/api/core";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { useApp } from "../context/AppContext";
@@ -204,25 +204,35 @@ export default function History() {
                     >
                       <td className={`pl-10 pr-6 py-5 text-center transition-colors duration-300 group-hover/row:bg-[#141b2e]/30 ${isLastRow ? 'rounded-bl-3xl' : ''}`}>
                         <div className="flex items-center justify-center group/status relative">
-                          {item.isTemp ? (
-                            <div className="w-10 h-10 shrink-0 aspect-square rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-400 border border-purple-500/20 shadow-sm transition-all duration-300">
-                              <Sparkles className="w-[18px] h-[18px]" />
-                            </div>
-                          ) : item.bpm !== undefined ? (
-                            <div className="w-10 h-10 shrink-0 aspect-square rounded-xl bg-gradient-to-br from-indigo-500/20 to-purple-500/10 flex items-center justify-center text-indigo-400 border border-indigo-500/20 shadow-lg transition-all duration-300">
-                              <Music className="w-[18px] h-[18px] text-indigo-400" />
-                            </div>
-                          ) : (
-                            <div className="w-10 h-10 shrink-0 aspect-square rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-400 border border-blue-500/20 shadow-sm transition-all duration-300">
-                              <Download className="w-[18px] h-[18px]" />
-                            </div>
-                          )}
+                          {(() => {
+                            const url = item.url?.toLowerCase() || "";
+                            if (url.includes("youtube.com") || url.includes("youtu.be")) {
+                              return (
+                                <div className="w-10 h-10 shrink-0 aspect-square rounded-xl bg-red-500/10 flex items-center justify-center text-red-500 border border-red-500/20 shadow-sm transition-all duration-300">
+                                  <Play className="w-[18px] h-[18px]" />
+                                </div>
+                              );
+                            } else if (url.includes("soundcloud.com")) {
+                              return (
+                                <div className="w-10 h-10 shrink-0 aspect-square rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-500 border border-orange-500/20 shadow-sm transition-all duration-300">
+                                  <Cloud className="w-[18px] h-[18px]" />
+                                </div>
+                              );
+                            } else {
+                              return (
+                                <div className="w-10 h-10 shrink-0 aspect-square rounded-xl bg-slate-500/10 flex items-center justify-center text-slate-400 border border-white/5 shadow-sm transition-all duration-300">
+                                  <HardDrive className="w-[18px] h-[18px]" />
+                                </div>
+                              );
+                            }
+                          })()}
                           <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-slate-900/95 backdrop-blur-md border border-white/10 text-white text-[10px] rounded-xl opacity-0 group-hover/status:opacity-100 transition-all duration-300 pointer-events-none whitespace-nowrap z-[100] shadow-2xl scale-95 group-hover/status:scale-100 font-bold uppercase tracking-wider">
-                            {item.isTemp
-                              ? t.history.status.analysis
-                              : item.bpm !== undefined
-                                ? t.history.status.full
-                                : t.history.status.download}
+                            {(() => {
+                              const url = item.url?.toLowerCase() || "";
+                              if (url.includes("youtube.com") || url.includes("youtu.be")) return t.history.sources.youtube;
+                              if (url.includes("soundcloud.com")) return t.history.sources.soundcloud;
+                              return t.history.sources.local;
+                            })()}
                           </div>
                         </div>
                       </td>

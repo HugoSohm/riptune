@@ -61,7 +61,7 @@ export function useRipTune() {
 
   // Responsive UI States
   useEffect(() => {
-    if (url.includes("list=")) { setIsPlaylist(true); }
+    if (url.includes("list=") || url.includes("/sets/")) { setIsPlaylist(true); }
     else { setIsPlaylist(false); setDownloadPlaylist(false); }
   }, [url, setIsPlaylist, setDownloadPlaylist]);
 
