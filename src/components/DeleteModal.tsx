@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { AlertTriangle, X } from "lucide-react";
-import { useApp } from "../context/AppContext";
+import { useApp } from "../context/useApp";
 
 export default function DeleteModal() {
   const { 

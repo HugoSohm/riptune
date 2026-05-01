@@ -15,7 +15,7 @@ function getWorker(): Worker {
  * so multiple files can be analyzed concurrently without blocking the UI.
  * Returns [bpm, keyStr]
  */
-export async function analyzeAudioFile(filepath: string, deepAnalysis: boolean = false): Promise<[number, string]> {
+export async function analyzeAudioFile(filepath: string, deepAnalysis: boolean = false): Promise<[number, string, number, number]> {
   // Step 1 (main thread): read file + decode audio — uses Tauri fs APIs unavailable in workers
   const audioData = await readFile(filepath);
   const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
@@ -32,7 +32,7 @@ export async function analyzeAudioFile(filepath: string, deepAnalysis: boolean =
     : audioBuffer.getChannelData(0).slice(0, Math.min(audioBuffer.length, 60 * sampleRate));
 
   // Step 2 (Web Worker): run CPU-intensive WASM computation off the main thread
-  return new Promise<[number, string]>((resolve, reject) => {
+  return new Promise<[number, string, number, number]>((resolve, reject) => {
     const worker = getWorker();
     const taskId = crypto.randomUUID();
 
@@ -45,7 +45,7 @@ export async function analyzeAudioFile(filepath: string, deepAnalysis: boolean =
       if (e.data.error) {
         reject(new Error(e.data.error));
       } else {
-        resolve([e.data.bpm, e.data.keyStr]);
+        resolve([e.data.bpm, e.data.keyStr, e.data.bpmConfidence, e.data.keyStrength]);
       }
     };
 

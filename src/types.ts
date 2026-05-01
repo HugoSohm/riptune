@@ -5,6 +5,8 @@ export interface HistoryEntry {
   filepath: string;
   bpm?: number;
   key?: string;
+  bpmConfidence?: number;
+  keyStrength?: number;
   date: string;
   isTemp?: boolean;
   url?: string;

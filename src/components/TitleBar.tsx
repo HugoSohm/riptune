@@ -2,7 +2,7 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import { getVersion } from "@tauri-apps/api/app";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { X, Minus, Square, Copy, Home, List, Settings2, Bug, Coffee, ExternalLink, Sparkles, Loader2 } from "lucide-react";
-import { useApp } from "../context/AppContext";
+import { useApp } from "../context/useApp";
 import { useUpdater } from "../hooks/useUpdater";
 import { useState, useEffect } from "react";
 

@@ -40,16 +40,18 @@ self.onmessage = async (event: MessageEvent) => {
     try {
       const bpmResult = ess.PercivalBpmEstimator(vectorSignal);
       bpm = Math.round(bpmResult.bpm * 10) / 10;
+      const bpmConfidence = bpmResult.confidence || 0.8;
 
       const keyResult = ess.KeyExtractor(vectorSignal);
       keyStr = `${keyResult.key} ${keyResult.scale === 'minor' ? 'min' : 'maj'}`;
+      const keyStrength = keyResult.strength || 0;
+
+      self.postMessage({ taskId, bpm, keyStr, bpmConfidence, keyStrength });
     } finally {
       if (vectorSignal && typeof vectorSignal.delete === 'function') {
         vectorSignal.delete();
       }
     }
-
-    self.postMessage({ taskId, bpm, keyStr });
   } catch (err: any) {
     self.postMessage({ taskId, error: err?.message || String(err) });
   }

@@ -2,7 +2,7 @@ import { FolderOpen, UploadCloud, Trash2, Info, X, Languages, ExternalLink, Acti
 import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
 import CustomSelect from "../components/CustomSelect";
-import { useApp } from "../context/AppContext";
+import { useApp } from "../context/useApp";
 import { Lang } from "../i18n";
 
 export default function Settings() {

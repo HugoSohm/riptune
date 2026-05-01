@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { open } from "@tauri-apps/plugin-dialog";
-import { useApp } from "../context/AppContext";
+import { useApp } from "../context/useApp";
 
 import { useAudioProcessor } from "./useAudioProcessor";
 import { useDownloader } from "./useDownloader";

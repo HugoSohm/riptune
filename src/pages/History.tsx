@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { List, Trash2, FolderOpen, Loader2, Sparkles, Download, ExternalLink, Search, Play, Cloud, HardDrive } from "lucide-react";
 import { invoke } from "@tauri-apps/api/core";
 import { openUrl } from "@tauri-apps/plugin-opener";
-import { useApp } from "../context/AppContext";
+import { useApp } from "../context/useApp";
 import { useAudioProcessor } from "../hooks/useAudioProcessor";
 import { useDownloader } from "../hooks/useDownloader";
 
@@ -226,7 +226,7 @@ export default function History() {
                               );
                             }
                           })()}
-                          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-slate-900/95 backdrop-blur-md border border-white/10 text-white text-[10px] rounded-xl opacity-0 group-hover/status:opacity-100 transition-all duration-300 pointer-events-none whitespace-nowrap z-[100] shadow-2xl scale-95 group-hover/status:scale-100 font-bold uppercase tracking-wider">
+                          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-slate-900/95 backdrop-blur-md border border-white/10 text-white text-[10px] rounded-xl opacity-0 group-hover/status:opacity-100 transition-all duration-300 delay-0 group-hover/status:delay-500 pointer-events-none whitespace-nowrap z-[100] shadow-2xl scale-95 group-hover/status:scale-100 font-bold uppercase tracking-wider">
                             {(() => {
                               const url = item.url?.toLowerCase() || "";
                               if (url.includes("youtube.com") || url.includes("youtu.be")) return t.history.sources.youtube;

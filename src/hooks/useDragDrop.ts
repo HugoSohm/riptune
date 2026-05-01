@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { UnlistenFn, listen } from "@tauri-apps/api/event";
-import { useApp } from "../context/AppContext";
+import { useApp } from "../context/useApp";
 import { useAudioProcessor } from "./useAudioProcessor";
 
 export function useDragDrop() {

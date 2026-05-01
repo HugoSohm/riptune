@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { Download, Loader2, XCircle, AlertTriangle, Music, FolderOpen } from "lucide-react";
 import CustomSelect from "../components/CustomSelect";
-import { useApp } from "../context/AppContext";
+import { useApp } from "../context/useApp";
 import { useDownloader } from "../hooks/useDownloader";
 
 export default function Home() {
@@ -215,8 +215,29 @@ export default function Home() {
         )}
 
         <div className="w-full grid grid-cols-2 gap-3 mt-2 animate-in slide-in-from-bottom-8 fade-in duration-700">
+          {/* BPM Card */}
           <div className="group relative rounded-[1.25rem] bg-gradient-to-b from-purple-500/10 to-transparent p-[1.5px]">
             <div className="relative h-full w-full bg-[#111728]/90 backdrop-blur-sm rounded-[1.2rem] border border-white/5 flex flex-col items-center justify-center py-6 px-4 shadow-2xl overflow-visible">
+              {latest?.bpm && (
+                <div className="absolute top-3 right-3 group/tooltip cursor-default">
+                  <svg className="w-4 h-4 -rotate-90 transform" viewBox="0 0 24 24">
+                    <circle className="text-white/5" strokeWidth="3" stroke="currentColor" fill="transparent" r="10" cx="12" cy="12" />
+                    <circle 
+                      className="text-purple-500 transition-all duration-1000 ease-out" 
+                      strokeWidth="3" 
+                      strokeDasharray={2 * Math.PI * 10} 
+                      strokeDashoffset={2 * Math.PI * 10 * (1 - (latest.bpmConfidence || 0.8))} 
+                      strokeLinecap="round" 
+                      stroke="currentColor" 
+                      fill="transparent" 
+                      r="10" cx="12" cy="12" 
+                    />
+                  </svg>
+                  <div className="absolute bottom-full right-0 mb-2 px-3 py-1.5 bg-slate-900/95 backdrop-blur-md border border-white/10 text-white text-[10px] rounded-xl opacity-0 group-hover/tooltip:opacity-100 transition-all duration-300 delay-0 group-hover/tooltip:delay-500 pointer-events-none whitespace-nowrap z-50 shadow-2xl font-bold uppercase tracking-wider">
+                    {t.home.confidenceTooltip}
+                  </div>
+                </div>
+              )}
               <span className={`text-3xl md:text-4xl lg:text-5xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-br from-white to-purple-400 drop-shadow-md leading-normal select-text ${!latest?.bpm ? 'opacity-20' : ''}`}>
                 {latest?.bpm || "--"}
               </span>
@@ -224,8 +245,29 @@ export default function Home() {
             </div>
           </div>
 
+          {/* Key Card */}
           <div className="group relative rounded-[1.25rem] bg-gradient-to-b from-blue-500/10 to-transparent p-[1.5px]">
             <div className="relative h-full w-full bg-[#111728]/90 backdrop-blur-sm rounded-[1.2rem] border border-white/5 flex flex-col items-center justify-center py-6 px-4 shadow-2xl overflow-visible">
+              {latest?.key && (
+                <div className="absolute top-3 right-3 group/tooltip cursor-default">
+                  <svg className="w-4 h-4 -rotate-90 transform" viewBox="0 0 24 24">
+                    <circle className="text-white/5" strokeWidth="3" stroke="currentColor" fill="transparent" r="10" cx="12" cy="12" />
+                    <circle 
+                      className="text-blue-500 transition-all duration-1000 ease-out" 
+                      strokeWidth="3" 
+                      strokeDasharray={2 * Math.PI * 10} 
+                      strokeDashoffset={2 * Math.PI * 10 * (1 - (latest.keyStrength || 0.5))} 
+                      strokeLinecap="round" 
+                      stroke="currentColor" 
+                      fill="transparent" 
+                      r="10" cx="12" cy="12" 
+                    />
+                  </svg>
+                  <div className="absolute bottom-full right-0 mb-2 px-3 py-1.5 bg-slate-900/95 backdrop-blur-md border border-white/10 text-white text-[10px] rounded-xl opacity-0 group-hover/tooltip:opacity-100 transition-all duration-300 delay-0 group-hover/tooltip:delay-500 pointer-events-none whitespace-nowrap z-50 shadow-2xl font-bold uppercase tracking-wider">
+                    {t.home.confidenceTooltip}
+                  </div>
+                </div>
+              )}
               <span className={`text-2xl md:text-3xl lg:text-4xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-bl from-white to-blue-400 drop-shadow-md leading-relaxed z-10 select-text ${!latest?.key ? 'opacity-20' : ''}`}>
                 {latest?.key || "--"}
               </span>

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Bug, X, Image, Trash2, Loader2, ExternalLink } from "lucide-react";
-import { useApp } from "../context/AppContext";
+import { useApp } from "../context/useApp";
 import { invoke } from "@tauri-apps/api/core";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { listen, UnlistenFn } from "@tauri-apps/api/event";

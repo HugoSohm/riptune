@@ -1,6 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
 import { HistoryEntry } from "../types";
-import { useApp } from "../context/AppContext";
+import { useApp } from "../context/useApp";
 import { trackEvent } from "../utils/analytics";
 import { analyzeAudioFile } from "../utils/essentia";
 
@@ -19,7 +19,7 @@ export function useAudioProcessor() {
 
     try {
       // Analyze file directly on the frontend using essentia-wasm
-      const [bpmVal, keyStr] = await analyzeAudioFile(filepath, deepAnalysis);
+      const [bpmVal, keyStr, bpmConfidence, keyStrength] = await analyzeAudioFile(filepath, deepAnalysis);
       const bpm = Math.round(bpmVal);
 
       let title = titleHint;
@@ -84,6 +84,8 @@ export function useAudioProcessor() {
             ...oldEntry,
             bpm,
             key: keyStr,
+            bpmConfidence,
+            keyStrength,
             title: title || oldEntry.title,
             artist: artist || oldEntry.artist,
             filepath: isTemp ? oldEntry.filepath : filepath,
@@ -102,6 +104,8 @@ export function useAudioProcessor() {
             filepath,
             bpm,
             key: keyStr,
+            bpmConfidence,
+            keyStrength,
             date: new Date().toISOString(),
             isTemp,
             url

@@ -1,5 +1,15 @@
 # RipTune Changelog
 
+## 0.3.3 (2026-05-01)
+
+### 💎 Music Analysis Confidence
+- **Confidence Indicators**: Integrated visual circular progress rings for both BPM and Key results, providing immediate feedback on analysis accuracy.
+- **Enhanced Visual Feedback**: Added specialized tooltips for confidence scores with standardized interaction delays.
+
+### 🛠️ Architecture & DX Refinement
+- **HMR Stabilization**: Decoupled the `useApp` hook into its own module to resolve Hot Module Replacement (HMR) issues and eliminate redundant context re-renders.
+- **Build Integrity**: Fixed stale imports and removed unused React dependencies in the core provider.
+
 ## 0.3.2 (2026-04-29)
 
 ### 🎵 SoundCloud Integration & Source Awareness

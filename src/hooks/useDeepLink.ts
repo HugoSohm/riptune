@@ -2,7 +2,7 @@ import { useEffect, MutableRefObject } from "react";
 import { listen } from "@tauri-apps/api/event";
 import { getCurrent } from "@tauri-apps/plugin-deep-link";
 import { trackEvent } from "../utils/analytics";
-import { useApp } from "../context/AppContext";
+import { useApp } from "../context/useApp";
 
 export function useDeepLink(handleDownloadRef: MutableRefObject<(url: string, dl: boolean, an: boolean) => Promise<void>>) {
   const { setUrl, setShouldDownload, setAutoAnalyze, setActiveTab, setFormat } = useApp();

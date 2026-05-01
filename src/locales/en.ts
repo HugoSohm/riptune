@@ -21,6 +21,7 @@ export const en = {
     unsupportedFile: "File not supported",
     unsupportedFileDesc: "Only MP3, WAV, FLAC and M4A files are accepted",
     unknownArtist: "Unknown Artist",
+    confidenceTooltip: "Analysis confidence score"
   },
   history: {
     title: "Your history",

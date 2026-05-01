@@ -8,7 +8,8 @@ import Notifications from "./components/Notifications";
 import DeleteModal from "./components/DeleteModal";
 import BackgroundOrbs from "./components/BackgroundOrbs";
 import BugReportModal from "./components/BugReportModal";
-import { AppProvider, useApp } from "./context/AppContext";
+import { AppProvider } from "./context/AppContext";
+import { useApp } from "./context/useApp";
 import { trackEvent } from "./utils/analytics";
 
 import { useDragDrop } from "./hooks/useDragDrop";
