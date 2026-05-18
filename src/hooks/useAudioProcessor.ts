@@ -17,12 +17,25 @@ export function extractMetadataFromDescription(description?: string): {
   let key: string | undefined;
 
   if (description) {
-    const bpmMatch = description.match(/\b(1?\d{2}|2\d{2})\s*bpm\b/i);
+    // Transliterate Cyrillic homoglyphs for musical keys and flats (A, B, C, E, b)
+    // often used by Eastern European / Russian producers on Cyrillic keyboard layouts
+    const cleanDesc = description
+      .replace(/\u0410/g, "A") // Cyrillic А
+      .replace(/\u0430/g, "a") // Cyrillic а
+      .replace(/\u0412/g, "B") // Cyrillic В
+      .replace(/\u0421/g, "C") // Cyrillic С
+      .replace(/\u0441/g, "c") // Cyrillic с
+      .replace(/\u0415/g, "E") // Cyrillic Е
+      .replace(/\u0435/g, "e") // Cyrillic е
+      .replace(/\u042C/g, "b") // Cyrillic Ь
+      .replace(/\u044C/g, "b"); // Cyrillic ь
+
+    const bpmMatch = cleanDesc.match(/\b(1?\d{2}|2\d{2})\s*bpm\b/i);
     if (bpmMatch) {
       bpm = parseInt(bpmMatch[1], 10);
     }
 
-    const keyMatch = description.match(
+    const keyMatch = cleanDesc.match(
       /\b([a-g][#b]?)\s*(major|minor|maj|min|m)\b/i,
     );
     if (keyMatch) {

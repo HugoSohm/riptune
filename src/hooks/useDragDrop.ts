@@ -1,47 +1,22 @@
 import { type Event, listen, type UnlistenFn } from "@tauri-apps/api/event";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useApp } from "../context/useApp";
 import { useAudioProcessor } from "./useAudioProcessor";
 
 export function useDragDrop() {
   const { setDragActive, setActiveTab, isBugModalOpen } = useApp();
   const { processFile } = useAudioProcessor();
-  const [isValidDrag, setIsValidDrag] = useState(true);
 
   useEffect(() => {
     const audioExtensions = ["mp3", "wav", "flac", "flacc"];
-
-    const checkFile = (payload: unknown) => {
-      let list: string[] = [];
-      if (Array.isArray(payload)) {
-        list = payload;
-      } else if (
-        payload &&
-        typeof payload === "object" &&
-        "paths" in payload &&
-        Array.isArray((payload as Record<string, unknown>).paths)
-      ) {
-        list = (payload as Record<string, unknown>).paths as string[];
-      }
-
-      if (!list || list.length === 0) return true;
-
-      const path = String(list[0]).toLowerCase().trim();
-      const parts = path.split(".");
-      if (parts.length < 2) return false;
-      const extension = parts.pop() || "";
-
-      return audioExtensions.includes(extension);
-    };
 
     let unlistenEnter: Promise<UnlistenFn>;
     let unlistenLeave: Promise<UnlistenFn>;
     let unlistenDrop: Promise<UnlistenFn>;
 
-    unlistenEnter = listen("tauri://drag-enter", (event: Event<unknown>) => {
+    unlistenEnter = listen("tauri://drag-enter", () => {
       if (isBugModalOpen) return;
       setDragActive(true);
-      setIsValidDrag(checkFile(event.payload));
     });
 
     unlistenLeave = listen("tauri://drag-leave", () => {
@@ -77,6 +52,4 @@ export function useDragDrop() {
       unlistenDrop.then((f) => f());
     };
   }, [setDragActive, setActiveTab, processFile, isBugModalOpen]);
-
-  return { isValidDrag };
 }

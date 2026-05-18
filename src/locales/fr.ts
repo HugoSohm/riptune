@@ -14,7 +14,7 @@ export const fr = {
     downloadTooltip:
       "Conserver le fichier audio sur votre appareil après l'analyse",
     playlistTooltipFull: "Télécharge tous les fichiers de la playlist",
-    dropTitle: "Déposez votre fichier ici",
+    dropTitle: "Déposez ou importez votre fichier ici",
     dropDesc: "Nous extrairons instantanément le BPM et la clé",
     bpm: "BPM",
     key: "Clé",
@@ -35,6 +35,7 @@ export const fr = {
     emptySearch: "Aucun titre ne correspond à votre recherche",
     searchPlaceholder: "Titre ou artiste",
     deleteAll: "Tout supprimer",
+    tableSource: "Source",
     tableTrack: "Détails du titre",
     tableDate: "Date & Heure",
     tableBpm: "BPM",
@@ -112,7 +113,7 @@ export const fr = {
   bugModal: {
     title: "Signaler un bug",
     description:
-      "Quelque chose ne fonctionne pas ? Décrivez le problème ci-dessous pour que notre équipe puisse l'analyser<br />Vous pouvez aussi ouvrir une issue sur GitHub",
+      "Quelque chose ne fonctionne pas ? Décrivez le problème ci-dessous<br />Vous pouvez aussi ouvrir une issue sur GitHub",
     githubIssues: "Ouvrir une issue sur GitHub",
     label: "Description",
     emailLabel: "Email",

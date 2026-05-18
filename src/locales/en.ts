@@ -13,7 +13,7 @@ export const en = {
     analyzeTooltip: "Automatically extract BPM and musical key",
     downloadTooltip: "Keep the audio file on your device after analysis",
     playlistTooltipFull: "Downloads all files from the playlist",
-    dropTitle: "Drop any audio file here",
+    dropTitle: "Drop or import any audio file here",
     dropDesc: "We'll instantly extract the BPM and Key",
     bpm: "BPM",
     key: "Key",
@@ -33,6 +33,7 @@ export const en = {
     emptySearch: "No tracks match your search",
     searchPlaceholder: "Track or artist",
     deleteAll: "Clear history",
+    tableSource: "Source",
     tableTrack: "Track details",
     tableDate: "Date & time",
     tableBpm: "BPM",
@@ -109,7 +110,7 @@ export const en = {
   bugModal: {
     title: "Report a bug",
     description:
-      "Something not working correctly? Describe the problem below and our team will check it out<br />You can also open an issue on GitHub",
+      "Something not working correctly? Describe the problem below<br />You can also open an issue on GitHub",
     githubIssues: "Open an issue on GitHub",
     label: "Description",
     emailLabel: "Email",

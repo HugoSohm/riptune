@@ -15,7 +15,6 @@ export function useRipTune() {
     setFormat,
     loading,
     dragActive,
-    setDragActive,
     customDir,
     setCustomDir,
     autoAnalyze,
@@ -66,35 +65,6 @@ export function useRipTune() {
     };
     fetchDefaultDir();
 
-    const unlistenDrop = listen<{ paths: string[] }>(
-      "tauri://drag-drop",
-      (event) => {
-        setDragActive(false);
-        const audioExtensions = [
-          ".mp3",
-          ".wav",
-          ".flac",
-          ".m4a",
-          ".ogg",
-          ".aac",
-          ".wma",
-        ];
-        if (event.payload.paths?.length > 0) {
-          const path = event.payload.paths[0];
-          if (audioExtensions.some((ext) => path.toLowerCase().endsWith(ext))) {
-            setActiveTab("home");
-            processFile(path);
-          } else addNotification(t.notifications.errorNotFound, "error");
-        }
-      },
-    );
-
-    const unlistenDragEnter = listen("tauri://drag-enter", () =>
-      setDragActive(true),
-    );
-    const unlistenDragLeave = listen("tauri://drag-leave", () =>
-      setDragActive(false),
-    );
     const unlistenProgress = listen<{
       current: number;
       total: number;
@@ -107,20 +77,9 @@ export function useRipTune() {
     });
 
     return () => {
-      unlistenDrop.then((f) => f());
-      unlistenDragEnter.then((f) => f());
-      unlistenDragLeave.then((f) => f());
       unlistenProgress.then((f) => f());
     };
-  }, [
-    t,
-    addNotification,
-    processFile,
-    setActiveTab,
-    setDragActive,
-    setPlaylistProgress,
-    setDefaultDir,
-  ]);
+  }, [setPlaylistProgress, setDefaultDir]);
 
   // Responsive UI States
   useEffect(() => {
