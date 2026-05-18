@@ -1,52 +1,90 @@
 import { invoke } from "@tauri-apps/api/core";
-import { HistoryEntry } from "../types";
-import { useApp } from "../context/useApp";
-import { useAudioProcessor } from "./useAudioProcessor";
+import {
+  useConfigContext,
+  useHistoryContext,
+  useNotificationsContext,
+  useUIContext,
+} from "../context/AppContext";
+import type { HistoryEntry } from "../types";
 import { trackEvent } from "../utils/analytics";
+import { useAudioProcessor } from "./useAudioProcessor";
 
 export function useDownloader() {
   const {
-    addActiveTask, removeActiveTask, isTaskActive,
-    customDir, cookies, t, addNotification, clearNotificationsFor,
-    updateHistory, setLatest, setLatestPlaylist,
-    url, setUrl, format, downloadPlaylist, shouldDownload, autoAnalyze, isPlaylist,
-    setPlaylistProgress
-  } = useApp();
+    url,
+    setUrl,
+    format,
+    isPlaylist,
+    setPlaylistProgress,
+    addActiveTask,
+    removeActiveTask,
+    isTaskActive,
+    t,
+  } = useUIContext();
+
+  const { customDir, cookies, downloadPlaylist, shouldDownload, autoAnalyze } =
+    useConfigContext();
+
+  const { addNotification, clearNotificationsFor } = useNotificationsContext();
+
+  const { updateHistory, setLatest, setLatestPlaylist } = useHistoryContext();
 
   const { processFile } = useAudioProcessor();
 
-  const handleDownload = async (overrideUrl?: string, overrideShouldDownload?: boolean, overrideAutoAnalyze?: boolean, overrideId?: string) => {
+  const handleDownload = async (
+    overrideUrl?: string,
+    overrideShouldDownload?: boolean,
+    overrideAutoAnalyze?: boolean,
+    overrideId?: string,
+  ) => {
     // Ensure we only use overrideUrl if it's actually a string (not an Event)
-    const validOverrideUrl = typeof overrideUrl === "string" ? overrideUrl : undefined;
+    const validOverrideUrl =
+      typeof overrideUrl === "string" ? overrideUrl : undefined;
     const targetUrl = (validOverrideUrl || url).trim();
-    const targetShouldDownload = overrideShouldDownload !== undefined ? overrideShouldDownload : shouldDownload;
-    const targetAutoAnalyze = overrideAutoAnalyze !== undefined ? overrideAutoAnalyze : autoAnalyze;
+    const targetShouldDownload =
+      overrideShouldDownload !== undefined
+        ? overrideShouldDownload
+        : shouldDownload;
+    const targetAutoAnalyze =
+      overrideAutoAnalyze !== undefined ? overrideAutoAnalyze : autoAnalyze;
 
     if (!targetUrl) return;
-    const youtubeRegex = /^(https?:\/\/)?([a-z0-9-]+\.)?(youtube\.com|youtu\.be|youtube-nocookie\.com)\/.+$/i;
-    const soundcloudRegex = /^(https?:\/\/)?(www\.)?(on\.)?soundcloud\.com\/.+$/i;
-    const isValid = youtubeRegex.test(targetUrl) || soundcloudRegex.test(targetUrl);
+    const youtubeRegex =
+      /^(https?:\/\/)?([a-z0-9-]+\.)?(youtube\.com|youtu\.be|youtube-nocookie\.com)\/.+$/i;
+    const soundcloudRegex =
+      /^(https?:\/\/)?(www\.)?(on\.)?soundcloud\.com\/.+$/i;
+    const isValid =
+      youtubeRegex.test(targetUrl) || soundcloudRegex.test(targetUrl);
 
     if (!isValid) {
-      addNotification(`${t.notifications.errorDownload}: ${t.home.invalidUrl}`, "error");
+      addNotification(
+        `${t.notifications.errorDownload}: ${t.home.invalidUrl}`,
+        "error",
+      );
       return;
     }
 
     if (!targetShouldDownload && !targetAutoAnalyze) {
-      addNotification("Required: Please enable Download or Analyze to proceed.", "info");
+      addNotification(
+        "Required: Please enable Download or Analyze to proceed.",
+        "info",
+      );
       return;
     }
 
     const taskId = overrideId || crypto.randomUUID();
     setPlaylistProgress(null);
-    addActiveTask(taskId, 'download');
+    addActiveTask(taskId, "download");
 
     try {
-      let playlistTitle: string | undefined = undefined;
+      let playlistTitle: string | undefined;
       if (isPlaylist && downloadPlaylist) {
         addNotification(t.notifications.fetchingPlaylist, "info", true);
         try {
-          const info = await invoke<{ count: number, title: string }>("check_url_info", { url: targetUrl, cookies });
+          const info = await invoke<{ count: number; title: string }>(
+            "check_url_info",
+            { url: targetUrl, cookies },
+          );
           playlistTitle = info.title;
           if (!isTaskActive(taskId)) {
             clearNotificationsFor(t.notifications.fetchingPlaylist);
@@ -54,7 +92,7 @@ export function useDownloader() {
           }
           setPlaylistProgress({ current: 0, total: info.count });
           clearNotificationsFor(t.notifications.fetchingPlaylist);
-        } catch (e: any) {
+        } catch (e) {
           clearNotificationsFor(t.notifications.fetchingPlaylist);
           const errStr = e?.toString() || "";
           // Detect private or non-existent playlist
@@ -70,7 +108,7 @@ export function useDownloader() {
             isPlaylistNotFound
               ? t.notifications.errorPlaylistNotFound
               : `${t.notifications.errorDownload}: ${errStr}`,
-            "error"
+            "error",
           );
           return; // Stop — don't attempt to download a broken playlist
         }
@@ -81,18 +119,26 @@ export function useDownloader() {
         return;
       }
 
-      trackEvent("download_started", { format, downloadPlaylist: downloadPlaylist ? 1 : 0 });
+      trackEvent("download_started", {
+        format,
+        downloadPlaylist: downloadPlaylist ? 1 : 0,
+      });
 
       addNotification(t.notifications.downloading, "info", true);
-      const response = await invoke<{ results: any[], playlist_dir?: string }>("download_audio", {
-        url: targetUrl,
-        format,
-        customPath: !targetShouldDownload ? "TMP_ANALYSIS" : customDir,
-        cookies,
-        downloadPlaylist,
-        playlistTitle,
-        taskId
-      });
+      const response = await invoke<{ results: any[]; playlist_dir?: string }>(
+        "download_audio",
+        {
+          args: {
+            url: targetUrl,
+            format,
+            customPath: !targetShouldDownload ? "TMP_ANALYSIS" : customDir,
+            cookies,
+            downloadPlaylist,
+            playlistTitle,
+            taskId,
+          },
+        },
+      );
 
       const results = response.results;
 
@@ -105,9 +151,21 @@ export function useDownloader() {
         let analyzedCount = 0;
         for (const res of results) {
           if (downloadPlaylist) {
-            setPlaylistProgress({ current: analyzedCount + 1, total: results.length });
+            setPlaylistProgress({
+              current: analyzedCount + 1,
+              total: results.length,
+            });
           }
-          await processFile(res.filepath, res.title, res.artist, !targetShouldDownload, res.url, undefined, downloadPlaylist, res.description);
+          await processFile(
+            res.filepath,
+            res.title,
+            res.artist,
+            !targetShouldDownload,
+            res.url,
+            undefined,
+            downloadPlaylist,
+            res.description,
+          );
           analyzedCount++;
           if (!targetShouldDownload) {
             try {
@@ -123,14 +181,14 @@ export function useDownloader() {
       } else if (targetShouldDownload) {
         let latestEntry: HistoryEntry | null = null;
 
-        updateHistory(prev => {
+        updateHistory((prev) => {
           let updatedHistory = [...prev];
           for (const res of results) {
-          let displayTitle = res.title;
-          let displayArtist = res.artist;
+            const displayTitle = res.title;
+            const displayArtist = res.artist;
 
-            const existingEntryIndex = updatedHistory.findIndex(item =>
-              (overrideId ? item.id === overrideId : item.url === res.url)
+            const existingEntryIndex = updatedHistory.findIndex((item) =>
+              overrideId ? item.id === overrideId : item.url === res.url,
             );
 
             let bpm = 0.0;
@@ -140,14 +198,14 @@ export function useDownloader() {
               const oldEntry = updatedHistory[existingEntryIndex];
               bpm = oldEntry.bpm || 0.0;
               key = oldEntry.key || "";
-              
+
               const updatedEntry: HistoryEntry = {
                 ...oldEntry,
                 filepath: res.filepath,
                 title: displayTitle,
                 artist: displayArtist,
                 date: new Date().toISOString(),
-                isTemp: false
+                isTemp: false,
               };
               updatedHistory.splice(existingEntryIndex, 1);
               updatedHistory.unshift(updatedEntry);
@@ -159,7 +217,7 @@ export function useDownloader() {
                 artist: displayArtist,
                 filepath: res.filepath,
                 date: new Date().toISOString(),
-                url: res.url
+                url: res.url,
               };
               updatedHistory = [newEntry, ...updatedHistory];
               latestEntry = newEntry;
@@ -173,8 +231,10 @@ export function useDownloader() {
                   title: displayTitle,
                   artist: displayArtist,
                   bpm: bpm,
-                  key: key
-                }).catch(e => console.error("Failed to write metadata during download", e));
+                  key: key,
+                }).catch((e) =>
+                  console.error("Failed to write metadata during download", e),
+                );
               } catch (e) {
                 console.error("Failed to write metadata during download", e);
               }
@@ -192,13 +252,16 @@ export function useDownloader() {
       }
 
       if (response.playlist_dir && playlistTitle) {
-        setLatestPlaylist({ title: playlistTitle, filepath: response.playlist_dir });
+        setLatestPlaylist({
+          title: playlistTitle,
+          filepath: response.playlist_dir,
+        });
       } else {
         setLatestPlaylist(null);
       }
 
       setUrl("");
-    } catch (error: any) {
+    } catch (error) {
       console.error(error);
       const errStr = error?.toString() || "";
       const isCancel = errStr.includes("Cancelled");
@@ -217,7 +280,7 @@ export function useDownloader() {
           : isPlaylistNotFound
             ? t.notifications.errorPlaylistNotFound
             : `${t.notifications.errorDownload}: ${error}`,
-        isCancel ? 'info' : 'error'
+        isCancel ? "info" : "error",
       );
       setPlaylistProgress(null);
     } finally {

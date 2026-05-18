@@ -1,4 +1,4 @@
-use tauri::{App, Manager, Runtime, Emitter};
+use tauri::{App, Emitter, Manager, Runtime};
 use tauri_plugin_deep_link::DeepLinkExt;
 
 pub fn init<R: Runtime>(app: &mut App<R>) -> Result<(), Box<dyn std::error::Error>> {

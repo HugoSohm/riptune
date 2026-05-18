@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
-import { Bug, X, Image, Trash2, Loader2, ExternalLink } from "lucide-react";
-import { useApp } from "../context/useApp";
 import { invoke } from "@tauri-apps/api/core";
+import { listen, type UnlistenFn } from "@tauri-apps/api/event";
 import { openUrl } from "@tauri-apps/plugin-opener";
-import { listen, UnlistenFn } from "@tauri-apps/api/event";
+import { Bug, ExternalLink, Image, Loader2, Trash2, X } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useApp } from "../context/useApp";
 import { trackEvent } from "../utils/analytics";
 
 export default function BugReportModal() {
@@ -19,54 +19,68 @@ export default function BugReportModal() {
     let unlistenEnter: Promise<UnlistenFn>;
     let unlistenLeave: Promise<UnlistenFn>;
     let unlistenDrop: Promise<UnlistenFn>;
-    
+
     if (isBugModalOpen) {
-        unlistenEnter = listen("tauri://drag-enter", (event: any) => {
-            const paths = event.payload.paths || [];
-            if (paths.length > 0) {
-                const path = paths[0].toLowerCase();
-                if (path.endsWith(".png") || path.endsWith(".jpg") || path.endsWith(".jpeg") || path.endsWith(".webp") || path.endsWith(".gif")) {
-                    setIsDragging(true);
-                }
+      unlistenEnter = listen("tauri://drag-enter", (event: any) => {
+        const paths = event.payload.paths || [];
+        if (paths.length > 0) {
+          const path = paths[0].toLowerCase();
+          if (
+            path.endsWith(".png") ||
+            path.endsWith(".jpg") ||
+            path.endsWith(".jpeg") ||
+            path.endsWith(".webp") ||
+            path.endsWith(".gif")
+          ) {
+            setIsDragging(true);
+          }
+        }
+      });
+
+      unlistenLeave = listen("tauri://drag-leave", () => {
+        setIsDragging(false);
+      });
+
+      unlistenDrop = listen("tauri://drag-drop", async (event: any) => {
+        setIsDragging(false);
+        const paths = event.payload.paths || [];
+        if (paths.length > 0) {
+          const path = paths[0];
+          const lowerPath = path.toLowerCase();
+          const isImage =
+            lowerPath.endsWith(".png") ||
+            lowerPath.endsWith(".jpg") ||
+            lowerPath.endsWith(".jpeg") ||
+            lowerPath.endsWith(".webp") ||
+            lowerPath.endsWith(".gif");
+
+          if (isImage) {
+            try {
+              const dataUrl = await invoke<string>("read_image_base64", {
+                path,
+              });
+              setScreenshot(dataUrl);
+              addNotification(t.notifications.imageAttached, "success");
+            } catch (error) {
+              console.error("Failed to read image", error);
+              addNotification(t.notifications.imageError, "error");
             }
-        });
-
-        unlistenLeave = listen("tauri://drag-leave", () => {
-            setIsDragging(false);
-        });
-
-        unlistenDrop = listen("tauri://drag-drop", async (event: any) => {
-            setIsDragging(false);
-            const paths = event.payload.paths || [];
-            if (paths.length > 0) {
-                const path = paths[0];
-                const lowerPath = path.toLowerCase();
-                const isImage = lowerPath.endsWith(".png") || 
-                               lowerPath.endsWith(".jpg") || 
-                               lowerPath.endsWith(".jpeg") || 
-                               lowerPath.endsWith(".webp") || 
-                               lowerPath.endsWith(".gif");
-
-                if (isImage) {
-                    try {
-                        const dataUrl = await invoke<string>("read_image_base64", { path });
-                        setScreenshot(dataUrl);
-                        addNotification(t.notifications.imageAttached, "success");
-                    } catch (error) {
-                        console.error("Failed to read image", error);
-                        addNotification(t.notifications.imageError, "error");
-                    }
-                }
-            }
-        });
+          }
+        }
+      });
     }
 
     return () => {
-        if (unlistenEnter) unlistenEnter.then(f => f());
-        if (unlistenLeave) unlistenLeave.then(f => f());
-        if (unlistenDrop) unlistenDrop.then(f => f());
+      if (unlistenEnter) unlistenEnter.then((f) => f());
+      if (unlistenLeave) unlistenLeave.then((f) => f());
+      if (unlistenDrop) unlistenDrop.then((f) => f());
     };
-  }, [isBugModalOpen, addNotification]);
+  }, [
+    isBugModalOpen,
+    addNotification,
+    t.notifications.imageError,
+    t.notifications.imageAttached,
+  ]);
 
   if (!isBugModalOpen) return null;
 
@@ -84,28 +98,28 @@ export default function BugReportModal() {
   const handlePaste = (e: React.ClipboardEvent) => {
     const items = e.clipboardData.items;
     for (let i = 0; i < items.length; i++) {
-        if (items[i].type.indexOf("image") !== -1) {
-            const file = items[i].getAsFile();
-            if (file) {
-                const reader = new FileReader();
-                reader.onloadend = () => {
-                    setScreenshot(reader.result as string);
-                };
-                reader.readAsDataURL(file);
-            }
+      if (items[i].type.indexOf("image") !== -1) {
+        const file = items[i].getAsFile();
+        if (file) {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            setScreenshot(reader.result as string);
+          };
+          reader.readAsDataURL(file);
         }
+      }
     }
   };
 
   const handleSend = async () => {
     if (!message.trim()) return;
-    
+
     setIsSending(true);
-    
+
     try {
       // Direct call to Resend API via Rust Backend
       await invoke("send_bug_report", { message, email, screenshot });
-      
+
       trackEvent("bug_report_sent", { hasScreenshot: screenshot ? 1 : 0 });
 
       addNotification(t.notifications.bugReportSuccess, "success");
@@ -113,7 +127,7 @@ export default function BugReportModal() {
       setMessage("");
       setEmail("");
       setScreenshot(null);
-    } catch (error: any) {
+    } catch (error) {
       console.error(error);
       addNotification(`${t.notifications.bugReportError}: ${error}`, "error");
     } finally {
@@ -137,7 +151,7 @@ export default function BugReportModal() {
       />
 
       {/* Modal */}
-      <div 
+      <div
         onPaste={handlePaste}
         className="relative w-full max-w-2xl bg-[#0f1424] border border-white/10 rounded-[2rem] shadow-2xl overflow-hidden animate-in zoom-in-95 fade-in duration-300 transition-all"
       >
@@ -148,14 +162,17 @@ export default function BugReportModal() {
               <Bug className="w-5 h-5 text-yellow-400" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-white tracking-tight">{t.bugModal.title}</h2>
-              <p 
+              <h2 className="text-xl font-bold text-white tracking-tight">
+                {t.bugModal.title}
+              </h2>
+              <p
                 className="text-xs text-slate-500 mt-0.5"
                 dangerouslySetInnerHTML={{ __html: t.bugModal.description }}
               />
             </div>
           </div>
           <button
+            type="button"
             onClick={handleClose}
             className="w-8 h-8 rounded-full hover:bg-white/5 flex items-center justify-center text-slate-500 hover:text-white transition-colors"
           >
@@ -195,12 +212,13 @@ export default function BugReportModal() {
 
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <label 
+                <label
                   className="text-xs font-bold uppercase tracking-widest text-slate-500"
                   dangerouslySetInnerHTML={{ __html: t.bugModal.screenshot }}
                 />
                 {screenshot && (
                   <button
+                    type="button"
                     onClick={() => setScreenshot(null)}
                     className="text-[10px] uppercase font-bold text-red-400 hover:text-red-300 flex items-center gap-1.5 transition-colors"
                   >
@@ -211,12 +229,16 @@ export default function BugReportModal() {
               </div>
 
               {!screenshot ? (
-                <label className={`group relative flex flex-col items-center justify-center w-full h-32 border-2 border-dashed ${isDragging ? 'border-yellow-500 bg-yellow-500/10 shadow-[0_0_30px_rgba(234,179,8,0.2)] scale-[1.02]' : 'border-white/5 hover:border-yellow-500/30 hover:bg-yellow-500/5'} rounded-2xl transition-all cursor-pointer overflow-hidden`}>
+                <label
+                  className={`group relative flex flex-col items-center justify-center w-full h-32 border-2 border-dashed ${isDragging ? "border-yellow-500 bg-yellow-500/10 shadow-[0_0_30px_rgba(234,179,8,0.2)] scale-[1.02]" : "border-white/5 hover:border-yellow-500/30 hover:bg-yellow-500/5"} rounded-2xl transition-all cursor-pointer overflow-hidden`}
+                >
                   {isDragging && (
                     <div className="absolute inset-0 z-10 bg-yellow-500/10 backdrop-blur-[2px] flex items-center justify-center animate-in fade-in duration-200">
                       <div className="flex flex-col items-center">
-                          <Image className="w-8 h-8 text-yellow-400" />
-                          <span className="text-[10px] font-black text-yellow-400 uppercase tracking-[0.2em] mt-2">{t.bugModal.dropTitle}</span>
+                        <Image className="w-8 h-8 text-yellow-400" />
+                        <span className="text-[10px] font-black text-yellow-400 uppercase tracking-[0.2em] mt-2">
+                          {t.bugModal.dropTitle}
+                        </span>
                       </div>
                     </div>
                   )}
@@ -232,11 +254,15 @@ export default function BugReportModal() {
                   </span>
                 </label>
               ) : (
-                <div 
+                <div
                   onClick={() => setShowFullImage(true)}
                   className="relative group w-full h-32 rounded-2xl overflow-hidden border border-white/10 cursor-zoom-in"
                 >
-                  <img src={screenshot} alt="Preview" className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300" />
+                  <img
+                    src={screenshot}
+                    alt="Preview"
+                    className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300"
+                  />
                 </div>
               )}
             </div>
@@ -245,19 +271,20 @@ export default function BugReportModal() {
 
         {/* Full Image Overlay */}
         {showFullImage && screenshot && (
-          <div 
+          <div
             className="fixed inset-0 z-[100001] bg-black/90 flex items-center justify-center p-8 backdrop-blur-md animate-in fade-in duration-300 pointer-events-auto"
             onClick={() => setShowFullImage(false)}
           >
-            <button 
+            <button
+              type="button"
               className="absolute top-8 right-8 w-12 h-12 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-all active:scale-90"
               onClick={() => setShowFullImage(false)}
             >
               <X className="w-6 h-6" />
             </button>
-            <img 
-              src={screenshot} 
-              alt="Full Preview" 
+            <img
+              src={screenshot}
+              alt="Full Preview"
               className="max-w-full max-h-full object-contain rounded-xl shadow-2xl animate-in zoom-in-95 duration-300"
               onMouseDown={(e) => e.stopPropagation()}
             />
@@ -267,38 +294,48 @@ export default function BugReportModal() {
         {/* Footer */}
         <div className="px-8 py-6 bg-white/[0.02] border-t border-white/5 flex items-center justify-between">
           <button
-            onClick={() => openUrl("https://github.com/HugoSohm/riptune/issues")}
+            type="button"
+            onClick={() =>
+              openUrl("https://github.com/HugoSohm/riptune/issues")
+            }
             className="group flex items-center gap-2 text-xs font-bold text-slate-500 hover:text-purple-400 transition-colors uppercase tracking-widest"
           >
             <ExternalLink className="w-3.5 h-3.5 opacity-50 group-hover:opacity-100 transition-opacity" />
             {t.bugModal.githubIssues}
           </button>
-          
+
           <div className="flex items-center gap-3">
-          <button
-            onClick={handleClose}
-            disabled={isSending}
-            className="px-6 py-2.5 rounded-xl text-slate-400 font-bold text-sm hover:text-white transition-colors disabled:opacity-50"
-          >
-            {t.bugModal.cancel}
-          </button>
-          <button
-            onClick={handleSend}
-            disabled={!message.trim() || !email.trim() || !email.includes('@') || isSending}
-            className="px-8 py-2.5 bg-yellow-500 hover:bg-yellow-400 disabled:bg-slate-800 disabled:text-slate-600 text-[#0f1424] font-bold rounded-xl transition-all active:scale-95 text-sm flex items-center gap-2"
-          >
-            {isSending ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                {t.bugModal.sending}
-              </>
-            ) : (
-              t.bugModal.send
-            )}
-          </button>
+            <button
+              type="button"
+              onClick={handleClose}
+              disabled={isSending}
+              className="px-6 py-2.5 rounded-xl text-slate-400 font-bold text-sm hover:text-white transition-colors disabled:opacity-50"
+            >
+              {t.bugModal.cancel}
+            </button>
+            <button
+              type="button"
+              onClick={handleSend}
+              disabled={
+                !message.trim() ||
+                !email.trim() ||
+                !email.includes("@") ||
+                isSending
+              }
+              className="px-8 py-2.5 bg-yellow-500 hover:bg-yellow-400 disabled:bg-slate-800 disabled:text-slate-600 text-[#0f1424] font-bold rounded-xl transition-all active:scale-95 text-sm flex items-center gap-2"
+            >
+              {isSending ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  {t.bugModal.sending}
+                </>
+              ) : (
+                t.bugModal.send
+              )}
+            </button>
+          </div>
         </div>
       </div>
     </div>
-  </div>
   );
 }

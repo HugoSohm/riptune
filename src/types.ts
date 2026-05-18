@@ -11,12 +11,14 @@ export interface HistoryEntry {
   isTemp?: boolean;
   url?: string;
   fromYoutubeDesc?: boolean;
+  bpmFromYoutube?: boolean;
+  keyFromYoutube?: boolean;
 }
 
 export interface Notification {
   id: string;
   message: string;
-  type: 'info' | 'error' | 'success';
+  type: "info" | "error" | "success";
   isTask?: boolean;
 }
 

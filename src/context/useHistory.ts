@@ -1,20 +1,29 @@
-import { useState, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { HistoryEntry } from "../types";
+import { useCallback, useEffect, useState } from "react";
+import type { HistoryEntry } from "../types";
 
 export function useHistory(deleteFilesOnHistoryDelete: boolean) {
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [latest, setLatest] = useState<HistoryEntry | null>(null);
-  const [latestPlaylist, setLatestPlaylistState] = useState<{ title: string; filepath: string } | null>(null);
+  const [latestPlaylist, setLatestPlaylistState] = useState<{
+    title: string;
+    filepath: string;
+  } | null>(null);
 
-  const setLatestPlaylist = (playlist: { title: string; filepath: string } | null) => {
-    setLatestPlaylistState(playlist);
-    if (playlist) {
-      localStorage.setItem("riptune_latest_playlist", JSON.stringify(playlist));
-    } else {
-      localStorage.removeItem("riptune_latest_playlist");
-    }
-  };
+  const setLatestPlaylist = useCallback(
+    (playlist: { title: string; filepath: string } | null) => {
+      setLatestPlaylistState(playlist);
+      if (playlist) {
+        localStorage.setItem(
+          "riptune_latest_playlist",
+          JSON.stringify(playlist),
+        );
+      } else {
+        localStorage.removeItem("riptune_latest_playlist");
+      }
+    },
+    [],
+  );
 
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
@@ -24,7 +33,9 @@ export function useHistory(deleteFilesOnHistoryDelete: boolean) {
       try {
         const parsed = JSON.parse(saved);
         setHistory(parsed);
-        const latestAnalyzed = parsed.find((item: HistoryEntry) => item.bpm !== undefined);
+        const latestAnalyzed = parsed.find(
+          (item: HistoryEntry) => item.bpm !== undefined,
+        );
         if (latestAnalyzed) setLatest(latestAnalyzed);
 
         const savedPlaylist = localStorage.getItem("riptune_latest_playlist");
@@ -34,11 +45,15 @@ export function useHistory(deleteFilesOnHistoryDelete: boolean) {
             setLatestPlaylist(parsedPlaylist);
             // If we have a latest playlist, it takes precedence over latest song in UI
             if (parsedPlaylist) setLatest(null);
-          } catch (e) { console.error("Failed to parse latest playlist"); }
+          } catch (_e) {
+            console.error("Failed to parse latest playlist");
+          }
         }
-      } catch (e) { console.error("Failed to parse history"); }
+      } catch (_e) {
+        console.error("Failed to parse history");
+      }
     }
-  }, []);
+  }, [setLatestPlaylist]);
 
   const saveHistory = (newHistory: HistoryEntry[]) => {
     setHistory(newHistory);
@@ -47,7 +62,7 @@ export function useHistory(deleteFilesOnHistoryDelete: boolean) {
 
   // Safe for concurrent calls: uses functional update so each call sees the latest state
   const updateHistory = (updater: (prev: HistoryEntry[]) => HistoryEntry[]) => {
-    setHistory(prev => {
+    setHistory((prev) => {
       const next = updater(prev);
       localStorage.setItem("riptune_history", JSON.stringify(next));
       return next;
@@ -59,8 +74,11 @@ export function useHistory(deleteFilesOnHistoryDelete: boolean) {
   };
 
   const handleOpenFile = async (filepath: string) => {
-    try { await invoke("open_file", { filepath }); }
-    catch (error) { console.error("Failed to open file", error); }
+    try {
+      await invoke("open_file", { filepath });
+    } catch (error) {
+      console.error("Failed to open file", error);
+    }
   };
 
   const confirmDelete = async () => {
@@ -70,25 +88,34 @@ export function useHistory(deleteFilesOnHistoryDelete: boolean) {
           if (!item.isTemp && item.filepath) {
             try {
               await invoke("delete_file", { filepath: item.filepath });
-            } catch (e) { console.error("Failed to delete file", e); }
+            } catch (e) {
+              console.error("Failed to delete file", e);
+            }
           }
         }
       }
       saveHistory([]);
       setLatest(null);
     } else if (deleteConfirmId) {
-      const itemToDelete = history.find(i => i.id === deleteConfirmId);
-      if (itemToDelete && deleteFilesOnHistoryDelete && !itemToDelete.isTemp && itemToDelete.filepath) {
+      const itemToDelete = history.find((i) => i.id === deleteConfirmId);
+      if (
+        itemToDelete &&
+        deleteFilesOnHistoryDelete &&
+        !itemToDelete.isTemp &&
+        itemToDelete.filepath
+      ) {
         try {
           await invoke("delete_file", { filepath: itemToDelete.filepath });
-        } catch (e) { console.error("Failed to delete file", e); }
+        } catch (e) {
+          console.error("Failed to delete file", e);
+        }
       }
 
-      const newHistory = history.filter(item => item.id !== deleteConfirmId);
+      const newHistory = history.filter((item) => item.id !== deleteConfirmId);
       saveHistory(newHistory);
 
       if (latest && latest.id === deleteConfirmId) {
-        const nextAnalyzed = newHistory.find(item => item.bpm !== undefined);
+        const nextAnalyzed = newHistory.find((item) => item.bpm !== undefined);
         setLatest(nextAnalyzed || null);
       }
     }
@@ -96,9 +123,18 @@ export function useHistory(deleteFilesOnHistoryDelete: boolean) {
   };
 
   return {
-    history, setHistory, saveHistory, updateHistory, latest, setLatest,
-    latestPlaylist, setLatestPlaylist,
-    deleteConfirmId, setDeleteConfirmId, handleDeleteHistoryItem,
-    confirmDelete, handleOpenFile
+    history,
+    setHistory,
+    saveHistory,
+    updateHistory,
+    latest,
+    setLatest,
+    latestPlaylist,
+    setLatestPlaylist,
+    deleteConfirmId,
+    setDeleteConfirmId,
+    handleDeleteHistoryItem,
+    confirmDelete,
+    handleOpenFile,
   };
 }

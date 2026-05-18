@@ -1,30 +1,51 @@
 import { invoke } from "@tauri-apps/api/core";
-import { HistoryEntry } from "../types";
-import { useApp } from "../context/useApp";
+import {
+  useConfigContext,
+  useHistoryContext,
+  useNotificationsContext,
+  useUIContext,
+} from "../context/AppContext";
+import type { HistoryEntry } from "../types";
 import { trackEvent } from "../utils/analytics";
 import { analyzeAudioFile } from "../utils/essentia";
 
-export function extractMetadataFromDescription(description?: string): { bpm?: number; key?: string } {
+export function extractMetadataFromDescription(description?: string): {
+  bpm?: number;
+  key?: string;
+} {
   let bpm: number | undefined;
   let key: string | undefined;
 
   if (description) {
-    const bpmMatch = description.match(/(?:^|\s)(1?\d{2}|2\d{2})\s*bpm\b/i);
+    const bpmMatch = description.match(/\b(1?\d{2}|2\d{2})\s*bpm\b/i);
     if (bpmMatch) {
       bpm = parseInt(bpmMatch[1], 10);
     }
 
-    const keyMatch = description.match(/(?:^|\s)([a-g][#b]?\s*(?:major|minor|maj|min|m))\b/i);
+    const keyMatch = description.match(
+      /\b([a-g][#b]?)\s*(major|minor|maj|min|m)\b/i,
+    );
     if (keyMatch) {
-      let k = keyMatch[1].toLowerCase().trim();
-      let root = k.match(/^[a-g][#b]?/i)?.[0].toUpperCase();
-      if (root) {
-        if (root.length > 1) {
-          root = root[0] + root[1].toLowerCase();
-        }
-        const isMinor = /minor|min|m/.test(k);
-        key = `${root} ${isMinor ? 'min' : 'maj'}`;
+      const rootPart = keyMatch[1];
+      const suffixPart = keyMatch[2];
+
+      let root = rootPart.toUpperCase();
+      if (root.length > 1) {
+        root = root[0] + root[1].toLowerCase();
       }
+
+      let isMinor = false;
+      if (/minor|min/i.test(suffixPart)) {
+        isMinor = true;
+      } else if (/major|maj/i.test(suffixPart)) {
+        isMinor = false;
+      } else if (suffixPart === "m") {
+        isMinor = true;
+      } else if (suffixPart === "M") {
+        isMinor = false;
+      }
+
+      key = `${root} ${isMinor ? "min" : "maj"}`;
     }
   }
 
@@ -37,61 +58,75 @@ export async function resolveMetadata(
   isTemp: boolean,
   titleHint?: string,
   artistHint?: string,
-  description?: string
+  description?: string,
 ) {
   let bpmVal = 0;
   let keyStr = "";
   let bpmConfidence = 0;
   let keyStrength = 0;
-  let fromYoutubeDesc = false;
 
-  const { bpm: descBpm, key: descKey } = extractMetadataFromDescription(description);
+  const { bpm: descBpm, key: descKey } =
+    extractMetadataFromDescription(description);
+
+  const bpmFromYoutube = !!descBpm;
+  const keyFromYoutube = !!descKey;
+  const fromYoutubeDesc = bpmFromYoutube || keyFromYoutube;
 
   if (descBpm && descKey) {
     bpmVal = descBpm;
     keyStr = descKey;
-    fromYoutubeDesc = true;
   } else {
-    const [eBpm, eKeyStr, eBpmConf, eKeyConf] = await analyzeAudioFile(filepath, !partialAnalysis);
+    const [eBpm, eKeyStr, eBpmConf, eKeyConf] = await analyzeAudioFile(
+      filepath,
+      !partialAnalysis,
+    );
     bpmVal = descBpm || eBpm;
     keyStr = descKey || eKeyStr;
     bpmConfidence = eBpmConf;
     keyStrength = eKeyConf;
-    if (descBpm || descKey) fromYoutubeDesc = true;
   }
-  
+
   const bpm = Math.round(bpmVal);
 
   let title = titleHint;
   let artist = artistHint;
 
   if (!title || !artist || artist === "Unknown Artist") {
-    const filename = filepath.split('\\').pop()?.split('/').pop()?.replace(/\.[^/.]+$/, "") || "";
+    const filename =
+      filepath
+        .split("\\")
+        .pop()
+        ?.split("/")
+        .pop()
+        ?.replace(/\.[^/.]+$/, "") || "";
     if (filename.includes(" - ")) {
       const parts = filename.split(" - ");
       const parsedArtist = parts[0].trim();
       const parsedTitle = parts.slice(1).join(" - ").trim();
-
-      artist = artist === "Unknown Artist" || !artist ? parsedArtist : artist;
-      title = !title ? parsedTitle : title;
+      if (!artist || artist === "Unknown Artist") {
+        artist = parsedArtist;
+      }
+      if (!title) {
+        title = parsedTitle;
+      }
     } else {
-      title = title || filename || "Unknown Audio";
-      artist = artist || "Unknown Artist";
+      if (!title) {
+        title = filename;
+      }
     }
   }
 
-  // Update metadata with results
+  const djKey = keyStr;
+
   if (!isTemp) {
     try {
-      // Convert UI format (A maj / A min) to DJ standard (A / Am) for ID3 tags
       const djKey = keyStr.replace(" maj", "").replace(" min", "m");
-
       await invoke("update_metadata", {
         filepath,
         title,
         artist,
         bpm,
-        key: djKey
+        key: djKey,
       });
     } catch (e) {
       console.error("Failed to update file metadata", e);
@@ -100,24 +135,35 @@ export async function resolveMetadata(
 
   return {
     bpm,
-    keyStr,
+    keyStr: djKey,
     bpmConfidence,
     keyStrength,
     fromYoutubeDesc,
+    bpmFromYoutube,
+    keyFromYoutube,
     title,
-    artist
+    artist,
   };
 }
 
 export function useAudioProcessor() {
-  const {
-    updateHistory, setLatest, addNotification, removeNotification,
-    addActiveTask, removeActiveTask, t, partialAnalysis
-  } = useApp();
+  const { addActiveTask, removeActiveTask, t } = useUIContext();
+  const { partialAnalysis } = useConfigContext();
+  const { addNotification, removeNotification } = useNotificationsContext();
+  const { updateHistory, setLatest } = useHistoryContext();
 
-  const processFile = async (filepath: string, titleHint?: string, artistHint?: string, isTemp: boolean = false, url?: string, id?: string, isPlaylist?: boolean, description?: string) => {
+  const processFile = async (
+    filepath: string,
+    titleHint?: string,
+    artistHint?: string,
+    isTemp: boolean = false,
+    url?: string,
+    id?: string,
+    isPlaylist?: boolean,
+    description?: string,
+  ) => {
     const taskId = id || crypto.randomUUID();
-    addActiveTask(taskId, 'analysis');
+    addActiveTask(taskId, "analysis");
     let notifId: string | undefined;
     if (!isPlaylist) {
       notifId = addNotification(t.notifications.analyzing, "info", true);
@@ -132,9 +178,18 @@ export function useAudioProcessor() {
         bpmConfidence,
         keyStrength,
         fromYoutubeDesc,
+        bpmFromYoutube,
+        keyFromYoutube,
         title,
-        artist
-      } = await resolveMetadata(filepath, partialAnalysis, isTemp, titleHint, artistHint, description);
+        artist,
+      } = await resolveMetadata(
+        filepath,
+        partialAnalysis,
+        isTemp,
+        titleHint,
+        artistHint,
+        description,
+      );
 
       if (!isPlaylist && notifId) {
         removeNotification(notifId);
@@ -150,11 +205,13 @@ export function useAudioProcessor() {
 
       // Use updateHistory (functional update) to avoid stale closure issues
       // when multiple analyses run concurrently — each sees the latest history state
-      updateHistory(prev => {
+      updateHistory((prev) => {
         // Search by filepath first, then by URL
-        let existingEntryIndex = prev.findIndex(item => item.filepath === filepath);
+        let existingEntryIndex = prev.findIndex(
+          (item) => item.filepath === filepath,
+        );
         if (existingEntryIndex === -1 && url) {
-          existingEntryIndex = prev.findIndex(item => item.url === url);
+          existingEntryIndex = prev.findIndex((item) => item.url === url);
         }
 
         if (existingEntryIndex !== -1) {
@@ -172,7 +229,9 @@ export function useAudioProcessor() {
             isTemp: isTemp ? oldEntry.isTemp : false,
             url: url || oldEntry.url,
             fromYoutubeDesc,
-            date: new Date().toISOString()
+            bpmFromYoutube,
+            keyFromYoutube,
+            date: new Date().toISOString(),
           };
           updatedHistory.splice(existingEntryIndex, 1);
           updatedHistory.unshift(updatedEntry);
@@ -193,7 +252,9 @@ export function useAudioProcessor() {
             date: new Date().toISOString(),
             isTemp,
             url,
-            fromYoutubeDesc
+            fromYoutubeDesc,
+            bpmFromYoutube,
+            keyFromYoutube,
           };
           if (!isPlaylist) {
             setLatest(entry);
@@ -205,11 +266,18 @@ export function useAudioProcessor() {
       if (!isPlaylist) {
         addNotification(t.notifications.analysisComplete, "success");
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error(error);
       if (notifId) removeNotification(notifId);
-      const isNotFound = error?.toString()?.includes("No such file") || error?.toString()?.includes("not found");
-      addNotification(isNotFound ? t.notifications.errorNotFound : `${t.notifications.errorAnalysis}: ${error}`, "error");
+      const isNotFound =
+        error?.toString()?.includes("No such file") ||
+        error?.toString()?.includes("not found");
+      addNotification(
+        isNotFound
+          ? t.notifications.errorNotFound
+          : `${t.notifications.errorAnalysis}: ${error}`,
+        "error",
+      );
     } finally {
       removeActiveTask(taskId);
     }

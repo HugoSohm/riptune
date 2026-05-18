@@ -33,3 +33,15 @@ pub struct DownloadResponse {
     pub results: Vec<DownloadResult>,
     pub playlist_dir: Option<String>,
 }
+
+#[derive(Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct DownloadArgs {
+    pub url: String,
+    pub format: String,
+    pub custom_path: Option<String>,
+    pub cookies: Option<String>,
+    pub download_playlist: bool,
+    pub playlist_title: Option<String>,
+    pub task_id: String,
+}

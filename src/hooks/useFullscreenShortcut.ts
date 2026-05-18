@@ -1,5 +1,5 @@
-import { useEffect, useCallback } from "react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
+import { useCallback, useEffect } from "react";
 
 export const useFullscreenShortcut = () => {
   const toggleFullscreen = useCallback(async () => {

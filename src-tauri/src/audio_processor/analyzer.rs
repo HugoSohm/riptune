@@ -24,17 +24,11 @@ pub async fn update_metadata(
 
     if bpm > 0.0 {
         let bpm_str = format!("{:03}", bpm.round() as u32);
-        tag.add_frame(Frame::with_content(
-            "TBPM",
-            Content::Text(bpm_str),
-        ));
+        tag.add_frame(Frame::with_content("TBPM", Content::Text(bpm_str)));
     }
 
     if !key.is_empty() {
-        tag.add_frame(Frame::with_content(
-            "TKEY",
-            Content::Text(key),
-        ));
+        tag.add_frame(Frame::with_content("TKEY", Content::Text(key)));
     }
 
     tag.write_to_path(&filepath, id3::Version::Id3v23)

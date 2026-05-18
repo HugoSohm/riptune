@@ -10,4 +10,4 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
 );
 
 // Disable context menu (right-click)
-document.addEventListener('contextmenu', (e) => e.preventDefault());
+document.addEventListener("contextmenu", (e) => e.preventDefault());
