@@ -1,5 +1,15 @@
 # RipTune Changelog
 
+## 0.3.4 (2026-05-18)
+
+### ✨ YouTube Metadata & DX Polish
+- **Playlist Batch Analysis**: It is now fully possible to analyze entire playlists! Added a global progress bar for batch analysis (e.g. 1/15) and suppressed individual notifications and home page overrides to ensure a smooth, clutter-free experience during bulk processing.
+- **Deep Analysis by Default**: The audio engine now processes the entire track by default (instead of just the first 60 seconds) to ensure maximum BPM and Key accuracy. A "Partial Analysis" toggle remains in the settings for speed.
+- **Smart Metadata Parsing**: Added a dedicated extraction system to instantly parse BPM and Key data directly from YouTube video descriptions, skipping heavy local analysis entirely when available.
+- **Source Awareness**: The UI now replaces the analysis confidence circle with a dedicated YouTube icon tooltip when metadata is natively sourced from the video description.
+- **Smart History Promotion**: Re-analyzing or re-downloading an existing track now cleanly updates its timestamp and brings it back to the top of your history instead of creating duplicates.
+- **Graceful Shutdown**: Added a global application exit interceptor that cleanly kills active `yt-dlp` background downloads and purges temporary analysis folders (`%TEMP%`) to prevent storage leaks.
+
 ## 0.3.3 (2026-05-01)
 
 ### 💎 Music Analysis Confidence

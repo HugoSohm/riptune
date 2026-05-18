@@ -13,13 +13,13 @@ export function useConfig() {
     const saved = localStorage.getItem("riptune_delete_files_on_history_delete");
     return saved === null ? true : saved === "true";
   });
-  const [deepAnalysis, setDeepAnalysis] = useState<boolean>(() => {
-    const saved = localStorage.getItem("riptune_deep_analysis");
+  const [partialAnalysis, setPartialAnalysis] = useState<boolean>(() => {
+    const saved = localStorage.getItem("riptune_partial_analysis");
     return saved === "true";
   });
 
   useEffect(() => { localStorage.setItem("riptune_delete_files_on_history_delete", deleteFilesOnHistoryDelete.toString()); }, [deleteFilesOnHistoryDelete]);
-  useEffect(() => { localStorage.setItem("riptune_deep_analysis", deepAnalysis.toString()); }, [deepAnalysis]);
+  useEffect(() => { localStorage.setItem("riptune_partial_analysis", partialAnalysis.toString()); }, [partialAnalysis]);
   useEffect(() => {
     if (customDir) localStorage.setItem("riptune_download_dir", customDir);
     else localStorage.removeItem("riptune_download_dir");
@@ -37,6 +37,6 @@ export function useConfig() {
   return {
     shouldDownload, setShouldDownload, autoAnalyze, setAutoAnalyze, downloadPlaylist, setDownloadPlaylist,
     customDir, setCustomDir, defaultDir, setDefaultDir, cookies, setCookies,
-    deleteFilesOnHistoryDelete, setDeleteFilesOnHistoryDelete, deepAnalysis, setDeepAnalysis
+    deleteFilesOnHistoryDelete, setDeleteFilesOnHistoryDelete, partialAnalysis, setPartialAnalysis
   };
 }

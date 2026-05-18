@@ -65,6 +65,22 @@ pub fn run(context: tauri::Context) {
             audio_processor::get_default_download_dir,
             local_server::report_analysis_result
         ])
-        .run(context)
-        .expect("error while running tauri application");
+        .build(context)
+        .expect("error while building tauri application")
+        .run(|app_handle, event| {
+            if let tauri::RunEvent::Exit = event {
+                // Kill all active downloads/child processes
+                if let Some(state) = app_handle.try_state::<audio_processor::ProcessState>() {
+                    if let Ok(mut lock) = state.0.lock() {
+                        for (_, mut child) in lock.drain() {
+                            let _ = child.kill();
+                        }
+                    }
+                }
+
+                // Clean up the temporary analysis directory
+                let temp_dir = std::env::temp_dir().join("riptune_analysis");
+                let _ = std::fs::remove_dir_all(&temp_dir);
+            }
+        });
 }

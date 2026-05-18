@@ -5,6 +5,17 @@ import { HistoryEntry } from "../types";
 export function useHistory(deleteFilesOnHistoryDelete: boolean) {
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [latest, setLatest] = useState<HistoryEntry | null>(null);
+  const [latestPlaylist, setLatestPlaylistState] = useState<{ title: string; filepath: string } | null>(null);
+
+  const setLatestPlaylist = (playlist: { title: string; filepath: string } | null) => {
+    setLatestPlaylistState(playlist);
+    if (playlist) {
+      localStorage.setItem("riptune_latest_playlist", JSON.stringify(playlist));
+    } else {
+      localStorage.removeItem("riptune_latest_playlist");
+    }
+  };
+
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -15,6 +26,16 @@ export function useHistory(deleteFilesOnHistoryDelete: boolean) {
         setHistory(parsed);
         const latestAnalyzed = parsed.find((item: HistoryEntry) => item.bpm !== undefined);
         if (latestAnalyzed) setLatest(latestAnalyzed);
+
+        const savedPlaylist = localStorage.getItem("riptune_latest_playlist");
+        if (savedPlaylist) {
+          try {
+            const parsedPlaylist = JSON.parse(savedPlaylist);
+            setLatestPlaylist(parsedPlaylist);
+            // If we have a latest playlist, it takes precedence over latest song in UI
+            if (parsedPlaylist) setLatest(null);
+          } catch (e) { console.error("Failed to parse latest playlist"); }
+        }
       } catch (e) { console.error("Failed to parse history"); }
     }
   }, []);
@@ -62,10 +83,10 @@ export function useHistory(deleteFilesOnHistoryDelete: boolean) {
           await invoke("delete_file", { filepath: itemToDelete.filepath });
         } catch (e) { console.error("Failed to delete file", e); }
       }
-      
+
       const newHistory = history.filter(item => item.id !== deleteConfirmId);
       saveHistory(newHistory);
-      
+
       if (latest && latest.id === deleteConfirmId) {
         const nextAnalyzed = newHistory.find(item => item.bpm !== undefined);
         setLatest(nextAnalyzed || null);
@@ -76,6 +97,7 @@ export function useHistory(deleteFilesOnHistoryDelete: boolean) {
 
   return {
     history, setHistory, saveHistory, updateHistory, latest, setLatest,
+    latestPlaylist, setLatestPlaylist,
     deleteConfirmId, setDeleteConfirmId, handleDeleteHistoryItem,
     confirmDelete, handleOpenFile
   };

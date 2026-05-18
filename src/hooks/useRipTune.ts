@@ -65,8 +65,6 @@ export function useRipTune() {
     else { setIsPlaylist(false); setDownloadPlaylist(false); }
   }, [url, setIsPlaylist, setDownloadPlaylist]);
 
-  useEffect(() => { if (downloadPlaylist) setAutoAnalyze(false); }, [downloadPlaylist, setAutoAnalyze]);
-
   const handleSelectDir = async () => {
     try {
       const selected = await open({ directory: true, multiple: false });

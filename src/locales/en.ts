@@ -12,8 +12,6 @@ export const en = {
     analyzeTooltip: "Automatically extract BPM and musical key",
     downloadTooltip: "Keep the audio file on your device after analysis",
     playlistTooltipFull: "Downloads all files from the playlist",
-    playlistDetected: "Playlist detected",
-    playlistDetectedDesc: "Downloading a playlist takes more time. For performance reasons, <span class='font-bold'>auto-analysis is disabled</span> for batch downloads. You can analyze tracks individually later from your history",
     dropTitle: "Drop any audio file here",
     dropDesc: "We'll instantly extract the BPM and Key",
     bpm: "BPM",
@@ -21,7 +19,8 @@ export const en = {
     unsupportedFile: "File not supported",
     unsupportedFileDesc: "Only MP3, WAV, FLAC and M4A files are accepted",
     unknownArtist: "Unknown Artist",
-    confidenceTooltip: "Analysis confidence score"
+    confidenceTooltip: "Analysis confidence score",
+    fromYoutube: "Extracted from YouTube"
   },
   history: {
     title: "Your history",
@@ -66,9 +65,9 @@ export const en = {
     deleteFiles: "Delete physical files",
     deleteFilesDesc: "Enabling this will permanently delete the audio file from your computer when you remove a track from RipTune's history",
     audioEngine: "Audio engine",
-    deepAnalysis: "Full track analysis",
-    deepAnalysisDesc: "Analyzes the entire track instead of the first minute. Accuracy will be ultimate for tracks with highly atypical structures",
-    deepAnalysisWarning: "The analysis will take significantly more time",
+    partialAnalysis: "Partial track analysis",
+    partialAnalysisDesc: "Analyzes only the first minute of the track. Analysis is faster but the BPM and key might be less accurate.",
+    partialAnalysisWarning: "BPM & Key might be less accurate",
     language: "Language",
     about: "About RipTune",
     aboutDesc: "Open source project developed by @HugoSohm. Built with yt-dlp, Tauri, React, and Essentia Engine https://github.com/HugoSohm/riptune",

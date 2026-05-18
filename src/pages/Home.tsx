@@ -1,12 +1,12 @@
 import { useEffect, useState, useRef } from "react";
-import { Download, Loader2, XCircle, AlertTriangle, Music, FolderOpen } from "lucide-react";
+import { Download, Loader2, XCircle, Music, FolderOpen, Play } from "lucide-react";
 import CustomSelect from "../components/CustomSelect";
 import { useApp } from "../context/useApp";
 import { useDownloader } from "../hooks/useDownloader";
 
 export default function Home() {
   const {
-    isTaskActive, latest, t, isPlaylist, setIsPlaylist,
+    isTaskActive, latest, latestPlaylist, t, isPlaylist, setIsPlaylist,
     shouldDownload, setShouldDownload, autoAnalyze, setAutoAnalyze,
     downloadPlaylist, setDownloadPlaylist, handleOpenFile,
     url, setUrl, format, setFormat
@@ -37,12 +37,6 @@ export default function Home() {
       setDownloadPlaylist(true);
     }
   }, [url, isPurePlaylistUrl, setIsPlaylist, setDownloadPlaylist]);
-
-  useEffect(() => {
-    if (downloadPlaylist) {
-      setAutoAnalyze(false);
-    }
-  }, [downloadPlaylist]);
 
   const startHomeDownload = () => {
     const taskId = crypto.randomUUID();
@@ -123,15 +117,15 @@ export default function Home() {
           </div>
 
           <div className="group relative">
-            <label className={`flex items-center gap-2 cursor-pointer bg-[#111728] border border-white/5 rounded-full px-5 py-2 transition-all select-none ${downloadPlaylist ? 'opacity-30 grayscale cursor-not-allowed' : 'hover:bg-white/10 hover:border-white/20'}`}>
+            <label className={`flex items-center gap-2 cursor-pointer bg-[#111728] border border-white/5 rounded-full px-5 py-2 transition-all hover:bg-white/10 hover:border-white/20 select-none`}>
               <input
                 type="checkbox"
                 checked={autoAnalyze}
                 onChange={(e) => setAutoAnalyze(e.target.checked)}
-                disabled={isHomeTaskActive || downloadPlaylist}
+                disabled={isHomeTaskActive}
                 className="w-4 h-4 rounded appearance-none border-2 border-slate-600 checked:border-purple-500 checked:bg-purple-500 transition-colors cursor-pointer relative flex items-center justify-center after:content-[''] after:w-1.5 after:h-2.5 after:border-r-2 after:border-b-2 after:border-white after:rotate-45 after:hidden checked:after:block after:-mt-0.5 disabled:cursor-not-allowed"
               />
-              <span className={`text-sm font-medium ${downloadPlaylist ? 'text-slate-600' : 'text-slate-300'}`}>{t.home.analyze}</span>
+              <span className={`text-sm font-medium text-slate-300`}>{t.home.analyze}</span>
             </label>
             <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 px-3 py-1.5 bg-slate-900/90 backdrop-blur-md border border-white/10 text-white text-[11px] rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-300 delay-0 group-hover:delay-500 pointer-events-none whitespace-nowrap z-50 shadow-2xl scale-95 group-hover:scale-100 font-medium text-center">
               {t.home.analyzeTooltip}
@@ -140,8 +134,8 @@ export default function Home() {
 
           <div className="group relative">
             <label className={`flex items-center gap-2 cursor-pointer bg-[#111728] border border-white/5 rounded-full px-5 py-2 transition-all select-none ${!isPlaylist ? 'opacity-30 grayscale cursor-not-allowed'
-                : isPurePlaylistUrl ? 'opacity-70 cursor-not-allowed border-blue-500/30 ring-1 ring-blue-500/20'
-                  : 'hover:bg-white/10 hover:border-white/20'
+              : isPurePlaylistUrl ? 'opacity-70 cursor-not-allowed border-blue-500/30 ring-1 ring-blue-500/20'
+                : 'hover:bg-white/10 hover:border-white/20'
               }`}>
               <input
                 type="checkbox"
@@ -197,87 +191,111 @@ export default function Home() {
           </div>
         </div>
 
-        {isPlaylist && downloadPlaylist && (
-          <div className="fixed top-[88px] left-1/2 -translate-x-1/2 z-[90000] w-full max-w-2xl px-4 animate-in slide-in-from-top-4 fade-in duration-500 pointer-events-none">
-            <div className="bg-[#111728]/80 backdrop-blur-2xl border border-amber-500/20 rounded-2xl p-4 shadow-2xl flex items-start gap-4 text-left pointer-events-auto">
-              <div className="shrink-0 p-2 rounded-xl bg-amber-500/20 text-amber-500">
-                <AlertTriangle className="w-5 h-5" />
-              </div>
-              <div>
-                <h4 className="text-[10px] font-black text-amber-500 uppercase tracking-[0.2em] mb-1">{t.home.playlistDetected}</h4>
-                <p
-                  className="text-xs text-amber-200/70 leading-relaxed font-medium"
-                  dangerouslySetInnerHTML={{ __html: t.home.playlistDetectedDesc }}
-                />
-              </div>
-            </div>
-          </div>
-        )}
 
         <div className="w-full grid grid-cols-2 gap-3 mt-2 animate-in slide-in-from-bottom-8 fade-in duration-700">
           {/* BPM Card */}
-          <div className="group relative rounded-[1.25rem] bg-gradient-to-b from-purple-500/10 to-transparent p-[1.5px]">
-            <div className="relative h-full w-full bg-[#111728]/90 backdrop-blur-sm rounded-[1.2rem] border border-white/5 flex flex-col items-center justify-center py-6 px-4 shadow-2xl overflow-visible">
+          <div className={`group relative rounded-[1.25rem] bg-gradient-to-b from-purple-500/10 to-transparent p-[1.5px] transition-all duration-500`}>
+            <div className={`relative h-full w-full bg-[#111728]/90 backdrop-blur-sm rounded-[1.2rem] border ${!latest?.bpm ? 'border-white/5 border-dashed opacity-40' : 'border-white/5 shadow-2xl'} flex flex-col items-center justify-center py-6 px-4 overflow-visible transition-all duration-500`}>
               {latest?.bpm && (
                 <div className="absolute top-3 right-3 group/tooltip cursor-default">
-                  <svg className="w-4 h-4 -rotate-90 transform" viewBox="0 0 24 24">
-                    <circle className="text-white/5" strokeWidth="3" stroke="currentColor" fill="transparent" r="10" cx="12" cy="12" />
-                    <circle 
-                      className="text-purple-500 transition-all duration-1000 ease-out" 
-                      strokeWidth="3" 
-                      strokeDasharray={2 * Math.PI * 10} 
-                      strokeDashoffset={2 * Math.PI * 10 * (1 - (latest.bpmConfidence || 0.8))} 
-                      strokeLinecap="round" 
-                      stroke="currentColor" 
-                      fill="transparent" 
-                      r="10" cx="12" cy="12" 
-                    />
-                  </svg>
+                  {latest.fromYoutubeDesc ? (
+                    <Play className="w-5 h-5 text-red-500 opacity-80 transition-transform group-hover/tooltip:scale-110" />
+                  ) : (
+                    <svg className="w-4 h-4 -rotate-90 transform" viewBox="0 0 24 24">
+                      <circle className="text-white/5" strokeWidth="3" stroke="currentColor" fill="transparent" r="10" cx="12" cy="12" />
+                      <circle
+                        className="text-purple-500 transition-all duration-1000 ease-out"
+                        strokeWidth="3"
+                        strokeDasharray={2 * Math.PI * 10}
+                        strokeDashoffset={2 * Math.PI * 10 * (1 - (latest.bpmConfidence || 0.8))}
+                        strokeLinecap="round"
+                        stroke="currentColor"
+                        fill="transparent"
+                        r="10" cx="12" cy="12"
+                      />
+                    </svg>
+                  )}
                   <div className="absolute bottom-full right-0 mb-2 px-3 py-1.5 bg-slate-900/95 backdrop-blur-md border border-white/10 text-white text-[10px] rounded-xl opacity-0 group-hover/tooltip:opacity-100 transition-all duration-300 delay-0 group-hover/tooltip:delay-500 pointer-events-none whitespace-nowrap z-50 shadow-2xl font-bold uppercase tracking-wider">
-                    {t.home.confidenceTooltip}
+                    {latest.fromYoutubeDesc ? t.home.fromYoutube : t.home.confidenceTooltip}
                   </div>
                 </div>
               )}
-              <span className={`text-3xl md:text-4xl lg:text-5xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-br from-white to-purple-400 drop-shadow-md leading-normal select-text ${!latest?.bpm ? 'opacity-20' : ''}`}>
-                {latest?.bpm || "--"}
-              </span>
+
+              <div className="h-16 flex items-center justify-center">
+                {latest?.bpm && (
+                  <span className={`text-3xl md:text-4xl lg:text-5xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-br from-white to-purple-400 drop-shadow-md leading-normal select-text`}>
+                    {latest.bpm}
+                  </span>
+                )}
+              </div>
+
               <span className="mt-2 text-[9px] font-bold text-slate-500 underline decoration-purple-500/20 underline-offset-4 tracking-[0.2em] uppercase select-none">{t.home.bpm}</span>
             </div>
           </div>
 
           {/* Key Card */}
-          <div className="group relative rounded-[1.25rem] bg-gradient-to-b from-blue-500/10 to-transparent p-[1.5px]">
-            <div className="relative h-full w-full bg-[#111728]/90 backdrop-blur-sm rounded-[1.2rem] border border-white/5 flex flex-col items-center justify-center py-6 px-4 shadow-2xl overflow-visible">
+          <div className={`group relative rounded-[1.25rem] bg-gradient-to-b from-blue-500/10 to-transparent p-[1.5px] transition-all duration-500`}>
+            <div className={`relative h-full w-full bg-[#111728]/90 backdrop-blur-sm rounded-[1.2rem] border ${!latest?.key ? 'border-white/5 border-dashed opacity-40' : 'border-white/5 shadow-2xl'} flex flex-col items-center justify-center py-6 px-4 overflow-visible transition-all duration-500`}>
               {latest?.key && (
                 <div className="absolute top-3 right-3 group/tooltip cursor-default">
-                  <svg className="w-4 h-4 -rotate-90 transform" viewBox="0 0 24 24">
-                    <circle className="text-white/5" strokeWidth="3" stroke="currentColor" fill="transparent" r="10" cx="12" cy="12" />
-                    <circle 
-                      className="text-blue-500 transition-all duration-1000 ease-out" 
-                      strokeWidth="3" 
-                      strokeDasharray={2 * Math.PI * 10} 
-                      strokeDashoffset={2 * Math.PI * 10 * (1 - (latest.keyStrength || 0.5))} 
-                      strokeLinecap="round" 
-                      stroke="currentColor" 
-                      fill="transparent" 
-                      r="10" cx="12" cy="12" 
-                    />
-                  </svg>
+                  {latest.fromYoutubeDesc ? (
+                    <Play className="w-5 h-5 text-red-500 opacity-80 transition-transform group-hover/tooltip:scale-110" />
+                  ) : (
+                    <svg className="w-4 h-4 -rotate-90 transform" viewBox="0 0 24 24">
+                      <circle className="text-white/5" strokeWidth="3" stroke="currentColor" fill="transparent" r="10" cx="12" cy="12" />
+                      <circle
+                        className="text-blue-500 transition-all duration-1000 ease-out"
+                        strokeWidth="3"
+                        strokeDasharray={2 * Math.PI * 10}
+                        strokeDashoffset={2 * Math.PI * 10 * (1 - (latest.keyStrength || 0.5))}
+                        strokeLinecap="round"
+                        stroke="currentColor"
+                        fill="transparent"
+                        r="10" cx="12" cy="12"
+                      />
+                    </svg>
+                  )}
                   <div className="absolute bottom-full right-0 mb-2 px-3 py-1.5 bg-slate-900/95 backdrop-blur-md border border-white/10 text-white text-[10px] rounded-xl opacity-0 group-hover/tooltip:opacity-100 transition-all duration-300 delay-0 group-hover/tooltip:delay-500 pointer-events-none whitespace-nowrap z-50 shadow-2xl font-bold uppercase tracking-wider">
-                    {t.home.confidenceTooltip}
+                    {latest.fromYoutubeDesc ? t.home.fromYoutube : t.home.confidenceTooltip}
                   </div>
                 </div>
               )}
-              <span className={`text-2xl md:text-3xl lg:text-4xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-bl from-white to-blue-400 drop-shadow-md leading-relaxed z-10 select-text ${!latest?.key ? 'opacity-20' : ''}`}>
-                {latest?.key || "--"}
-              </span>
+
+              <div className="h-14 flex items-center justify-center">
+                {latest?.key && (
+                  <span className={`text-2xl md:text-3xl lg:text-4xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-bl from-white to-blue-400 drop-shadow-md leading-relaxed z-10 select-text`}>
+                    {latest.key}
+                  </span>
+                )}
+              </div>
+
               <span className="mt-2 text-[9px] font-bold text-slate-500 underline decoration-blue-500/20 underline-offset-4 tracking-[0.2em] uppercase select-none">{t.home.key}</span>
             </div>
           </div>
         </div>
 
         <div className="mt-8 text-center w-full flex justify-center min-h-[64px]">
-          {latest ? (
+          {latestPlaylist ? (
+            <div
+              className={`w-full max-w-lg relative flex items-center gap-3 bg-blue-500/10 backdrop-blur-md border border-blue-500/20 rounded-2xl p-2.5 pr-4 transition-all group/file animate-in fade-in slide-in-from-top-4 duration-500 hover:bg-blue-500/20 cursor-pointer`}
+              onClick={() => handleOpenFile(latestPlaylist.filepath)}
+            >
+              <div className="w-11 h-11 rounded-xl bg-blue-500/20 border border-blue-500/20 flex items-center justify-center shrink-0">
+                <FolderOpen className="w-5 h-5 text-blue-400" />
+              </div>
+              <div className="flex-1 text-left min-w-0">
+                <h3 className="text-base font-bold text-white truncate tracking-tight mb-0.5">
+                  {latestPlaylist.title}
+                </h3>
+                <p className="text-[10px] text-blue-400/60 font-bold uppercase tracking-[0.1em] truncate flex items-center gap-2">
+                  Playlist Folder
+                </p>
+              </div>
+              <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-400 group-hover/file:bg-blue-500 group-hover/file:text-white transition-all shrink-0">
+                <FolderOpen className="w-4 h-4" />
+              </div>
+            </div>
+          ) : latest ? (
             <div
               className={`w-full max-w-lg relative flex items-center gap-3 bg-[#111728]/40 backdrop-blur-md border border-white/5 rounded-2xl p-2.5 pr-4 transition-all group/file animate-in fade-in slide-in-from-top-4 duration-500 ${!latest.isTemp ? 'hover:bg-white/[0.02] cursor-pointer' : 'cursor-default'}`}
               onClick={() => !latest.isTemp && handleOpenFile(latest.filepath)}

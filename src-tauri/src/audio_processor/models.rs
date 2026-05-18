@@ -25,4 +25,11 @@ pub struct DownloadResult {
     pub title: String,
     pub artist: String,
     pub url: String,
+    pub description: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct DownloadResponse {
+    pub results: Vec<DownloadResult>,
+    pub playlist_dir: Option<String>,
 }

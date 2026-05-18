@@ -12,8 +12,6 @@ export const fr = {
     analyzeTooltip: "Extraire automatiquement le BPM et la clé musicale",
     downloadTooltip: "Conserver le fichier audio sur votre appareil après l'analyse",
     playlistTooltipFull: "Télécharge tous les fichiers de la playlist",
-    playlistDetected: "Playlist détectée",
-    playlistDetectedDesc: "Le téléchargement d'une playlist prend plus de temps. Pour des raisons de performance, <span class='font-bold'>l'auto-analyse est désactivée</span> pour les lots. Vous pourrez analyser les titres individuellement plus tard",
     dropTitle: "Déposez votre fichier ici",
     dropDesc: "Nous extrairons instantanément le BPM et la clé",
     bpm: "BPM",
@@ -21,7 +19,8 @@ export const fr = {
     unsupportedFile: "Fichier non supporté",
     unsupportedFileDesc: "Seuls les fichiers MP3, WAV, FLAC et M4A sont acceptés",
     unknownArtist: "Artiste inconnu",
-    confidenceTooltip: "Indice de confiance de l'analyse"
+    confidenceTooltip: "Indice de confiance de l'analyse",
+    fromYoutube: "Extrait de YouTube"
   },
   history: {
     title: "Votre historique",
@@ -66,9 +65,9 @@ export const fr = {
     deleteFiles: "Supprimer les fichiers physiques",
     deleteFilesDesc: "Activer cette option supprimera définitivement le fichier audio de votre ordinateur lorsque vous retirerez une piste de l'historique de RipTune",
     audioEngine: "Moteur d'analyse",
-    deepAnalysis: "Analyse audio intégrale",
-    deepAnalysisDesc: "Analyse le morceau dans son intégralité au lieu de la première minute. La précision sera ultime pour les pistes aux structures très atypiques",
-    deepAnalysisWarning: "L'analyse prendra significativement plus de temps",
+    partialAnalysis: "Analyse audio partielle",
+    partialAnalysisDesc: "Analyse uniquement la première minute du morceau. L'analyse est plus rapide mais le BPM et la clé risquent d'être moins précis.",
+    partialAnalysisWarning: "BPM & Clé risquent d'être moins précis",
     language: "Langue",
     about: "À propos de RipTune",
     aboutDesc: "Projet open source développé par @HugoSohm. Propulsé par yt-dlp, Tauri, React, et le moteur d'analyse Essentia. https://github.com/HugoSohm/riptune",

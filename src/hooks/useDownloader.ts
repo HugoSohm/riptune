@@ -8,7 +8,7 @@ export function useDownloader() {
   const {
     addActiveTask, removeActiveTask, isTaskActive,
     customDir, cookies, t, addNotification, clearNotificationsFor,
-    updateHistory, setLatest,
+    updateHistory, setLatest, setLatestPlaylist,
     url, setUrl, format, downloadPlaylist, shouldDownload, autoAnalyze, isPlaylist,
     setPlaylistProgress
   } = useApp();
@@ -42,10 +42,12 @@ export function useDownloader() {
     addActiveTask(taskId, 'download');
 
     try {
+      let playlistTitle: string | undefined = undefined;
       if (isPlaylist && downloadPlaylist) {
         addNotification(t.notifications.fetchingPlaylist, "info", true);
         try {
-          const info = await invoke<{ count: number }>("check_url_info", { url: targetUrl, cookies });
+          const info = await invoke<{ count: number, title: string }>("check_url_info", { url: targetUrl, cookies });
+          playlistTitle = info.title;
           if (!isTaskActive(taskId)) {
             clearNotificationsFor(t.notifications.fetchingPlaylist);
             return;
@@ -82,20 +84,31 @@ export function useDownloader() {
       trackEvent("download_started", { format, downloadPlaylist: downloadPlaylist ? 1 : 0 });
 
       addNotification(t.notifications.downloading, "info", true);
-      const results = await invoke<{ filepath: string, title: string, artist: string, url: string }[]>("download_audio", {
+      const response = await invoke<{ results: any[], playlist_dir?: string }>("download_audio", {
         url: targetUrl,
         format,
         customPath: !targetShouldDownload ? "TMP_ANALYSIS" : customDir,
         cookies,
         downloadPlaylist,
+        playlistTitle,
         taskId
       });
+
+      const results = response.results;
 
       clearNotificationsFor(t.notifications.downloading);
 
       if (targetAutoAnalyze) {
+        if (downloadPlaylist) {
+          addNotification(t.notifications.analyzing, "info", true);
+        }
+        let analyzedCount = 0;
         for (const res of results) {
-          await processFile(res.filepath, res.title, res.artist, !targetShouldDownload, res.url);
+          if (downloadPlaylist) {
+            setPlaylistProgress({ current: analyzedCount + 1, total: results.length });
+          }
+          await processFile(res.filepath, res.title, res.artist, !targetShouldDownload, res.url, undefined, downloadPlaylist, res.description);
+          analyzedCount++;
           if (!targetShouldDownload) {
             try {
               await invoke("delete_file", { filepath: res.filepath });
@@ -103,6 +116,9 @@ export function useDownloader() {
               console.error("Failed to delete temp analysis file", e);
             }
           }
+        }
+        if (downloadPlaylist) {
+          clearNotificationsFor(t.notifications.analyzing);
         }
       } else if (targetShouldDownload) {
         let latestEntry: HistoryEntry | null = null;
@@ -114,7 +130,7 @@ export function useDownloader() {
           let displayArtist = res.artist;
 
             const existingEntryIndex = updatedHistory.findIndex(item =>
-              (overrideId ? item.id === overrideId : item.url === res.url) && item.isTemp
+              (overrideId ? item.id === overrideId : item.url === res.url)
             );
 
             let bpm = 0.0;
@@ -133,7 +149,8 @@ export function useDownloader() {
                 date: new Date().toISOString(),
                 isTemp: false
               };
-              updatedHistory[existingEntryIndex] = updatedEntry;
+              updatedHistory.splice(existingEntryIndex, 1);
+              updatedHistory.unshift(updatedEntry);
               latestEntry = updatedEntry;
             } else {
               const newEntry: HistoryEntry = {
@@ -166,10 +183,20 @@ export function useDownloader() {
           return updatedHistory;
         });
 
-        if (latestEntry) setLatest(latestEntry);
-        setPlaylistProgress(null);
+        if (latestEntry && !downloadPlaylist) setLatest(latestEntry);
+      }
+
+      setPlaylistProgress(null);
+      if (downloadPlaylist && results.length > 0) {
         addNotification(t.notifications.downloadComplete, "success");
       }
+
+      if (response.playlist_dir && playlistTitle) {
+        setLatestPlaylist({ title: playlistTitle, filepath: response.playlist_dir });
+      } else {
+        setLatestPlaylist(null);
+      }
+
       setUrl("");
     } catch (error: any) {
       console.error(error);

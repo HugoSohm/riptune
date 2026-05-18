@@ -12,8 +12,6 @@ export const es = {
     analyzeTooltip: "Extraer automáticamente BPM y clave musical",
     downloadTooltip: "Conservar el archivo de audio en su dispositivo tras el análisis",
     playlistTooltipFull: "Descarga todos los archivos de la lista",
-    playlistDetected: "Lista detectada",
-    playlistDetectedDesc: "La descarga de una lista lleva más tiempo. Por razones de rendimiento, el <span class='font-bold'>análisis automático está desactivado</span> para descargas por lotes. Puedes analizar las pistas individualmente más tarde",
     dropTitle: "Suelta cualquier archivo de audio aquí",
     dropDesc: "Extraeremos el BPM y la Clave al instante",
     bpm: "BPM",
@@ -21,7 +19,8 @@ export const es = {
     unsupportedFile: "Archivo no compatible",
     unsupportedFileDesc: "Solo se aceptan archivos MP3, WAV, FLAC y M4A",
     unknownArtist: "Artista desconocido",
-    confidenceTooltip: "Índice de confianza del análisis"
+    confidenceTooltip: "Índice de confianza del análisis",
+    fromYoutube: "Extraído de YouTube"
   },
   history: {
     title: "Su historial",
@@ -66,9 +65,9 @@ export const es = {
     deleteFiles: "Eliminar archivos físicos",
     deleteFilesDesc: "Al activar esta option, el archivo de audio se eliminará permanentemente de tu computadora cuando elimines una pista del historial de RipTune",
     audioEngine: "Motor de audio",
-    deepAnalysis: "Análisis de pista completo",
-    deepAnalysisDesc: "Analiza la pista entera en lugar del primer minuto. La precisión será total para las pistas con estructuras muy atípicas",
-    deepAnalysisWarning: "El análisis tomará significativamente más tiempo",
+    partialAnalysis: "Análisis parcial de pista",
+    partialAnalysisDesc: "Analiza solo el primer minuto de la pista. El análisis es más rápido pero el BPM y la clave podrían ser menos precisos.",
+    partialAnalysisWarning: "El BPM y la clave podrían ser menos precisos",
     language: "Idioma",
     about: "Acerca de RipTune",
     aboutDesc: "Proyecto de código abierto desarrollado por @HugoSohm. Impulsado por yt-dlp, Tauri, React y el motor de análisis Essentia. https://github.com/HugoSohm/riptune",

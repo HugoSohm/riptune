@@ -30,7 +30,7 @@ export default function Notifications() {
               <p className="text-[10px] font-bold text-slate-500 tracking-wider uppercase truncate">
                 {notification.type === 'error' ? t.notifications.error : notification.type === 'success' ? t.notifications.success : (notification.isTask ? t.notifications.task : t.notifications.notif)}
               </p>
-              {shouldShowProgress && notification.message.includes(t.notifications.downloading.split(':')[0]) && (
+              {shouldShowProgress && (notification.message.includes(t.notifications.downloading.split(':')[0]) || notification.message.includes(t.notifications.analyzing.split(':')[0])) && (
                 <span className="text-[10px] font-black text-purple-400 bg-purple-500/10 px-1.5 py-0.5 rounded-md border border-purple-500/20 shrink-0">
                   {playlistProgress.current} / {playlistProgress.total > 0 ? playlistProgress.total : "--"}
                 </span>
@@ -40,7 +40,7 @@ export default function Notifications() {
               {notification.message}
             </p>
 
-            {shouldShowProgress && notification.message.includes(t.notifications.downloading.split(':')[0]) && (
+            {shouldShowProgress && (notification.message.includes(t.notifications.downloading.split(':')[0]) || notification.message.includes(t.notifications.analyzing.split(':')[0])) && (
               <div className="mt-2.5 w-full h-1 bg-white/5 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-gradient-to-r from-purple-500 to-blue-500 transition-all duration-500"

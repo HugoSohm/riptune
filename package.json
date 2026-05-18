@@ -1,7 +1,7 @@
 {
   "name": "riptune",
   "private": true,
-  "version": "0.3.3",
+  "version": "0.3.4",
   "description": "RipTune - Analyze and download music from YouTube (BPM, Key, Metadata)",
   "author": "Hugo Sohm <no-reply@riptune.app>",
   "license": "AGPL-3.0-or-later",
@@ -35,7 +35,12 @@
     "frontend:dev": "vite",
     "frontend:build": "tsc && vite build",
     "tauri": "tauri",
-    "setup": "node -e \"const { execSync } = require('child_process'); const script = process.platform === 'win32' ? 'powershell ./setup_bin.ps1' : 'sh ./setup_bin.sh'; execSync(script, { stdio: 'inherit' });\""
+    "setup": "node -e \"const { execSync } = require('child_process'); const script = process.platform === 'win32' ? 'powershell ./setup_bin.ps1' : 'sh ./setup_bin.sh'; execSync(script, { stdio: 'inherit' });\"",
+    "lint": "biome check --write --unsafe ./src",
+    "typecheck": "tsc --noEmit",
+    "lint:rs": "cargo clippy --manifest-path src-tauri/Cargo.toml",
+    "format:rs": "cargo fmt --manifest-path src-tauri/Cargo.toml",
+    "check:rs": "cargo check --manifest-path src-tauri/Cargo.toml"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.10.1",
@@ -51,6 +56,7 @@
     "react-dom": "^19.1.0"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.4.15",
     "@tauri-apps/cli": "^2",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",

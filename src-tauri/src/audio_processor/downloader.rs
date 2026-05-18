@@ -1,10 +1,19 @@
-use crate::audio_processor::models::{DownloadResult, ProcessState, ProgressEvent, UrlInfo};
+use crate::audio_processor::models::{DownloadResponse, DownloadResult, ProcessState, ProgressEvent, UrlInfo};
 use std::fs::File;
 use std::io::{BufRead, BufReader, Write};
 use std::process::{Command, Stdio};
 use std::sync::{Arc, Mutex};
 use std::thread;
 use tauri::{Emitter, Manager};
+
+fn sanitize_folder_name(name: &str) -> String {
+    let invalid_chars = ['<', '>', ':', '"', '/', '\\', '|', '?', '*'];
+    name.chars()
+        .map(|c| if invalid_chars.contains(&c) { '_' } else { c })
+        .collect::<String>()
+        .trim()
+        .to_string()
+}
 
 #[tauri::command]
 pub async fn check_url_info(
@@ -37,6 +46,10 @@ pub async fn check_url_info(
         .arg("--flat-playlist")
         .arg("--print")
         .arg("%(playlist_count)s")
+        .arg("--print")
+        .arg("%(playlist_title)s")
+        .arg("--print")
+        .arg("%(album)s")
         .arg("--print")
         .arg("%(title)s")
         .arg("--ignore-errors")
@@ -98,9 +111,26 @@ pub async fn check_url_info(
 
     let mut is_playlist = false;
     let mut count = None;
-    let title = lines[lines.len() - 1].to_string();
+    
+    // Logic to pick the best title: playlist_title > album > title
+    let mut title = "Unknown Playlist".to_string();
+    if lines.len() >= 3 {
+        let p_title = lines[lines.len() - 3];
+        let a_title = lines[lines.len() - 2];
+        let s_title = lines[lines.len() - 1];
+        
+        if p_title != "NA" && !p_title.is_empty() {
+            title = p_title.to_string();
+        } else if a_title != "NA" && !a_title.is_empty() {
+            title = a_title.to_string();
+        } else if s_title != "NA" && !s_title.is_empty() {
+            title = s_title.to_string();
+        }
+    } else if !lines.is_empty() {
+        title = lines[lines.len() - 1].to_string();
+    }
 
-    if lines.len() >= 2 {
+    if lines.len() >= 4 {
         if let Ok(c) = lines[0].parse::<u32>() {
             count = Some(c);
             is_playlist = c > 1;
@@ -142,8 +172,9 @@ pub async fn download_audio(
     custom_path: Option<String>,
     cookies: Option<String>,
     download_playlist: bool,
+    playlist_title: Option<String>,
     task_id: String,
-) -> Result<Vec<DownloadResult>, String> {
+) -> Result<DownloadResponse, String> {
     let downloads_dir = if let Some(path) = custom_path {
         if path == "TMP_ANALYSIS" {
             std::env::temp_dir().join("riptune_analysis")
@@ -159,8 +190,19 @@ pub async fn download_audio(
 
     std::fs::create_dir_all(&downloads_dir).map_err(|e| e.to_string())?;
 
+    let mut final_dir = downloads_dir;
+    if download_playlist {
+        if let Some(title) = playlist_title {
+            let safe_title = sanitize_folder_name(&title);
+            if !safe_title.is_empty() {
+                final_dir = final_dir.join(safe_title);
+                std::fs::create_dir_all(&final_dir).map_err(|e| e.to_string())?;
+            }
+        }
+    }
+
     let separator = std::path::MAIN_SEPARATOR;
-    let out_template = format!("{}{}%(title)s.%(ext)s", downloads_dir.display(), separator);
+    let out_template = format!("{}{}%(title)s.%(ext)s", final_dir.display(), separator);
 
     let yt_dlp_path = crate::audio_processor::utils::resolve_bin_path(&app_handle, "yt-dlp")?;
     let bin_dir = yt_dlp_path
@@ -202,6 +244,8 @@ pub async fn download_audio(
         .arg("ARTIST:%(uploader)s")
         .arg("--print")
         .arg("URL:%(webpage_url)s")
+        .arg("--print")
+        .arg("DESCRIPTION:%(description)j")
         .arg("--print")
         .arg("after_move:FILEPATH:%(filepath)s")
         .arg("--newline")
@@ -247,6 +291,7 @@ pub async fn download_audio(
     let mut last_title = String::new();
     let mut last_artist = String::new();
     let mut last_url = String::new();
+    let mut last_description: Option<String> = None;
     let mut results: Vec<DownloadResult> = Vec::new();
     let mut current_track_count = 0;
     let mut reader = BufReader::new(stdout);
@@ -271,7 +316,9 @@ pub async fn download_audio(
                 } else {
                     last_url.clone()
                 },
+                description: last_description.clone(),
             });
+            last_description = None;
             current_track_count += 1;
             let _ = app_handle.emit(
                 "download-progress",
@@ -295,6 +342,15 @@ pub async fn download_audio(
             let val = line.replace("URL:", "").trim().to_string();
             if !val.is_empty() && !val.contains("%") {
                 last_url = val;
+            }
+        } else if line.starts_with("DESCRIPTION:") {
+            let val = line.replace("DESCRIPTION:", "").trim().to_string();
+            if !val.is_empty() && !val.contains("%") && val != "null" {
+                if let Ok(desc) = serde_json::from_str::<String>(&val) {
+                    last_description = Some(desc);
+                } else {
+                    last_description = Some(val);
+                }
             }
         }
     }
@@ -346,5 +402,12 @@ pub async fn download_audio(
         });
     }
 
-    Ok(results)
+    Ok(DownloadResponse {
+        results,
+        playlist_dir: if download_playlist {
+            Some(final_dir.display().to_string())
+        } else {
+            None
+        },
+    })
 }

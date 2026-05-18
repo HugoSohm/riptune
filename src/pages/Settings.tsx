@@ -9,7 +9,7 @@ export default function Settings() {
   const {
     customDir, setCustomDir, defaultDir, cookies, setCookies,
     deleteFilesOnHistoryDelete, setDeleteFilesOnHistoryDelete,
-    deepAnalysis, setDeepAnalysis,
+    partialAnalysis, setPartialAnalysis,
     lang, setLang, t
   } = useApp();
 
@@ -106,15 +106,15 @@ export default function Settings() {
           </h3>
           <div className="flex items-center justify-between gap-4 py-2">
             <div className="flex-1">
-              <p className="text-white font-medium mb-1">{t.settings.deepAnalysis}</p>
-              <p className="text-slate-400 text-xs text-pretty">{t.settings.deepAnalysisDesc}</p>
+              <p className="text-white font-medium mb-1">{t.settings.partialAnalysis}</p>
+              <p className="text-slate-400 text-xs text-pretty">{t.settings.partialAnalysisDesc}</p>
               <div className="flex items-end gap-1.5 mt-1.5">
                 <AlertTriangle className="w-3 h-3 text-amber-500/80 shrink-0" />
-                <p className="text-amber-500/80 text-[10px] leading-none font-semibold uppercase tracking-wider">{t.settings.deepAnalysisWarning}</p>
+                <p className="text-amber-500/80 text-[10px] leading-none font-semibold uppercase tracking-wider">{t.settings.partialAnalysisWarning}</p>
               </div>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" className="sr-only peer" checked={deepAnalysis} onChange={(e) => setDeepAnalysis(e.target.checked)} />
+              <input type="checkbox" className="sr-only peer" checked={partialAnalysis} onChange={(e) => setPartialAnalysis(e.target.checked)} />
               <div className="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-500 shadow-inner"></div>
             </label>
           </div>

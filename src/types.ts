@@ -10,6 +10,7 @@ export interface HistoryEntry {
   date: string;
   isTemp?: boolean;
   url?: string;
+  fromYoutubeDesc?: boolean;
 }
 
 export interface Notification {
