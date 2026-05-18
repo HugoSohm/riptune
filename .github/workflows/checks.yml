@@ -6,8 +6,8 @@ on:
       - main
 
 jobs:
-  checks:
-    name: "Lints & Checks"
+  ts-checks:
+    name: "TypeScript Checks"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -18,17 +18,6 @@ jobs:
           node-version: 24
           cache: 'npm'
 
-      - name: install Rust stable
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: Rust cache
-        uses: swatinem/rust-cache@v2
-
-      - name: install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libjavascriptcoregtk-4.1-dev libsoup-3.0-dev
-
       - name: install frontend dependencies
         run: npm install
 
@@ -37,6 +26,25 @@ jobs:
 
       - name: Run TypeScript Typecheck
         run: npm run typecheck
+
+  rs-checks:
+    name: "Rust Checks"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+
+      - name: install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libjavascriptcoregtk-4.1-dev libsoup-3.0-dev
 
       - name: Run Rust Format Check
         run: npm run format:rs
