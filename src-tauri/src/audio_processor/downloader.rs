@@ -1,4 +1,6 @@
-use crate::audio_processor::models::{DownloadResponse, DownloadResult, ProcessState, ProgressEvent, UrlInfo};
+use crate::audio_processor::models::{
+    DownloadArgs, DownloadResponse, DownloadResult, ProcessState, ProgressEvent, UrlInfo,
+};
 use std::fs::File;
 use std::io::{BufRead, BufReader, Write};
 use std::process::{Command, Stdio};
@@ -80,7 +82,8 @@ pub async fn check_url_info(
             || stderr.contains("Unable to download JSON metadata")
             || (stderr.contains("ERROR") && stderr.contains("Private"))
             || (stderr.contains("ERROR") && stderr.contains("does not exist"));
-        let stderr_clean = stderr.lines()
+        let stderr_clean = stderr
+            .lines()
             .find(|l| l.contains("ERROR:"))
             .map(|l| l.split("ERROR:").last().unwrap_or(l).trim())
             .unwrap_or(stderr.trim());
@@ -111,14 +114,14 @@ pub async fn check_url_info(
 
     let mut is_playlist = false;
     let mut count = None;
-    
+
     // Logic to pick the best title: playlist_title > album > title
     let mut title = "Unknown Playlist".to_string();
     if lines.len() >= 3 {
         let p_title = lines[lines.len() - 3];
         let a_title = lines[lines.len() - 2];
         let s_title = lines[lines.len() - 1];
-        
+
         if p_title != "NA" && !p_title.is_empty() {
             title = p_title.to_string();
         } else if a_title != "NA" && !a_title.is_empty() {
@@ -167,15 +170,9 @@ pub async fn cancel_download(
 pub async fn download_audio(
     app_handle: tauri::AppHandle,
     state: tauri::State<'_, ProcessState>,
-    url: String,
-    format: String,
-    custom_path: Option<String>,
-    cookies: Option<String>,
-    download_playlist: bool,
-    playlist_title: Option<String>,
-    task_id: String,
+    args: DownloadArgs,
 ) -> Result<DownloadResponse, String> {
-    let downloads_dir = if let Some(path) = custom_path {
+    let downloads_dir = if let Some(path) = args.custom_path {
         if path == "TMP_ANALYSIS" {
             std::env::temp_dir().join("riptune_analysis")
         } else {
@@ -191,8 +188,8 @@ pub async fn download_audio(
     std::fs::create_dir_all(&downloads_dir).map_err(|e| e.to_string())?;
 
     let mut final_dir = downloads_dir;
-    if download_playlist {
-        if let Some(title) = playlist_title {
+    if args.download_playlist {
+        if let Some(title) = args.playlist_title {
             let safe_title = sanitize_folder_name(&title);
             if !safe_title.is_empty() {
                 final_dir = final_dir.join(safe_title);
@@ -214,7 +211,7 @@ pub async fn download_audio(
     cmd.env("PYTHONUTF8", "1");
 
     let mut cookie_path = None;
-    if let Some(c) = cookies {
+    if let Some(c) = args.cookies {
         if !c.is_empty() {
             let ts = std::time::SystemTime::now()
                 .duration_since(std::time::UNIX_EPOCH)
@@ -233,7 +230,7 @@ pub async fn download_audio(
         .arg("--embed-metadata")
         .arg("-x")
         .arg("--audio-format")
-        .arg(&format)
+        .arg(&args.format)
         .arg("-o")
         .arg(&out_template)
         .arg("--encoding")
@@ -251,12 +248,12 @@ pub async fn download_audio(
         .arg("--newline")
         .arg("--progress");
 
-    if !download_playlist {
+    if !args.download_playlist {
         cmd.arg("--no-playlist");
     }
 
     let mut child = cmd
-        .arg(&url)
+        .arg(&args.url)
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .spawn()
@@ -276,7 +273,7 @@ pub async fn download_audio(
         thread::spawn(move || {
             let reader = BufReader::new(stderr);
             let mut buf = stderr_buf_clone.lock().unwrap();
-            for line in reader.lines().flatten() {
+            for line in reader.lines().map_while(Result::ok) {
                 buf.push_str(&line);
                 buf.push('\n');
             }
@@ -285,7 +282,7 @@ pub async fn download_audio(
 
     {
         let mut lock = state.0.lock().map_err(|e| e.to_string())?;
-        lock.insert(task_id.clone(), child);
+        lock.insert(args.task_id.clone(), child);
     }
 
     let mut last_title = String::new();
@@ -312,7 +309,7 @@ pub async fn download_audio(
                 title: last_title.clone(),
                 artist: last_artist.clone(),
                 url: if last_url.is_empty() {
-                    url.clone()
+                    args.url.clone()
                 } else {
                     last_url.clone()
                 },
@@ -358,10 +355,10 @@ pub async fn download_audio(
     {
         let mut lock = state.0.lock().map_err(|e| e.to_string())?;
         // If our task_id is no longer in the map, we were cancelled
-        if !lock.contains_key(&task_id) {
+        if !lock.contains_key(&args.task_id) {
             return Err("Cancelled".to_string());
         }
-        lock.remove(&task_id);
+        lock.remove(&args.task_id);
     }
 
     if results.is_empty() {
@@ -387,7 +384,8 @@ pub async fn download_audio(
             || (stderr_output.contains("ERROR") && stderr_output.contains("Private"))
             || (stderr_output.contains("ERROR") && stderr_output.contains("does not exist"));
 
-        let stderr_clean = stderr_output.lines()
+        let stderr_clean = stderr_output
+            .lines()
             .find(|l| l.contains("ERROR:"))
             .map(|l| l.split("ERROR:").last().unwrap_or(l).trim())
             .unwrap_or(stderr_output.trim());
@@ -395,16 +393,16 @@ pub async fn download_audio(
         if is_unavailable {
             return Err("PLAYLIST_NOT_FOUND".to_string());
         }
-        return Err(if stderr_clean.is_empty() { 
-            "Download failed or interrupted".to_string() 
-        } else { 
-            stderr_clean.to_string() 
+        return Err(if stderr_clean.is_empty() {
+            "Download failed or interrupted".to_string()
+        } else {
+            stderr_clean.to_string()
         });
     }
 
     Ok(DownloadResponse {
         results,
-        playlist_dir: if download_playlist {
+        playlist_dir: if args.download_playlist {
             Some(final_dir.display().to_string())
         } else {
             None

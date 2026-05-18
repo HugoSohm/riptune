@@ -1,11 +1,16 @@
-import { useEffect, MutableRefObject } from "react";
 import { listen } from "@tauri-apps/api/event";
 import { getCurrent } from "@tauri-apps/plugin-deep-link";
-import { trackEvent } from "../utils/analytics";
+import { type MutableRefObject, useEffect } from "react";
 import { useApp } from "../context/useApp";
+import { trackEvent } from "../utils/analytics";
 
-export function useDeepLink(handleDownloadRef: MutableRefObject<(url: string, dl: boolean, an: boolean) => Promise<void>>) {
-  const { setUrl, setShouldDownload, setAutoAnalyze, setActiveTab, setFormat } = useApp();
+export function useDeepLink(
+  handleDownloadRef: MutableRefObject<
+    (url: string, dl: boolean, an: boolean) => Promise<void>
+  >,
+) {
+  const { setUrl, setShouldDownload, setAutoAnalyze, setActiveTab, setFormat } =
+    useApp();
 
   useEffect(() => {
     const processDeepLink = (raw: string) => {
@@ -13,16 +18,23 @@ export function useDeepLink(handleDownloadRef: MutableRefObject<(url: string, dl
         // Parse riptune://action?url=encodedUrl
         const withoutScheme = raw.replace(/^riptune:\/\//, "");
         const slashIdx = withoutScheme.indexOf("?");
-        let action = slashIdx !== -1 ? withoutScheme.slice(0, slashIdx) : withoutScheme;
+        let action =
+          slashIdx !== -1 ? withoutScheme.slice(0, slashIdx) : withoutScheme;
         action = action.replace(/\/$/, ""); // Remove trailing slash if present
-        
-        const params = new URLSearchParams(slashIdx !== -1 ? withoutScheme.slice(slashIdx + 1) : "");
+
+        const params = new URLSearchParams(
+          slashIdx !== -1 ? withoutScheme.slice(slashIdx + 1) : "",
+        );
         const videoUrl = params.get("url") || "";
         const formatParam = params.get("format");
 
         if (!videoUrl) return;
 
-        if (formatParam === "mp3" || formatParam === "wav" || formatParam === "flac") {
+        if (
+          formatParam === "mp3" ||
+          formatParam === "wav" ||
+          formatParam === "flac"
+        ) {
           setFormat(formatParam);
         }
 
@@ -33,7 +45,7 @@ export function useDeepLink(handleDownloadRef: MutableRefObject<(url: string, dl
         // Configure action flags based on the riptune:// action
         let dl = false;
         let an = false;
-        
+
         if (action === "download") {
           setShouldDownload(true);
           setAutoAnalyze(false);
@@ -63,11 +75,13 @@ export function useDeepLink(handleDownloadRef: MutableRefObject<(url: string, dl
     };
 
     // 1. Check for cold-start deep links
-    getCurrent().then((urls) => {
-      if (urls && urls.length > 0) {
-        processDeepLink(urls[0]);
-      }
-    }).catch(console.error);
+    getCurrent()
+      .then((urls) => {
+        if (urls && urls.length > 0) {
+          processDeepLink(urls[0]);
+        }
+      })
+      .catch(console.error);
 
     // 2. Listen for deep links from the Chrome extension while already running
     const unlistenDeepLink = listen<string>("deep-link-received", (event) => {
@@ -77,5 +91,12 @@ export function useDeepLink(handleDownloadRef: MutableRefObject<(url: string, dl
     return () => {
       unlistenDeepLink.then((f) => f());
     };
-  }, [setUrl, setShouldDownload, setAutoAnalyze, setActiveTab, setFormat, handleDownloadRef]);
+  }, [
+    setUrl,
+    setShouldDownload,
+    setAutoAnalyze,
+    setActiveTab,
+    setFormat,
+    handleDownloadRef,
+  ]);
 }

@@ -3,7 +3,12 @@ use tauri::{AppHandle, Emitter, Manager};
 pub struct AnalysisResults(pub std::sync::Mutex<std::collections::HashMap<String, (f64, String)>>);
 
 #[tauri::command]
-pub fn report_analysis_result(url: String, bpm: f64, key: String, state: tauri::State<AnalysisResults>) {
+pub fn report_analysis_result(
+    url: String,
+    bpm: f64,
+    key: String,
+    state: tauri::State<AnalysisResults>,
+) {
     if url.is_empty() {
         return;
     }
@@ -82,14 +87,14 @@ pub fn init(app_handle: AppHandle) {
                                 .with_header(cors2.clone())
                                 .with_header(cors3.clone())
                                 .with_header(cors4.clone());
-                                
+
                             // Clear previous analysis for this URL
                             if (action == "analyze" || action == "both") && !url.is_empty() {
                                 let state = app_handle.state::<AnalysisResults>();
                                 let mut current = state.0.lock().unwrap();
                                 current.remove(url);
                             }
-                                
+
                             let _ = request.respond(response);
                             continue;
                         }
@@ -115,7 +120,8 @@ pub fn init(app_handle: AppHandle) {
                     };
 
                     if let Some((bpm, key)) = result {
-                        let response_body = format!("{{\"status\":\"ok\",\"bpm\":{},\"key\":\"{}\"}}", bpm, key);
+                        let response_body =
+                            format!("{{\"status\":\"ok\",\"bpm\":{},\"key\":\"{}\"}}", bpm, key);
                         let response = tiny_http::Response::from_string(response_body)
                             .with_status_code(200)
                             .with_header(cors1.clone())

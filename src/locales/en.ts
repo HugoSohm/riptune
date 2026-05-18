@@ -1,7 +1,8 @@
 export const en = {
   home: {
     title: "Rip the perfect tune",
-    description: "Paste a <span class='text-purple-400'>YouTube or SoundCloud link</span> or <span class='text-purple-400'>drag & drop any audio file</span> to instantly extract its BPM and musical key.",
+    description:
+      "Paste a <span class='text-purple-400'>YouTube or SoundCloud link</span> or <span class='text-purple-400'>drag & drop any audio file</span> to instantly extract its BPM and musical key.",
     urlPlaceholder: "YouTube or SoundCloud URL...",
     invalidUrl: "Invalid YouTube or SoundCloud URL",
     format: "Format",
@@ -20,7 +21,7 @@ export const en = {
     unsupportedFileDesc: "Only MP3, WAV, FLAC and M4A files are accepted",
     unknownArtist: "Unknown Artist",
     confidenceTooltip: "Analysis confidence score",
-    fromYoutube: "Extracted from YouTube"
+    fromYoutube: "Extracted from YouTube",
   },
   history: {
     title: "Your history",
@@ -40,7 +41,7 @@ export const en = {
     sources: {
       youtube: "YouTube",
       soundcloud: "SoundCloud",
-      local: "Local Import"
+      local: "Local Import",
     },
     tooltips: {
       analyze: "Analyze BPM & key",
@@ -50,66 +51,78 @@ export const en = {
       analyzed: "Analyzed",
       notDownloaded: "Not downloaded",
       openSourceUrl: "Open source URL",
-      noSourceUrl: "No source URL"
-    }
+      noSourceUrl: "No source URL",
+    },
   },
   settings: {
     title: "Settings",
     description: "Configure your application preferences",
     dlLocation: "Download location",
-    dlLocationDesc: "Select a specific folder where all your downloaded audio files will be saved. If no folder is selected, RipTune defaults to the system path shown below",
+    dlLocationDesc:
+      "Select a specific folder where all your downloaded audio files will be saved. If no folder is selected, RipTune defaults to the system path shown below",
     browse: "Browse",
     cookies: "Cookies (YouTube/SC)",
-    cookiesDesc: "Paste your cookies here <i class='italic'>(JSON format from EditThisCookie or Netscape format)</i> to bypass rate limits or access private content",
+    cookiesDesc:
+      "Paste your cookies here <i class='italic'>(JSON format from <a href='https://chromewebstore.google.com/detail/editthiscookie-v3' target='_blank' rel='noopener noreferrer' class='text-purple-400 hover:text-purple-300 font-bold decoration-dotted underline underline-offset-4 transition-colors'>EditThisCookie</a> extension or Netscape format)</i> to bypass rate limits or access private content",
     cleanup: "History & cleanup",
     deleteFiles: "Delete physical files",
-    deleteFilesDesc: "Enabling this will permanently delete the audio file from your computer when you remove a track from RipTune's history",
+    deleteFilesDesc:
+      "Enabling this will permanently delete the audio file from your computer when you remove a track from RipTune's history",
     audioEngine: "Audio engine",
     partialAnalysis: "Partial track analysis",
-    partialAnalysisDesc: "Analyzes only the first minute of the track. Analysis is faster but the BPM and key might be less accurate.",
+    partialAnalysisDesc:
+      "Analyzes only the first minute of the track. Analysis is faster but the BPM and key might be less accurate.",
     partialAnalysisWarning: "BPM & Key might be less accurate",
     language: "Language",
     about: "About RipTune",
-    aboutDesc: "Open source project developed by @HugoSohm. Built with yt-dlp, Tauri, React, and Essentia Engine https://github.com/HugoSohm/riptune",
+    aboutDesc:
+      "Open source project developed by @HugoSohm. Built with yt-dlp, Tauri, React, and Essentia Engine https://github.com/HugoSohm/riptune",
     website: "Website",
     github: "View source code on GitHub",
     chromeExtension: "Chrome Extension",
-    koFi: "Support on Ko-fi"
+    koFi: "Support on Ko-fi",
   },
   deleteModal: {
     title: "Delete Track?",
-    description: "Are you sure you want to remove the track [TRACK] from history?",
+    description:
+      "Are you sure you want to remove the track [TRACK] from history?",
     fileDeletion: "File deletion <i class='italic'>(on delete)</i>",
     active: "Active",
     disabled: "Disabled",
-    activeDesc: "The physical audio file will be permanently deleted from your computer if found",
-    disabledDesc: "The physical audio file will NOT be deleted. Only the entry is removed from RipTune",
+    activeDesc:
+      "The physical audio file will be permanently deleted from your computer if found",
+    disabledDesc:
+      "The physical audio file will NOT be deleted. Only the entry is removed from RipTune",
     manageSettings: "Manage this in Settings",
     confirm: "Delete",
     confirmAll: "Clear All",
     cancel: "Cancel",
     warning: "Warning",
-    fileWillBeDeleted: "The original audio file will be permanently deleted from your computer if found",
+    fileWillBeDeleted:
+      "The original audio file will be permanently deleted from your computer if found",
     titleAll: "Clear All History?",
-    descriptionAll: "Are you sure you want to permanently clear your entire history? This action cannot be undone",
+    descriptionAll:
+      "Are you sure you want to permanently clear your entire history? This action cannot be undone",
     confirmWord: "DELETE",
     typeWordToConfirm: "Type [WORD] to confirm",
   },
   bugModal: {
     title: "Report a bug",
-    description: "Something not working correctly? Describe the problem below and our team will check it out<br />You can also open an issue on GitHub",
+    description:
+      "Something not working correctly? Describe the problem below and our team will check it out<br />You can also open an issue on GitHub",
     githubIssues: "Open an issue on GitHub",
     label: "Description",
     emailLabel: "Email",
     emailPlaceholder: "your@email.com",
     placeholder: "Explain what happened and how to reproduce the bug",
-    screenshot: "Screenshot <i class='italic'>(Drag & drop or paste supported)</i>",
+    screenshot:
+      "Screenshot <i class='italic'>(Drag & drop or paste supported)</i>",
     dropTitle: "Drop your screenshot here",
     remove: "Remove",
     upload: "Upload Image",
     sending: "Sending",
     cancel: "Cancel",
-    send: "Send report"
+    send: "Send report",
   },
   titleBar: {
     home: "Home",
@@ -118,7 +131,7 @@ export const en = {
     bugReport: "Report a bug",
     audioAnalyzer: "Audio analyzer",
     koFi: "Support on Ko-fi",
-    github: "GitHub Source"
+    github: "GitHub Source",
   },
   notifications: {
     analyzing: "Analyzing BPM & key",
@@ -142,6 +155,6 @@ export const en = {
     bugReportSuccess: "Bug report sent successfully",
     bugReportError: "Failed to send report",
     imageAttached: "Image attached",
-    imageError: "Could not read image file"
-  }
+    imageError: "Could not read image file",
+  },
 };

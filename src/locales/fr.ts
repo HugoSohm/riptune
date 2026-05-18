@@ -1,7 +1,8 @@
 export const fr = {
   home: {
     title: "Rip the perfect tune",
-    description: "Collez un <span class='text-purple-400'>lien YouTube ou SoundCloud</span> ou <span class='text-purple-400'>glissez & déposez un fichier audio</span> pour extraire son BPM et sa clé.",
+    description:
+      "Collez un <span class='text-purple-400'>lien YouTube ou SoundCloud</span> ou <span class='text-purple-400'>glissez & déposez un fichier audio</span> pour extraire son BPM et sa clé.",
     urlPlaceholder: "Lien YouTube ou SoundCloud...",
     invalidUrl: "Lien YouTube ou SoundCloud invalide",
     format: "Format",
@@ -10,17 +11,19 @@ export const fr = {
     download: "Télécharger",
     formatTooltip: "Choisir l'extension du fichier audio",
     analyzeTooltip: "Extraire automatiquement le BPM et la clé musicale",
-    downloadTooltip: "Conserver le fichier audio sur votre appareil après l'analyse",
+    downloadTooltip:
+      "Conserver le fichier audio sur votre appareil après l'analyse",
     playlistTooltipFull: "Télécharge tous les fichiers de la playlist",
     dropTitle: "Déposez votre fichier ici",
     dropDesc: "Nous extrairons instantanément le BPM et la clé",
     bpm: "BPM",
     key: "Clé",
     unsupportedFile: "Fichier non supporté",
-    unsupportedFileDesc: "Seuls les fichiers MP3, WAV, FLAC et M4A sont acceptés",
+    unsupportedFileDesc:
+      "Seuls les fichiers MP3, WAV, FLAC et M4A sont acceptés",
     unknownArtist: "Artiste inconnu",
     confidenceTooltip: "Indice de confiance de l'analyse",
-    fromYoutube: "Extrait de YouTube"
+    fromYoutube: "Extrait de YouTube",
   },
   history: {
     title: "Votre historique",
@@ -40,7 +43,7 @@ export const fr = {
     sources: {
       youtube: "YouTube",
       soundcloud: "SoundCloud",
-      local: "Import local"
+      local: "Import local",
     },
     tooltips: {
       analyze: "Analyser BPM & clé",
@@ -50,66 +53,79 @@ export const fr = {
       analyzed: "Analysé",
       notDownloaded: "Non téléchargé",
       openSourceUrl: "Ouvrir l'URL source",
-      noSourceUrl: "Pas d'URL source"
-    }
+      noSourceUrl: "Pas d'URL source",
+    },
   },
   settings: {
     title: "Paramètres",
     description: "Configurez vos préférences système",
     dlLocation: "Dossier de téléchargement",
-    dlLocationDesc: "Choisissez le dossier où seront sauvegardés vos titres. Par défaut, le chemin système ci-dessous est utilisé",
+    dlLocationDesc:
+      "Choisissez le dossier où seront sauvegardés vos titres. Par défaut, le chemin système ci-dessous est utilisé",
     browse: "Parcourir",
     cookies: "Cookies (YouTube/SC)",
-    cookiesDesc: "Collez vos cookies <i class='italic'>(format JSON EditThisCookie ou Netscape)</i> pour éviter les limitations ou accéder au contenu privé",
+    cookiesDesc:
+      "Collez vos cookies <i class='italic'>(format JSON de l'extension <a href='https://chromewebstore.google.com/detail/editthiscookie-v3' target='_blank' rel='noopener noreferrer' class='text-purple-400 hover:text-purple-300 font-bold decoration-dotted underline underline-offset-4 transition-colors'>EditThisCookie</a> ou Netscape)</i> pour éviter les limitations ou accéder au contenu privé",
     cleanup: "Historique & nettoyage",
     deleteFiles: "Supprimer les fichiers physiques",
-    deleteFilesDesc: "Activer cette option supprimera définitivement le fichier audio de votre ordinateur lorsque vous retirerez une piste de l'historique de RipTune",
+    deleteFilesDesc:
+      "Activer cette option supprimera définitivement le fichier audio de votre ordinateur lorsque vous retirerez une piste de l'historique de RipTune",
     audioEngine: "Moteur d'analyse",
     partialAnalysis: "Analyse audio partielle",
-    partialAnalysisDesc: "Analyse uniquement la première minute du morceau. L'analyse est plus rapide mais le BPM et la clé risquent d'être moins précis.",
+    partialAnalysisDesc:
+      "Analyse uniquement la première minute du morceau. L'analyse est plus rapide mais le BPM et la clé risquent d'être moins précis.",
     partialAnalysisWarning: "BPM & Clé risquent d'être moins précis",
     language: "Langue",
     about: "À propos de RipTune",
-    aboutDesc: "Projet open source développé par @HugoSohm. Propulsé par yt-dlp, Tauri, React, et le moteur d'analyse Essentia. https://github.com/HugoSohm/riptune",
+    aboutDesc:
+      "Projet open source développé par @HugoSohm. Propulsé par yt-dlp, Tauri, React, et le moteur d'analyse Essentia. https://github.com/HugoSohm/riptune",
     website: "Site Web",
     github: "Voir le code source sur GitHub",
     chromeExtension: "Extension Chrome",
-    koFi: "Soutenir sur Ko-fi"
+    koFi: "Soutenir sur Ko-fi",
   },
   deleteModal: {
     title: "Supprimer le titre ?",
-    description: "Êtes-vous sûr de vouloir retirer le titre [TRACK] de l'historique ?",
-    fileDeletion: "Suppression du fichier <i class='italic'>(à la suppression)</i>",
+    description:
+      "Êtes-vous sûr de vouloir retirer le titre [TRACK] de l'historique ?",
+    fileDeletion:
+      "Suppression du fichier <i class='italic'>(à la suppression)</i>",
     active: "Active",
     disabled: "Désactivée",
-    activeDesc: "Le fichier audio physique sera définitivement supprimé de votre ordinateur s'il est trouvé",
-    disabledDesc: "Le fichier audio physique ne sera PAS supprimé. Seule l'entrée est retirée de RipTune",
+    activeDesc:
+      "Le fichier audio physique sera définitivement supprimé de votre ordinateur s'il est trouvé",
+    disabledDesc:
+      "Le fichier audio physique ne sera PAS supprimé. Seule l'entrée est retirée de RipTune",
     manageSettings: "Gérer cela dans les Paramètres",
     confirm: "Supprimer",
     confirmAll: "Tout supprimer",
     cancel: "Annuler",
     warning: "Attention",
-    fileWillBeDeleted: "Le fichier audio original sera définitivement supprimé de votre disque s'il est trouvé",
+    fileWillBeDeleted:
+      "Le fichier audio original sera définitivement supprimé de votre disque s'il est trouvé",
     titleAll: "Vider l'historique ?",
-    descriptionAll: "Êtes-vous sûr de vouloir supprimer définitivement tout votre historique ? Cette action est irréversible",
+    descriptionAll:
+      "Êtes-vous sûr de vouloir supprimer définitivement tout votre historique ? Cette action est irréversible",
     confirmWord: "SUPPRIMER",
     typeWordToConfirm: "Tapez [WORD] pour confirmer",
   },
   bugModal: {
     title: "Signaler un bug",
-    description: "Quelque chose ne fonctionne pas ? Décrivez le problème ci-dessous pour que notre équipe puisse l'analyser<br />Vous pouvez aussi ouvrir une issue sur GitHub",
+    description:
+      "Quelque chose ne fonctionne pas ? Décrivez le problème ci-dessous pour que notre équipe puisse l'analyser<br />Vous pouvez aussi ouvrir une issue sur GitHub",
     githubIssues: "Ouvrir une issue sur GitHub",
     label: "Description",
     emailLabel: "Email",
     emailPlaceholder: "votre@email.fr",
     placeholder: "Expliquez ce qu'il s'est passé et comment reproduire le bug",
-    screenshot: "Capture d'écran <i class='italic'>(Glisser-déposer ou coller supporté)</i>",
+    screenshot:
+      "Capture d'écran <i class='italic'>(Glisser-déposer ou coller supporté)</i>",
     dropTitle: "Déposez votre capture ici",
     remove: "Supprimer",
     upload: "Charger une image",
     sending: "Envoi...",
     cancel: "Annuler",
-    send: "Envoyer le rapport"
+    send: "Envoyer le rapport",
   },
   titleBar: {
     home: "Accueil",
@@ -118,7 +134,7 @@ export const fr = {
     bugReport: "Signaler un bug",
     audioAnalyzer: "Analyseur audio",
     koFi: "Soutenir sur Ko-fi",
-    github: "Code source sur GitHub"
+    github: "Code source sur GitHub",
   },
   notifications: {
     analyzing: "Analyse du BPM & de la clé",
@@ -142,6 +158,6 @@ export const fr = {
     bugReportSuccess: "Rapport d'erreur envoyé avec succès",
     bugReportError: "Échec de l'envoi du rapport",
     imageAttached: "Image ajoutée",
-    imageError: "Impossible de lire le fichier image"
-  }
+    imageError: "Impossible de lire le fichier image",
+  },
 };

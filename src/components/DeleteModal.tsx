@@ -1,12 +1,16 @@
-import { useState, useEffect } from "react";
 import { AlertTriangle, X } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useApp } from "../context/useApp";
 
 export default function DeleteModal() {
-  const { 
-    deleteConfirmId, setDeleteConfirmId, confirmDelete, 
-    deleteFilesOnHistoryDelete, setDeleteFilesOnHistoryDelete,
-    t, history 
+  const {
+    deleteConfirmId,
+    setDeleteConfirmId,
+    confirmDelete,
+    deleteFilesOnHistoryDelete,
+    setDeleteFilesOnHistoryDelete,
+    t,
+    history,
   } = useApp();
   const [confirmInput, setConfirmInput] = useState("");
 
@@ -17,11 +21,18 @@ export default function DeleteModal() {
   if (!deleteConfirmId) return null;
 
   const isDeleteAll = deleteConfirmId === "all";
-  const itemToDelete = isDeleteAll ? null : history.find(h => h.id === deleteConfirmId);
-  const hasPhysicalFiles = isDeleteAll ? history.some(h => !h.isTemp) : (itemToDelete ? !itemToDelete.isTemp : false);
+  const itemToDelete = isDeleteAll
+    ? null
+    : history.find((h) => h.id === deleteConfirmId);
+  const hasPhysicalFiles = isDeleteAll
+    ? history.some((h) => !h.isTemp)
+    : itemToDelete
+      ? !itemToDelete.isTemp
+      : false;
 
   const requiredWord = t.deleteModal.confirmWord || "DELETE";
-  const isConfirmDisabled = isDeleteAll && confirmInput.toUpperCase() !== requiredWord.toUpperCase();
+  const isConfirmDisabled =
+    isDeleteAll && confirmInput.toUpperCase() !== requiredWord.toUpperCase();
 
   return (
     <div className="fixed inset-0 z-[100002] flex items-center justify-center p-4">
@@ -31,6 +42,7 @@ export default function DeleteModal() {
       />
       <div className="relative w-full max-w-md bg-[#111728] border border-white/10 rounded-[2rem] p-8 md:p-10 shadow-[0_0_100px_rgba(0,0,0,0.5)] animate-in zoom-in-95 slide-in-from-bottom-4 duration-300">
         <button
+          type="button"
           onClick={() => setDeleteConfirmId(null)}
           className="absolute top-4 right-4 p-2 rounded-xl text-slate-500 hover:text-white hover:bg-white/5 transition-all"
         >
@@ -51,11 +63,11 @@ export default function DeleteModal() {
                 t.deleteModal.descriptionAll
               ) : (
                 <>
-                  {t.deleteModal.description.split('[TRACK]')[0]}
+                  {t.deleteModal.description.split("[TRACK]")[0]}
                   <span className="text-slate-200 font-bold">
                     "{itemToDelete?.title || "ce titre"}"
                   </span>
-                  {t.deleteModal.description.split('[TRACK]')[1]}
+                  {t.deleteModal.description.split("[TRACK]")[1]}
                 </>
               )}
             </p>
@@ -75,11 +87,13 @@ export default function DeleteModal() {
                 </div>
 
                 <label className="relative inline-flex items-center cursor-pointer shrink-0">
-                  <input 
-                    type="checkbox" 
-                    className="sr-only peer" 
-                    checked={deleteFilesOnHistoryDelete} 
-                    onChange={(e) => setDeleteFilesOnHistoryDelete(e.target.checked)} 
+                  <input
+                    type="checkbox"
+                    className="sr-only peer"
+                    checked={deleteFilesOnHistoryDelete}
+                    onChange={(e) =>
+                      setDeleteFilesOnHistoryDelete(e.target.checked)
+                    }
                   />
                   <div className="w-9 h-5 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-red-500 shadow-inner"></div>
                 </label>
@@ -89,35 +103,44 @@ export default function DeleteModal() {
             {isDeleteAll && (
               <div className="w-full mb-8">
                 <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-black mb-3 text-left">
-                  {t.deleteModal.typeWordToConfirm.replace('[WORD]', requiredWord)}
+                  {t.deleteModal.typeWordToConfirm.replace(
+                    "[WORD]",
+                    requiredWord,
+                  )}
                 </p>
                 <input
                   type="text"
                   value={confirmInput}
                   onChange={(e) => setConfirmInput(e.target.value)}
                   placeholder={requiredWord}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-center text-white font-black tracking-[0.3em] placeholder:text-slate-800 focus:outline-none focus:border-red-500/30 transition-all uppercase"
-                  autoFocus
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-center text-white font-black tracking-[0.3em] placeholder:text-slate-500 focus:outline-none focus:border-red-500/30 transition-all uppercase"
                 />
               </div>
             )}
 
             <div className="flex flex-row gap-4 w-full mt-2">
               <button
+                type="button"
                 onClick={() => setDeleteConfirmId(null)}
                 className="flex-1 py-3.5 rounded-xl border border-white/10 bg-white/5 text-slate-300 font-bold hover:bg-white/10 transition-all text-sm"
               >
                 {t.deleteModal.cancel}
               </button>
               <button
+                type="button"
                 onClick={() => confirmDelete()}
                 disabled={isConfirmDisabled}
-                className={`flex-1 py-3.5 rounded-xl font-bold shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2 text-sm ${isConfirmDisabled
-                  ? "bg-slate-800 text-slate-600 cursor-not-allowed opacity-50 shadow-none border border-white/5"
-                  : "bg-red-500 hover:bg-red-600 text-white shadow-red-500/20"
+                className={`flex-1 py-3.5 rounded-xl font-bold shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2 text-sm ${
+                  isConfirmDisabled
+                    ? "bg-slate-800 text-slate-600 cursor-not-allowed opacity-50 shadow-none border border-white/5"
+                    : "bg-red-500 hover:bg-red-600 text-white shadow-red-500/20"
                 }`}
               >
-                <span>{isDeleteAll ? t.deleteModal.confirmAll : t.deleteModal.confirm}</span>
+                <span>
+                  {isDeleteAll
+                    ? t.deleteModal.confirmAll
+                    : t.deleteModal.confirm}
+                </span>
               </button>
             </div>
           </div>

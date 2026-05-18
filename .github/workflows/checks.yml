@@ -1,0 +1,48 @@
+name: "Static Checks"
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  checks:
+    name: "Lints & Checks"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: setup node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: 'npm'
+
+      - name: install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+
+      - name: install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libjavascriptcoregtk-4.1-dev libsoup-3.0-dev
+
+      - name: install frontend dependencies
+        run: npm install
+
+      - name: Run Biome Lint
+        run: npm run lint
+
+      - name: Run TypeScript Typecheck
+        run: npm run typecheck
+
+      - name: Run Rust Format Check
+        run: npm run format:rs
+
+      - name: Run Rust Compiler Check
+        run: npm run check:rs
+
+      - name: Run Rust Clippy Lint
+        run: npm run lint:rs -- -- -D warnings
