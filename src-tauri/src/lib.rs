@@ -63,6 +63,7 @@ pub fn run(context: tauri::Context) {
             audio_processor::delete_file,
             audio_processor::update_metadata,
             audio_processor::get_default_download_dir,
+            audio_processor::copy_file_to_clipboard,
             local_server::report_analysis_result
         ])
         .build(context)

@@ -22,6 +22,11 @@ export const en = {
     unknownArtist: "Unknown Artist",
     confidenceTooltip: "Analysis confidence score",
     fromYoutube: "Extracted from YouTube",
+    copied: "Copied!",
+    copy: "Copy",
+    confidence: "confidence",
+    browse: "Browse",
+    or: "OR",
   },
   history: {
     title: "Your history",

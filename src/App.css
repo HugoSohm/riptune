@@ -45,6 +45,12 @@ body,
   scrollbar-color: rgba(255, 255, 255, 0.07) transparent;
 }
 
+/* Force scrollbar to overlay on top of content to avoid shifting layout */
+.overflow-y-auto,
+.overflow-auto {
+  overflow-y: overlay;
+}
+
 /* ============================================================
    SELECTION
    ============================================================ */

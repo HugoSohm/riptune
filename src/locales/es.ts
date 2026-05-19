@@ -23,6 +23,11 @@ export const es = {
     unknownArtist: "Artista desconocido",
     confidenceTooltip: "Índice de confianza del análisis",
     fromYoutube: "Extraído de YouTube",
+    copied: "¡Copiado!",
+    copy: "Copiar",
+    confidence: "confianza",
+    browse: "Examinar",
+    or: "O",
   },
   history: {
     title: "Su historial",

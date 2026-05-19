@@ -27,7 +27,8 @@
           "x": 18,
           "y": 17
         },
-        "shadow": true
+        "shadow": true,
+        "scrollBarStyle": "fluentOverlay"
       }
     ],
     "security": {
@@ -68,7 +69,9 @@
     },
     "deep-link": {
       "desktop": {
-        "schemes": ["riptune"]
+        "schemes": [
+          "riptune"
+        ]
       }
     }
   }

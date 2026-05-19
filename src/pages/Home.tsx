@@ -1,6 +1,8 @@
 import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
 import {
+  Check,
+  Copy,
   Download,
   Folder,
   FolderOpen,
@@ -36,7 +38,6 @@ export default function Home() {
     setUrl,
     format,
     setFormat,
-    lang,
     dragActive,
   } = useApp();
 
@@ -47,6 +48,24 @@ export default function Home() {
   const { handleDownload, handleCancelDownload } = useDownloader();
   const { processFile } = useAudioProcessor();
   const isHomeTaskActive = homeTaskId !== null && isTaskActive(homeTaskId);
+  const [trackCopied, setTrackCopied] = useState(false);
+
+  const handleCopyTrack = async (text: string, filepath?: string) => {
+    try {
+      if (filepath) {
+        await invoke("copy_file_to_clipboard", { filepath });
+      } else {
+        await navigator.clipboard.writeText(text);
+      }
+      setTrackCopied(true);
+      setTimeout(() => setTrackCopied(false), 1500);
+    } catch (err) {
+      console.error("Failed to copy file", err);
+      await navigator.clipboard.writeText(text);
+      setTrackCopied(true);
+      setTimeout(() => setTrackCopied(false), 1500);
+    }
+  };
 
   const handleBrowseFile = async () => {
     try {
@@ -108,7 +127,7 @@ export default function Home() {
   const urlInvalid = url && !isValidUrl(url);
 
   return (
-    <div className="flex flex-col gap-6 h-full anim-fade-up">
+    <div className="flex flex-col gap-6 pb-6 anim-fade-up">
       {/* ── Drag & Drop Area (first) ─────────────────────────── */}
       <div
         onClick={handleBrowseFile}
@@ -135,7 +154,7 @@ export default function Home() {
         <span
           className={`text-[11px] font-medium transition-colors z-10 px-3 py-1.5 rounded-lg shrink-0 ${dragActive ? "text-white bg-violet-500/20 border border-violet-500/30" : "text-violet-400 bg-white/[0.03] border border-white/[0.06] group-hover/drop:border-violet-500/20 group-hover/drop:text-violet-300"}`}
         >
-          Parcourir
+          {t.home.browse}
         </span>
       </div>
 
@@ -143,7 +162,7 @@ export default function Home() {
       <div className="flex items-center gap-4 py-1 select-none anim-delay-1 anim-fade-up">
         <div className="flex-1 h-px bg-white/[0.04]" />
         <span className="text-[10px] font-bold tracking-[0.2em] text-slate-600">
-          {lang === "fr" ? "OU" : "OR"}
+          {t.home.or}
         </span>
         <div className="flex-1 h-px bg-white/[0.04]" />
       </div>
@@ -152,7 +171,9 @@ export default function Home() {
       <div className="card p-5 relative z-20 anim-delay-1 anim-fade-up">
         <div className="flex items-center gap-2 mb-4 select-none">
           <div className="w-1.5 h-1.5 rounded-full bg-violet-500" />
-          <span className="section-label">Analyze / Download</span>
+          <span className="section-label">
+            {t.home.analyze} / {t.home.download}
+          </span>
         </div>
 
         <div
@@ -247,117 +268,173 @@ export default function Home() {
       <div className="h-px bg-white/[0.04] w-full anim-delay-2 anim-fade-up" />
 
       {/* ── Stat row: BPM + Key (second) ─────────────────────── */}
-      <div className="flex gap-4 anim-delay-2 anim-fade-up">
-        <StatCard
-          label={t.home.bpm}
-          value={!latestPlaylist ? latest?.bpm : undefined}
-          sub={
-            !latestPlaylist && latest?.bpm
-              ? (latest.bpmFromYoutube ?? latest.fromYoutubeDesc)
-                ? t.home.fromYoutube
-                : `~${Math.round((latest.bpmConfidence ?? 0.8) * 100)}% confidence`
-              : undefined
-          }
-          accent="violet"
-          empty={!!latestPlaylist || !latest?.bpm}
-        />
-        <StatCard
-          label={t.home.key}
-          value={!latestPlaylist ? latest?.key : undefined}
-          sub={
-            !latestPlaylist && latest?.key
-              ? (latest.keyFromYoutube ?? latest.fromYoutubeDesc)
-                ? t.home.fromYoutube
-                : `~${Math.round((latest.keyStrength ?? 0.5) * 100)}% confidence`
-              : undefined
-          }
-          accent="indigo"
-          empty={!!latestPlaylist || !latest?.key}
-        />
+      <div className="flex flex-col gap-6 max-w-[900px] mx-auto w-full">
+        <div className="flex gap-4 anim-delay-2 anim-fade-up">
+          <StatCard
+            label={t.home.bpm}
+            value={!latestPlaylist ? latest?.bpm : undefined}
+            sub={
+              !latestPlaylist && latest?.bpm
+                ? (latest.bpmFromYoutube ?? latest.fromYoutubeDesc)
+                  ? t.home.fromYoutube
+                  : `~${Math.round((latest.bpmConfidence ?? 0.8) * 100)}% ${t.home.confidence}`
+                : undefined
+            }
+            accent="violet"
+            empty={!!latestPlaylist || !latest?.bpm}
+            copiableValue={!latestPlaylist ? latest?.bpm : undefined}
+            copiedLabel={t.home.copied}
+          />
+          <StatCard
+            label={t.home.key}
+            value={!latestPlaylist ? latest?.key : undefined}
+            sub={
+              !latestPlaylist && latest?.key
+                ? (latest.keyFromYoutube ?? latest.fromYoutubeDesc)
+                  ? t.home.fromYoutube
+                  : `~${Math.round((latest.keyStrength ?? 0.5) * 100)}% ${t.home.confidence}`
+                : undefined
+            }
+            accent="indigo"
+            empty={!!latestPlaylist || !latest?.key}
+            copiableValue={!latestPlaylist ? latest?.key : undefined}
+            copiedLabel={t.home.copied}
+          />
+        </div>
+
+        {/* ── Last Processed Track card (third) ───────────────── */}
+        {latestPlaylist && (
+          <div className="card p-4 flex items-center justify-between gap-4 anim-delay-3 anim-fade-up">
+            <div className="flex items-center gap-3.5 min-w-0">
+              <div className="w-10 h-10 rounded-xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center text-violet-400 shrink-0">
+                <Folder className="w-5 h-5" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[13px] font-semibold text-white truncate">
+                  {latestPlaylist.title}
+                </p>
+                <p className="text-[11px] text-slate-500 mt-0.5 truncate">
+                  {t.home.playlist}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-1.5 shrink-0">
+              <div className="group/tool relative">
+                <button
+                  type="button"
+                  onClick={() =>
+                    handleCopyTrack(
+                      latestPlaylist.title,
+                      latestPlaylist.filepath,
+                    )
+                  }
+                  className="group p-2.5 rounded-lg bg-white/[0.04] border border-white/[0.07] hover:bg-white/[0.08] hover:border-white/[0.1] text-violet-400 transition-all cursor-pointer active:scale-95"
+                >
+                  {trackCopied ? (
+                    <Check className="w-4 h-4 text-emerald-400 animate-scale-up" />
+                  ) : (
+                    <Copy className="w-4 h-4 transition-transform duration-200 group-hover:scale-110" />
+                  )}
+                </button>
+                <div className="absolute bottom-full right-0 mb-1.5 px-2.5 py-1 bg-[#1e2330]/95 backdrop-blur-xl border border-white/[0.08] text-white text-[10px] font-medium rounded-lg shadow-xl whitespace-nowrap z-[100] pointer-events-none opacity-0 scale-95 group-hover/tool:opacity-100 group-hover/tool:scale-100 transition-all duration-150 group-hover/tool:delay-[600ms]">
+                  {trackCopied ? t.home.copied : t.home.copy}
+                </div>
+              </div>
+
+              {latestPlaylist.filepath && (
+                <div className="group/tool relative">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      invoke("open_folder", { path: latestPlaylist.filepath })
+                    }
+                    className="group p-2.5 rounded-lg bg-white/[0.04] border border-white/[0.07] hover:bg-white/[0.08] hover:border-white/[0.1] text-violet-400 transition-all cursor-pointer active:scale-95"
+                  >
+                    <FolderOpen className="w-4 h-4 transition-transform duration-200 group-hover:scale-110" />
+                  </button>
+                  <div className="absolute bottom-full right-0 mb-1.5 px-2.5 py-1 bg-[#1e2330]/95 backdrop-blur-xl border border-white/[0.08] text-white text-[10px] font-medium rounded-lg shadow-xl whitespace-nowrap z-[100] pointer-events-none opacity-0 scale-95 group-hover/tool:opacity-100 group-hover/tool:scale-100 transition-all duration-150 group-hover/tool:delay-[600ms]">
+                    {t.history.tooltips.open}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {!latestPlaylist && latest && (
+          <div className="card p-4 flex items-center justify-between gap-4 anim-delay-3 anim-fade-up">
+            <div className="flex items-center gap-3.5 min-w-0">
+              <div className="w-10 h-10 rounded-xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center text-violet-400 shrink-0">
+                <Music className="w-5 h-5" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[13px] font-semibold text-white truncate">
+                  {latest.title}
+                </p>
+                <p className="text-[11px] text-slate-500 mt-0.5 truncate">
+                  {latest.artist || t.home.unknownArtist}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-1.5 shrink-0">
+              <div className="group/tool relative">
+                <button
+                  type="button"
+                  onClick={() =>
+                    handleCopyTrack(
+                      latest.artist
+                        ? `${latest.artist} - ${latest.title}`
+                        : latest.title,
+                      latest.filepath,
+                    )
+                  }
+                  className="group p-2.5 rounded-lg bg-white/[0.04] border border-white/[0.07] hover:bg-white/[0.08] hover:border-white/[0.1] text-violet-400 transition-all cursor-pointer active:scale-95"
+                >
+                  {trackCopied ? (
+                    <Check className="w-4 h-4 text-emerald-400 animate-scale-up" />
+                  ) : (
+                    <Copy className="w-4 h-4 transition-transform duration-200 group-hover:scale-110" />
+                  )}
+                </button>
+                <div className="absolute bottom-full right-0 mb-1.5 px-2.5 py-1 bg-[#1e2330]/95 backdrop-blur-xl border border-white/[0.08] text-white text-[10px] font-medium rounded-lg shadow-xl whitespace-nowrap z-[100] pointer-events-none opacity-0 scale-95 group-hover/tool:opacity-100 group-hover/tool:scale-100 transition-all duration-150 group-hover/tool:delay-[600ms]">
+                  {trackCopied ? t.home.copied : t.home.copy}
+                </div>
+              </div>
+
+              {!latest.isTemp && latest.filepath && (
+                <div className="group/tool relative">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      invoke("open_file", { filepath: latest.filepath })
+                    }
+                    className="group p-2.5 rounded-lg bg-white/[0.04] border border-white/[0.07] hover:bg-white/[0.08] hover:border-white/[0.1] text-violet-400 transition-all cursor-pointer active:scale-95"
+                  >
+                    <FolderOpen className="w-4 h-4 transition-transform duration-200 group-hover:scale-110" />
+                  </button>
+                  <div className="absolute bottom-full right-0 mb-1.5 px-2.5 py-1 bg-[#1e2330]/95 backdrop-blur-xl border border-white/[0.08] text-white text-[10px] font-medium rounded-lg shadow-xl whitespace-nowrap z-[100] pointer-events-none opacity-0 scale-95 group-hover/tool:opacity-100 group-hover/tool:scale-100 transition-all duration-150 group-hover/tool:delay-[600ms]">
+                    {t.history.tooltips.open}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {!latestPlaylist && !latest && (
+          <div className="card p-4 flex items-center justify-between gap-4 anim-delay-3 anim-fade-up opacity-40 select-none pointer-events-none">
+            <div className="flex items-center gap-3.5 min-w-0">
+              <div className="w-10 h-10 rounded-xl bg-white/[0.03] border border-white/[0.04] flex items-center justify-center text-slate-600 shrink-0">
+                <Music className="w-5 h-5" />
+              </div>
+              <div className="min-w-0 flex flex-col gap-1.5">
+                <div className="h-3.5 w-32 bg-white/[0.05] rounded-md" />
+                <div className="h-2.5 w-20 bg-white/[0.03] rounded-md mt-0.5" />
+              </div>
+            </div>
+          </div>
+        )}
       </div>
-
-      {/* ── Last Processed Track card (third) ───────────────── */}
-      {latestPlaylist && (
-        <div className="card p-4 flex items-center justify-between gap-4 anim-delay-3 anim-fade-up">
-          <div className="flex items-center gap-3.5 min-w-0">
-            <div className="w-10 h-10 rounded-xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center text-violet-400 shrink-0">
-              <Folder className="w-5 h-5" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-[13px] font-semibold text-white truncate">
-                {latestPlaylist.title}
-              </p>
-              <p className="text-[11px] text-slate-500 mt-0.5 truncate">
-                {t.home.playlist}
-              </p>
-            </div>
-          </div>
-          {latestPlaylist.filepath && (
-            <div className="group/tool relative shrink-0">
-              <button
-                type="button"
-                onClick={() =>
-                  invoke("open_folder", { path: latestPlaylist.filepath })
-                }
-                className="p-2.5 rounded-lg bg-white/[0.04] border border-white/[0.07] hover:bg-white/[0.08] hover:border-white/[0.1] text-violet-400 transition-all cursor-pointer active:scale-95"
-              >
-                <FolderOpen className="w-4 h-4" />
-              </button>
-              <div className="absolute bottom-full right-0 mb-1.5 px-2.5 py-1 bg-[#1e2330]/95 backdrop-blur-xl border border-white/[0.08] text-white text-[10px] font-medium rounded-lg shadow-xl whitespace-nowrap z-[100] pointer-events-none opacity-0 scale-95 group-hover/tool:opacity-100 group-hover/tool:scale-100 transition-all duration-150 group-hover/tool:delay-[600ms]">
-                {t.history.tooltips.open}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {!latestPlaylist && latest && (
-        <div className="card p-4 flex items-center justify-between gap-4 anim-delay-3 anim-fade-up">
-          <div className="flex items-center gap-3.5 min-w-0">
-            <div className="w-10 h-10 rounded-xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center text-violet-400 shrink-0">
-              <Music className="w-5 h-5" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-[13px] font-semibold text-white truncate">
-                {latest.title}
-              </p>
-              <p className="text-[11px] text-slate-500 mt-0.5 truncate">
-                {latest.artist || t.home.unknownArtist}
-              </p>
-            </div>
-          </div>
-          {!latest.isTemp && latest.filepath && (
-            <div className="group/tool relative shrink-0">
-              <button
-                type="button"
-                onClick={() =>
-                  invoke("open_file", { filepath: latest.filepath })
-                }
-                className="p-2.5 rounded-lg bg-white/[0.04] border border-white/[0.07] hover:bg-white/[0.08] hover:border-white/[0.1] text-violet-400 transition-all cursor-pointer active:scale-95"
-              >
-                <FolderOpen className="w-4 h-4" />
-              </button>
-              <div className="absolute bottom-full right-0 mb-1.5 px-2.5 py-1 bg-[#1e2330]/95 backdrop-blur-xl border border-white/[0.08] text-white text-[10px] font-medium rounded-lg shadow-xl whitespace-nowrap z-[100] pointer-events-none opacity-0 scale-95 group-hover/tool:opacity-100 group-hover/tool:scale-100 transition-all duration-150 group-hover/tool:delay-[600ms]">
-                {t.history.tooltips.open}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {!latestPlaylist && !latest && (
-        <div className="card p-4 flex items-center justify-between gap-4 anim-delay-3 anim-fade-up opacity-40 select-none pointer-events-none">
-          <div className="flex items-center gap-3.5 min-w-0">
-            <div className="w-10 h-10 rounded-xl bg-white/[0.03] border border-white/[0.04] flex items-center justify-center text-slate-600 shrink-0">
-              <Music className="w-5 h-5" />
-            </div>
-            <div className="min-w-0 flex flex-col gap-1.5">
-              <div className="h-3.5 w-32 bg-white/[0.05] rounded-md" />
-              <div className="h-2.5 w-20 bg-white/[0.03] rounded-md mt-0.5" />
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
