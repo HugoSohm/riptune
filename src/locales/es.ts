@@ -134,6 +134,8 @@ export const es = {
     audioAnalyzer: "Analizador de audio",
     koFi: "Apoyar en Ko-fi",
     github: "Código fuente en GitHub",
+    support: "Apoyar",
+    sourceCode: "Código fuente",
   },
   notifications: {
     analyzing: "Analizando BPM y Clave",

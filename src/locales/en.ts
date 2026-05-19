@@ -133,6 +133,8 @@ export const en = {
     audioAnalyzer: "Audio analyzer",
     koFi: "Support on Ko-fi",
     github: "GitHub Source",
+    support: "Support",
+    sourceCode: "Source Code",
   },
   notifications: {
     analyzing: "Analyzing BPM & key",

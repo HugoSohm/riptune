@@ -24,11 +24,8 @@ export function useDownloader() {
 
   const { customDir, cookies, downloadPlaylist, shouldDownload, autoAnalyze } =
     useConfigContext();
-
   const { addNotification, clearNotificationsFor } = useNotificationsContext();
-
   const { updateHistory, setLatest, setLatestPlaylist } = useHistoryContext();
-
   const { processFile } = useAudioProcessor();
 
   const handleDownload = async (
