@@ -1,5 +1,15 @@
 # RipTune Changelog
 
+## 0.3.6 (2026-05-21)
+
+### 🎵 Premium Integrated Audio Player
+- **Sleek Bottom Player**: A beautiful, persistent player bar with active animated equalizers has been added to the bottom of the screen.
+- **Perfect Alignment**: The play, pause, previous, and next controls are now perfectly centered on all screen sizes, and will never shift or move.
+- **Fluid Progress Timeline**: The timeline bar now advances smoothly without any jerky jumps.
+- **Glitch-Free Scrubbing**: Dragging the progress bar now behaves just like Spotify. You can scrub to any part of the track smoothly without any audio clicks or glitches.
+- **Clean Title Layout**: Very long song titles and artists are now neatly shortened with elegant hover tooltips to keep the layout clean and readable.
+- **Quick Actions from History**: Play, pause, or resume tracks instantly directly from your history list with synced equalizer animations in the table rows.
+
 ## 0.3.5 (2026-05-21)
 
 ### 🎨 UI Overhaul & What's New

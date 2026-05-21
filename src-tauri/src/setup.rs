@@ -27,6 +27,26 @@ fn setup_deep_link<R: Runtime>(app: &mut App<R>) -> Result<(), Box<dyn std::erro
 
 /// Calculate and apply optimal logical window dimensions based on screen real estate
 fn configure_window_dimensions<R: Runtime>(app: &App<R>) {
+    // ── Window Sizing Configuration Constants ─────────────────────────────────
+    // Screen thresholds to distinguish between compact and spacious monitors
+    const COMPACT_SCREEN_WIDTH_THRESHOLD: f64 = 1400.0;
+    const COMPACT_SCREEN_HEIGHT_THRESHOLD: f64 = 850.0;
+
+    // Compact Screens Configuration (e.g., small monitors or high-DPI scaling)
+    const COMPACT_WIDTH_SCALE: f64 = 0.65;
+    const COMPACT_HEIGHT_SCALE: f64 = 0.65;
+    const COMPACT_MIN_WIDTH: f64 = 960.0;
+    const COMPACT_MIN_HEIGHT: f64 = 680.0;
+
+    // Spacious Screens Configuration (large/high-res desktop monitors)
+    const SPACIOUS_WIDTH_SCALE: f64 = 0.65;
+    const SPACIOUS_HEIGHT_SCALE: f64 = 0.68;
+    const SPACIOUS_STARTUP_MIN_WIDTH: f64 = 1280.0;
+    const SPACIOUS_STARTUP_MIN_HEIGHT: f64 = 800.0;
+    const SPACIOUS_ABSOLUTE_MIN_WIDTH: f64 = 1140.0;
+    const SPACIOUS_ABSOLUTE_MIN_HEIGHT: f64 = 760.0;
+    // ─────────────────────────────────────────────────────────────────────────
+
     if let Some(monitor) = app.primary_monitor().ok().flatten() {
         let size = monitor.size();
         let scale_factor = monitor.scale_factor();
@@ -36,28 +56,28 @@ fn configure_window_dimensions<R: Runtime>(app: &App<R>) {
         let screen_logical_height = size.height as f64 / scale_factor;
 
         // Determine optimal window dimension limits based on actual screen space
-        let (default_width, default_height, min_w, min_h) =
-            if screen_logical_width < 1400.0 || screen_logical_height < 850.0 {
-                // Compact sizing for high-DPI scaling (e.g. 1080p with 125%/150% scaling) or smaller monitors
-                (
-                    (screen_logical_width * 0.50)
-                        .max(860.0)
-                        .min(screen_logical_width),
-                    (screen_logical_height * 0.55)
-                        .max(580.0)
-                        .min(screen_logical_height),
-                    860.0,
-                    580.0,
-                )
-            } else {
-                // Generous sizing for spacious screens
-                (
-                    (screen_logical_width * 0.50).max(1024.0),
-                    (screen_logical_height * 0.55).max(720.0),
-                    960.0,
-                    640.0,
-                )
-            };
+        let (default_width, default_height, min_w, min_h) = if screen_logical_width
+            < COMPACT_SCREEN_WIDTH_THRESHOLD
+            || screen_logical_height < COMPACT_SCREEN_HEIGHT_THRESHOLD
+        {
+            (
+                (screen_logical_width * COMPACT_WIDTH_SCALE)
+                    .max(COMPACT_MIN_WIDTH)
+                    .min(screen_logical_width),
+                (screen_logical_height * COMPACT_HEIGHT_SCALE)
+                    .max(COMPACT_MIN_HEIGHT)
+                    .min(screen_logical_height),
+                COMPACT_MIN_WIDTH,
+                COMPACT_MIN_HEIGHT,
+            )
+        } else {
+            (
+                (screen_logical_width * SPACIOUS_WIDTH_SCALE).max(SPACIOUS_STARTUP_MIN_WIDTH),
+                (screen_logical_height * SPACIOUS_HEIGHT_SCALE).max(SPACIOUS_STARTUP_MIN_HEIGHT),
+                SPACIOUS_ABSOLUTE_MIN_WIDTH,
+                SPACIOUS_ABSOLUTE_MIN_HEIGHT,
+            )
+        };
 
         if let Some(window) = app.get_webview_window("main") {
             // Dynamically override the minimum constraints first

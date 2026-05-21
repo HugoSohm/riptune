@@ -1,7 +1,7 @@
 {
   "name": "riptune",
   "private": true,
-  "version": "0.3.5",
+  "version": "0.3.6",
   "description": "RipTune - Analyze and download music from YouTube (BPM, Key, Metadata)",
   "author": "Hugo Sohm <no-reply@riptune.app>",
   "license": "AGPL-3.0-or-later",
@@ -42,7 +42,8 @@
     "lint:rs": "cargo clippy --manifest-path src-tauri/Cargo.toml",
     "format:rs": "cargo fmt --manifest-path src-tauri/Cargo.toml -- --check",
     "format:rs:fix": "cargo fmt --manifest-path src-tauri/Cargo.toml",
-    "check:rs": "cargo check --manifest-path src-tauri/Cargo.toml"
+    "check:rs": "cargo check --manifest-path src-tauri/Cargo.toml",
+    "update:rs": "cargo update --manifest-path src-tauri/Cargo.toml"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.11.0",

@@ -9,6 +9,7 @@ import {
   List,
   Loader2,
   MoreHorizontal,
+  Pause,
   Play,
   Search,
   Sparkles,
@@ -30,6 +31,13 @@ export default function History() {
     setShouldDownload,
     setAutoAnalyze,
     isTaskActive,
+    loadPlaylist,
+    currentTrack,
+    isPlaying,
+    isVisible,
+    reopenPlayer,
+    togglePlay,
+    addNotification,
   } = useApp();
   const { processFile } = useAudioProcessor();
   const { handleDownload } = useDownloader();
@@ -71,6 +79,37 @@ export default function History() {
     );
   });
   const displayed = filtered.slice(0, visibleCount);
+
+  // Playable items for building the full playlist on click
+  const playableItems = history.filter((i) => !i.isTemp && i.filepath);
+
+  const AUDIO_SERVER = "http://127.0.0.1:4774";
+
+  /** Click handler: check file exists before opening the player */
+  const handlePlayItem = async (item: (typeof history)[number]) => {
+    // If same track is already loaded, just reopen/resume
+    if (currentTrack?.id === item.id) {
+      if (isVisible) {
+        togglePlay();
+      } else {
+        reopenPlayer();
+      }
+      return;
+    }
+    // HEAD request to verify the file is accessible
+    const audioUrl = `${AUDIO_SERVER}/audio?path=${encodeURIComponent(item.filepath)}`;
+    try {
+      const res = await fetch(audioUrl, { method: "HEAD" });
+      if (!res.ok) {
+        addNotification(t.notifications.errorNotFound, "error");
+        return;
+      }
+    } catch (_) {
+      addNotification(t.notifications.errorNotFound, "error");
+      return;
+    }
+    loadPlaylist(playableItems, item.id);
+  };
 
   const getSource = (url: string) => {
     const l = url.toLowerCase();
@@ -127,11 +166,13 @@ export default function History() {
           <table className="w-full text-left border-separate border-spacing-0">
             <thead>
               <tr>
-                <th className="w-24 px-4 py-5 bg-[#161a22] border-b border-white/[0.07] rounded-tl-2xl pl-6">
-                  <span className="section-label">{t.history.tableSource}</span>
-                </th>
-                <th className="px-5 py-5 bg-[#161a22] border-b border-white/[0.07] w-[32%]">
+                {/* Play col — no label */}
+                <th className="w-14 px-3 py-5 bg-[#161a22] border-b border-white/[0.07] rounded-tl-2xl" />
+                <th className="px-5 py-5 bg-[#161a22] border-b border-white/[0.07] w-[30%]">
                   <span className="section-label">{t.history.tableTrack}</span>
+                </th>
+                <th className="w-20 px-4 py-5 bg-[#161a22] border-b border-white/[0.07] text-center">
+                  <span className="section-label">{t.history.tableSource}</span>
                 </th>
                 <th className="px-4 py-5 bg-[#161a22] border-b border-white/[0.07] w-[17%]">
                   <span className="section-label">{t.history.tableDate}</span>
@@ -150,7 +191,7 @@ export default function History() {
             <tbody>
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-8 py-20 text-center">
+                  <td colSpan={7} className="px-8 py-20 text-center">
                     <div className="w-14 h-14 mx-auto bg-white/[0.04] rounded-2xl flex items-center justify-center mb-3 border border-white/[0.06]">
                       <List className="w-7 h-7 text-slate-600" />
                     </div>
@@ -175,12 +216,88 @@ export default function History() {
                   return (
                     <tr
                       key={item.id}
-                      className="group/row border-b border-white/[0.04] last:border-none"
+                      className={`group/row border-b border-white/[0.04] last:border-none transition-colors duration-100 ${
+                        currentTrack?.id === item.id && isVisible
+                          ? "bg-violet-500/[0.04] border-violet-500/[0.06]"
+                          : ""
+                      }`}
                     >
-                      {/* Source icon */}
+                      {/* ── Play button ──────────────────────────────── */}
                       <td
-                        className={`pl-6 pr-2 py-[21px] ${isLast ? "rounded-bl-2xl" : ""}`}
+                        className={`px-3 py-[21px] ${isLast ? "rounded-bl-2xl" : ""}`}
                       >
+                        {!item.isTemp && item.filepath ? (
+                          <button
+                            type="button"
+                            onClick={() => handlePlayItem(item)}
+                            className="w-10 h-10 rounded-xl flex items-center justify-center relative overflow-hidden cursor-pointer group/play"
+                          >
+                            {/* Idle state: always shown when player is closed OR track is not active/playing */}
+                            <div
+                              className={`absolute inset-0 rounded-xl flex items-center justify-center text-slate-600 transition-all duration-150 ${
+                                currentTrack?.id === item.id &&
+                                isVisible &&
+                                isPlaying
+                                  ? "opacity-0"
+                                  : "group-hover/play:opacity-0"
+                              }`}
+                            >
+                              <Play className="w-4 h-4" />
+                            </div>
+
+                            {/* Playing equalizer state - shown when track is active, open, and playing (but hides on hover!) */}
+                            {currentTrack?.id === item.id &&
+                              isVisible &&
+                              isPlaying && (
+                                <div className="absolute inset-0 rounded-xl flex items-center justify-center bg-gradient-to-br from-violet-600/30 to-indigo-600/20 border border-violet-500/20 group-hover/play:opacity-0 transition-all duration-150">
+                                  <div className="flex items-end gap-[3px] h-4">
+                                    {[0, 1, 2].map((i) => (
+                                      <div
+                                        key={i}
+                                        className="w-[3px] rounded-full bg-violet-400"
+                                        style={{
+                                          height: "100%",
+                                          animation: `playerBar${i} 0.7s ease-in-out infinite alternate`,
+                                          animationDelay: `${i * 0.15}s`,
+                                        }}
+                                      />
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+
+                            {/* Hover / Active state: only shown when hovered */}
+                            <div className="absolute inset-0 rounded-xl flex items-center justify-center bg-violet-600 transition-all duration-150 opacity-0 group-hover/play:opacity-100">
+                              {currentTrack?.id === item.id &&
+                              isVisible &&
+                              isPlaying ? (
+                                <Pause className="w-4 h-4 fill-white text-white" />
+                              ) : (
+                                <Play className="w-4 h-4 fill-white text-white ml-0.5" />
+                              )}
+                            </div>
+                          </button>
+                        ) : (
+                          /* Non-playable (temp): grayed out play icon */
+                          <div className="w-10 h-10 rounded-xl flex items-center justify-center text-slate-700">
+                            <Play className="w-4 h-4" />
+                          </div>
+                        )}
+                      </td>
+
+                      {/* ── Track (title + artist) ───────────────────── */}
+                      <td className="px-5 py-[21px] min-w-0 max-w-0">
+                        <TruncatedText
+                          text={item.title}
+                          className="text-[15px] font-semibold text-white"
+                        />
+                        <div className="text-[12px] text-slate-500 mt-1 truncate">
+                          {item.artist || t.home.unknownArtist}
+                        </div>
+                      </td>
+
+                      {/* ── Source icon ───────────────────────────────── */}
+                      <td className="px-4 py-[21px] text-center">
                         <div className="group/src relative inline-block">
                           {src === "youtube" && (
                             <div className="w-10 h-10 rounded-xl bg-red-500/15 border border-red-500/25 flex items-center justify-center text-red-400">
@@ -197,8 +314,7 @@ export default function History() {
                               <HardDrive className="w-4 h-4" />
                             </div>
                           )}
-
-                          {/* Tooltip */}
+                          {/* Source tooltip */}
                           <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 px-2.5 py-1 bg-[#1e2330]/95 backdrop-blur-xl border border-white/[0.08] text-white text-[10px] font-medium rounded-lg shadow-xl whitespace-nowrap z-[100] pointer-events-none opacity-0 scale-95 group-hover/src:opacity-100 group-hover/src:scale-100 transition-all duration-150 group-hover/src:delay-[400ms] origin-bottom">
                             {src === "youtube"
                               ? t.history.sources.youtube
@@ -206,17 +322,6 @@ export default function History() {
                                 ? t.history.sources.soundcloud
                                 : t.history.sources.local}
                           </div>
-                        </div>
-                      </td>
-
-                      {/* Track */}
-                      <td className="px-5 py-[21px] min-w-0 max-w-0">
-                        <TruncatedText
-                          text={item.title}
-                          className="text-[15px] font-semibold text-white"
-                        />
-                        <div className="text-[12px] text-slate-500 mt-1 truncate">
-                          {item.artist || t.home.unknownArtist}
                         </div>
                       </td>
 
@@ -559,12 +664,28 @@ export default function History() {
                 })
               )}
               <tr ref={observerTarget} className="h-px">
-                <td colSpan={6} className="p-0 border-none" />
+                <td colSpan={7} className="p-0 border-none" />
               </tr>
             </tbody>
           </table>
         </div>
       </div>
+
+      {/* ── Equalizer bar keyframes (inline) ────────────────────── */}
+      <style>{`
+        @keyframes playerBar0 {
+          from { transform: scaleY(0.3); }
+          to   { transform: scaleY(1);   }
+        }
+        @keyframes playerBar1 {
+          from { transform: scaleY(0.6); }
+          to   { transform: scaleY(0.25); }
+        }
+        @keyframes playerBar2 {
+          from { transform: scaleY(0.2); }
+          to   { transform: scaleY(0.8); }
+        }
+      `}</style>
     </div>
   );
 }
