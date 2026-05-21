@@ -15,7 +15,6 @@ export default function ToggleRow({
   checked,
   onChange,
 }: ToggleRowProps) {
-
   return (
     <div className="flex items-center justify-between gap-6">
       <div className="flex-1">
