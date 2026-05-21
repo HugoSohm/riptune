@@ -82,7 +82,12 @@ hdiutil create -size 500m -fs HFS+ -volname "$VOLUME_NAME" "$TEMP_DMG"
 MOUNT_DIR="/Volumes/$VOLUME_NAME"
 # Unmount if already mounted
 hdiutil detach "$MOUNT_DIR" 2>/dev/null || true
-hdiutil attach "$TEMP_DMG"
+
+echo "Mounting temporary image..."
+ATTACH_INFO=$(hdiutil attach "$TEMP_DMG")
+echo "$ATTACH_INFO"
+DEV_NODE=$(echo "$ATTACH_INFO" | awk '/\/dev\/disk/{print $1; exit}')
+echo "Device node: $DEV_NODE"
 
 # Disable Spotlight indexing to prevent "Resource busy" issues
 mdutil -i off "$MOUNT_DIR" 2>/dev/null || true
@@ -128,24 +133,49 @@ end tell
 EOF
 
 # Unmount with robust retry logic and force fallback
-echo "Detaching volume $MOUNT_DIR..."
+echo "Detaching volume $MOUNT_DIR (Device: $DEV_NODE)..."
 # Give macOS a brief moment to finish updating .DS_Store
 sleep 2
 
 SUCCESS=false
 for i in {1..5}; do
-    if hdiutil detach "$MOUNT_DIR"; then
+    # Check if the volume/device is already detached
+    if ! hdiutil info | grep -q "$TEMP_DMG"; then
+        echo "Volume is no longer attached."
+        SUCCESS=true
+        break
+    fi
+
+    # Try detaching using device node first, then mount path
+    if [ -n "$DEV_NODE" ] && hdiutil detach "$DEV_NODE" >/dev/null 2>&1; then
+        SUCCESS=true
+        break
+    elif hdiutil detach "$MOUNT_DIR" >/dev/null 2>&1; then
         SUCCESS=true
         break
     else
+        # Double check if it got detached right after the attempt
+        if ! hdiutil info | grep -q "$TEMP_DMG"; then
+            echo "Volume detached successfully."
+            SUCCESS=true
+            break
+        fi
         echo "Volume is busy, retrying in 3 seconds ($i/5)..."
         sleep 3
     fi
 done
 
-if [ "$SUCCESS" = false ]; then
+if [ "$SUCCESS" = false ] && hdiutil info | grep -q "$TEMP_DMG"; then
     echo "Volume still busy, attempting force detach..."
-    hdiutil detach "$MOUNT_DIR" -force
+    if [ -n "$DEV_NODE" ]; then
+        hdiutil detach "$DEV_NODE" -force >/dev/null 2>&1 || \
+        hdiutil detach "$MOUNT_DIR" -force >/dev/null 2>&1 || \
+        diskutil eject "$DEV_NODE" >/dev/null 2>&1 || \
+        diskutil unmount force "$MOUNT_DIR" >/dev/null 2>&1 || true
+    else
+        hdiutil detach "$MOUNT_DIR" -force >/dev/null 2>&1 || \
+        diskutil unmount force "$MOUNT_DIR" >/dev/null 2>&1 || true
+    fi
 fi
 
 # Convert to compressed image
