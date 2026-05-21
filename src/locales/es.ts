@@ -79,7 +79,6 @@ export const es = {
     partialAnalysis: "Análisis parcial de pista",
     partialAnalysisDesc:
       "Analiza solo el primer minuto de la pista. El análisis es más rápido pero el BPM y la clave podrían ser menos precisos.",
-    partialAnalysisWarning: "El BPM y la clave podrían ser menos precisos",
     language: "Idioma",
     about: "Acerca de RipTune",
     aboutDesc:
@@ -141,6 +140,13 @@ export const es = {
     github: "Código fuente en GitHub",
     support: "Apoyar",
     sourceCode: "Código fuente",
+    whatsNew: "¿Qué hay de nuevo?",
+    updateAvailable: "Actualización disponible",
+  },
+  changelogModal: {
+    title: "Novedades y Actualizaciones",
+    subtitle: "Historial completo de versiones y mejoras de RipTune",
+    close: "Cerrar",
   },
   notifications: {
     analyzing: "Analizando BPM y Clave",

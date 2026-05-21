@@ -80,7 +80,6 @@ export const fr = {
     partialAnalysis: "Analyse audio partielle",
     partialAnalysisDesc:
       "Analyse uniquement la première minute du morceau. L'analyse est plus rapide mais le BPM et la clé risquent d'être moins précis.",
-    partialAnalysisWarning: "BPM & Clé risquent d'être moins précis",
     language: "Langue",
     about: "À propos de RipTune",
     aboutDesc:
@@ -143,6 +142,13 @@ export const fr = {
     github: "Code source sur GitHub",
     support: "Soutenir",
     sourceCode: "Code source",
+    whatsNew: "Quoi de neuf ?",
+    updateAvailable: "Mise à jour disponible",
+  },
+  changelogModal: {
+    title: "Nouveautés & Mises à jour",
+    subtitle: "Historique complet des versions et des améliorations de RipTune",
+    close: "Fermer",
   },
   notifications: {
     analyzing: "Analyse du BPM & de la clé",

@@ -7,8 +7,7 @@ import { useUpdater } from "../hooks/useUpdater";
 
 export default function TitleBar() {
   const { t } = useApp();
-  const { update, status, progress, errorMessage, installUpdate } =
-    useUpdater();
+  const { status, progress, errorMessage, installUpdate } = useUpdater();
   const appWindow = getCurrentWindow();
   const [version, setVersion] = useState<string>("");
   const [isMaximized, setIsMaximized] = useState(false);
@@ -82,7 +81,9 @@ export default function TitleBar() {
             {status === "available" ? (
               <>
                 <Sparkles className="w-3 h-3" />
-                <span>v{update?.version}</span>
+                <span>
+                  {t.titleBar.updateAvailable || "Mise à jour disponible"}
+                </span>
               </>
             ) : status === "error" ? (
               <>

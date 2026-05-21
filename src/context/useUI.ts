@@ -43,6 +43,7 @@ export function useUI() {
   const [dragActive, setDragActive] = useState(false);
   const [isPlaylist, setIsPlaylist] = useState(false);
   const [isBugModalOpen, setIsBugModalOpen] = useState(false);
+  const [isChangelogModalOpen, setIsChangelogModalOpen] = useState(false);
   const [url, setUrl] = useState("");
   const [format, setFormat] = useState("mp3");
   const [playlistProgress, setPlaylistProgress] =
@@ -74,6 +75,8 @@ export function useUI() {
     setIsPlaylist,
     isBugModalOpen,
     setIsBugModalOpen,
+    isChangelogModalOpen,
+    setIsChangelogModalOpen,
     url,
     setUrl,
     format,

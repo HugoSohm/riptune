@@ -173,7 +173,6 @@ export default function Settings() {
             description={t.settings.deleteFilesDesc}
             checked={deleteFilesOnHistoryDelete}
             onChange={setDeleteFilesOnHistoryDelete}
-            color="red"
           />
         </Section>
 
@@ -186,10 +185,8 @@ export default function Settings() {
           <ToggleRow
             label={t.settings.partialAnalysis}
             description={t.settings.partialAnalysisDesc}
-            warning={t.settings.partialAnalysisWarning}
             checked={partialAnalysis}
             onChange={setPartialAnalysis}
-            color="indigo"
           />
         </Section>
 
@@ -200,12 +197,12 @@ export default function Settings() {
           title={t.settings.cookies}
           description={t.settings.cookiesDesc.replace(/<[^>]+>/g, "")}
         >
-          <textarea
+          <input
+            type="text"
             value={cookies}
             onChange={(e) => setCookies(e.target.value)}
             placeholder='[ { "domain": ".youtube.com", ... } ] or # Netscape HTTP Cookie File'
-            rows={3}
-            className="w-full bg-[#0d0f14] border border-white/[0.08] rounded-xl px-4 py-3 text-slate-300 font-mono text-[11px] focus:outline-none focus:border-violet-500/40 transition-colors resize-none leading-relaxed placeholder-slate-600"
+            className="w-full bg-[#0d0f14] border border-white/[0.08] rounded-xl px-4 py-2.5 text-slate-300 font-mono text-[11px] focus:outline-none focus:border-violet-500/40 transition-colors placeholder-slate-600"
           />
         </Section>
 

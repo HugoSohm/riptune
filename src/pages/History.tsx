@@ -181,21 +181,32 @@ export default function History() {
                       <td
                         className={`pl-6 pr-2 py-[21px] ${isLast ? "rounded-bl-2xl" : ""}`}
                       >
-                        {src === "youtube" && (
-                          <div className="w-10 h-10 rounded-xl bg-red-500/15 border border-red-500/25 flex items-center justify-center text-red-400">
-                            <Play className="w-4 h-4 fill-red-400/20" />
+                        <div className="group/src relative inline-block">
+                          {src === "youtube" && (
+                            <div className="w-10 h-10 rounded-xl bg-red-500/15 border border-red-500/25 flex items-center justify-center text-red-400">
+                              <Play className="w-4 h-4 fill-red-400/20" />
+                            </div>
+                          )}
+                          {src === "soundcloud" && (
+                            <div className="w-10 h-10 rounded-xl bg-orange-500/15 border border-orange-500/25 flex items-center justify-center text-orange-400">
+                              <Cloud className="w-4 h-4 fill-orange-400/10" />
+                            </div>
+                          )}
+                          {src === "local" && (
+                            <div className="w-10 h-10 rounded-xl bg-slate-500/10 border border-slate-500/20 flex items-center justify-center text-slate-300">
+                              <HardDrive className="w-4 h-4" />
+                            </div>
+                          )}
+                          
+                          {/* Tooltip */}
+                          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 px-2.5 py-1 bg-[#1e2330]/95 backdrop-blur-xl border border-white/[0.08] text-white text-[10px] font-medium rounded-lg shadow-xl whitespace-nowrap z-[100] pointer-events-none opacity-0 scale-95 group-hover/src:opacity-100 group-hover/src:scale-100 transition-all duration-150 group-hover/src:delay-[400ms] origin-bottom">
+                            {src === "youtube"
+                              ? t.history.sources.youtube
+                              : src === "soundcloud"
+                                ? t.history.sources.soundcloud
+                                : t.history.sources.local}
                           </div>
-                        )}
-                        {src === "soundcloud" && (
-                          <div className="w-10 h-10 rounded-xl bg-orange-500/15 border border-orange-500/25 flex items-center justify-center text-orange-400">
-                            <Cloud className="w-4 h-4 fill-orange-400/10" />
-                          </div>
-                        )}
-                        {src === "local" && (
-                          <div className="w-10 h-10 rounded-xl bg-slate-500/10 border border-slate-500/20 flex items-center justify-center text-slate-300">
-                            <HardDrive className="w-4 h-4" />
-                          </div>
-                        )}
+                        </div>
                       </td>
 
                       {/* Track */}
@@ -286,8 +297,8 @@ export default function History() {
 
                               {/* Download / Open folder */}
                               {isTaskActive(item.id, "download") &&
-                              item.isTemp &&
-                              item.url ? (
+                                item.isTemp &&
+                                item.url ? (
                                 <div className="action-btn !w-10 !h-10 !rounded-xl !border-white/[0.06] !bg-white/[0.03]">
                                   <Loader2 className="w-4 h-4 animate-spin text-blue-400" />
                                 </div>
@@ -376,11 +387,10 @@ export default function History() {
                                       openMenuId === item.id ? null : item.id,
                                     )
                                   }
-                                  className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all border ${
-                                    openMenuId === item.id
-                                      ? "bg-white/[0.08] border-white/[0.1] text-white"
-                                      : "hover:bg-white/[0.05] border-transparent hover:border-white/[0.05] text-slate-400 hover:text-slate-200"
-                                  }`}
+                                  className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all border ${openMenuId === item.id
+                                    ? "bg-white/[0.08] border-white/[0.1] text-white"
+                                    : "hover:bg-white/[0.05] border-transparent hover:border-white/[0.05] text-slate-400 hover:text-slate-200"
+                                    }`}
                                 >
                                   <MoreHorizontal className="w-5 h-5" />
                                 </button>
@@ -418,17 +428,16 @@ export default function History() {
                                           item.bpm !== undefined || item.isTemp
                                         }
                                         className={`flex items-center gap-3 px-3.5 py-2.5 text-[13px] font-medium transition-colors w-full text-left
-                                          ${
-                                            item.bpm === undefined &&
+                                          ${item.bpm === undefined &&
                                             !item.isTemp
-                                              ? "text-slate-300 hover:bg-white/[0.06] hover:text-white"
-                                              : "text-slate-500 opacity-50 cursor-not-allowed"
+                                            ? "text-slate-300 hover:bg-white/[0.06] hover:text-white"
+                                            : "text-slate-500 opacity-50 cursor-not-allowed"
                                           }`}
                                       >
                                         <Sparkles className="w-4 h-4 shrink-0" />
                                         <span className="whitespace-nowrap">
                                           {item.bpm === undefined &&
-                                          !item.isTemp
+                                            !item.isTemp
                                             ? t.history.tooltips.analyze
                                             : t.history.tooltips.analyzed}
                                         </span>
@@ -437,8 +446,8 @@ export default function History() {
 
                                     {/* Download / Open folder */}
                                     {isTaskActive(item.id, "download") &&
-                                    item.isTemp &&
-                                    item.url ? (
+                                      item.isTemp &&
+                                      item.url ? (
                                       <div className="flex items-center gap-3 px-3.5 py-2.5 text-[13px] text-blue-400 bg-white/[0.02]">
                                         <Loader2 className="w-4 h-4 animate-spin shrink-0" />
                                         <span className="whitespace-nowrap">
@@ -480,10 +489,9 @@ export default function History() {
                                         }}
                                         disabled={item.isTemp}
                                         className={`flex items-center gap-3 px-3.5 py-2.5 text-[13px] font-medium transition-colors w-full text-left
-                                          ${
-                                            !item.isTemp
-                                              ? "text-slate-300 hover:bg-white/[0.06] hover:text-white"
-                                              : "text-slate-500 opacity-50 cursor-not-allowed"
+                                          ${!item.isTemp
+                                            ? "text-slate-300 hover:bg-white/[0.06] hover:text-white"
+                                            : "text-slate-500 opacity-50 cursor-not-allowed"
                                           }`}
                                       >
                                         <FolderOpen className="w-4 h-4 shrink-0" />
@@ -506,10 +514,9 @@ export default function History() {
                                       }}
                                       disabled={!item.url}
                                       className={`flex items-center gap-3 px-3.5 py-2.5 text-[13px] font-medium transition-colors w-full text-left
-                                        ${
-                                          item.url
-                                            ? "text-slate-300 hover:bg-white/[0.06] hover:text-white"
-                                            : "text-slate-500 opacity-50 cursor-not-allowed"
+                                        ${item.url
+                                          ? "text-slate-300 hover:bg-white/[0.06] hover:text-white"
+                                          : "text-slate-500 opacity-50 cursor-not-allowed"
                                         }`}
                                     >
                                       <ExternalLink className="w-4 h-4 shrink-0" />

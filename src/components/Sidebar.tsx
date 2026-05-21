@@ -1,11 +1,17 @@
 import { openUrl } from "@tauri-apps/plugin-opener";
-import { Bug, Coffee, History, Home, Settings2 } from "lucide-react";
+import { Bug, Coffee, History, Home, Settings2, Sparkles } from "lucide-react";
 import { useApp } from "../context/useApp";
 import FooterLink from "./FooterLink";
 import NavItem from "./NavItem";
 
 export default function Sidebar() {
-  const { activeTab, setActiveTab, setIsBugModalOpen, t } = useApp();
+  const {
+    activeTab,
+    setActiveTab,
+    setIsBugModalOpen,
+    setIsChangelogModalOpen,
+    t,
+  } = useApp();
 
   return (
     <aside className="w-[200px] min-w-[200px] flex flex-col h-full bg-[#0b0d12] border-r border-white/[0.07] shrink-0 z-10">
@@ -29,6 +35,18 @@ export default function Sidebar() {
           active={activeTab === "settings"}
           onClick={() => setActiveTab("settings")}
         />
+
+        {/* ── Quoi de neuf (Pill Premium et Ultra-Discrète) ──────────── */}
+        <div className="mt-auto pt-4 pb-1">
+          <button
+            type="button"
+            onMouseDown={() => setIsChangelogModalOpen(true)}
+            className="group flex items-center justify-start gap-2.5 w-full px-3 py-2 rounded-full border border-transparent hover:bg-violet-500/5 hover:border-violet-500/10 text-[12.5px] font-semibold text-slate-500 hover:text-violet-300 transition-all duration-150 cursor-pointer select-none active:scale-[0.98]"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-slate-500 group-hover:text-violet-400 group-hover:rotate-12 transition-all duration-300" />
+            <span>{t.titleBar.whatsNew || "Quoi de neuf ?"}</span>
+          </button>
+        </div>
       </nav>
 
       {/* ── Footer links ─────────────────────────────────────── */}

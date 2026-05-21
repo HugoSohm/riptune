@@ -1,6 +1,7 @@
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
 import { useEffect, useRef } from "react";
 import BugReportModal from "./components/BugReportModal";
+import ChangelogModal from "./components/ChangelogModal";
 import DeleteModal from "./components/DeleteModal";
 import Notifications from "./components/Notifications";
 import Sidebar from "./components/Sidebar";
@@ -66,6 +67,7 @@ function AppContent() {
       <Notifications />
       <DeleteModal />
       <BugReportModal />
+      <ChangelogModal />
     </div>
   );
 }
