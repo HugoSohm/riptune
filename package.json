@@ -45,7 +45,7 @@
     "check:rs": "cargo check --manifest-path src-tauri/Cargo.toml"
   },
   "dependencies": {
-    "@tauri-apps/api": "^2.10.1",
+    "@tauri-apps/api": "^2.11.0",
     "@tauri-apps/plugin-deep-link": "^2.4.8",
     "@tauri-apps/plugin-dialog": "^2.7.0",
     "@tauri-apps/plugin-fs": "^2.5.0",
@@ -59,7 +59,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.15",
-    "@tauri-apps/cli": "^2",
+    "@tauri-apps/cli": "^2.11.2",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
     "@vitejs/plugin-react": "^4.6.0",
