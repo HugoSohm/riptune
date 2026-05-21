@@ -84,6 +84,9 @@ MOUNT_DIR="/Volumes/$VOLUME_NAME"
 hdiutil detach "$MOUNT_DIR" 2>/dev/null || true
 hdiutil attach "$TEMP_DMG"
 
+# Disable Spotlight indexing to prevent "Resource busy" issues
+mdutil -i off "$MOUNT_DIR" 2>/dev/null || true
+
 # Copy files to the mounted image
 cp -R "$STAGING_DIR"/* "$MOUNT_DIR/"
 # Link to Applications
@@ -124,8 +127,26 @@ tell application "Finder"
 end tell
 EOF
 
-# Unmount
-hdiutil detach "$MOUNT_DIR"
+# Unmount with robust retry logic and force fallback
+echo "Detaching volume $MOUNT_DIR..."
+# Give macOS a brief moment to finish updating .DS_Store
+sleep 2
+
+SUCCESS=false
+for i in {1..5}; do
+    if hdiutil detach "$MOUNT_DIR"; then
+        SUCCESS=true
+        break
+    else
+        echo "Volume is busy, retrying in 3 seconds ($i/5)..."
+        sleep 3
+    fi
+done
+
+if [ "$SUCCESS" = false ]; then
+    echo "Volume still busy, attempting force detach..."
+    hdiutil detach "$MOUNT_DIR" -force
+fi
 
 # Convert to compressed image
 hdiutil convert "$TEMP_DMG" -format UDZO -o "$OUTPUT_DMG"
