@@ -1,5 +1,6 @@
 import type React from "react";
 import { createContext, useContext } from "react";
+import { useAudioPlayer } from "../hooks/useAudioPlayer";
 import { useConfig } from "./useConfig";
 import { useHistory } from "./useHistory";
 import { useNotifications } from "./useNotifications";
@@ -8,7 +9,8 @@ import { useUI } from "./useUI";
 type AppContextType = ReturnType<typeof useUI> &
   ReturnType<typeof useConfig> &
   ReturnType<typeof useNotifications> &
-  ReturnType<typeof useHistory>;
+  ReturnType<typeof useHistory> &
+  ReturnType<typeof useAudioPlayer>;
 
 export const AppContext = createContext<AppContextType | undefined>(undefined);
 
@@ -66,12 +68,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const configState = useConfig();
   const notificationState = useNotifications();
   const historyState = useHistory(configState.deleteFilesOnHistoryDelete);
+  const audioPlayerState = useAudioPlayer();
 
   const appState = {
     ...uiState,
     ...configState,
     ...notificationState,
     ...historyState,
+    ...audioPlayerState,
   };
 
   return (

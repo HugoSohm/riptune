@@ -1,5 +1,6 @@
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
 import { useEffect, useRef } from "react";
+import AudioPlayer from "./components/AudioPlayer";
 import BugReportModal from "./components/BugReportModal";
 import ChangelogModal from "./components/ChangelogModal";
 import DeleteModal from "./components/DeleteModal";
@@ -18,7 +19,7 @@ import Settings from "./pages/Settings";
 import { trackEvent } from "./utils/analytics";
 
 function AppContent() {
-  const { activeTab, setPlaylistProgress } = useApp();
+  const { activeTab, setPlaylistProgress, ...audioPlayerProps } = useApp();
   useDragDrop();
   const { handleDownload } = useDownloader();
   useFullscreenShortcut();
@@ -63,6 +64,9 @@ function AppContent() {
           </div>
         </div>
       </div>
+
+      {/* Audio player bar */}
+      <AudioPlayer {...audioPlayerProps} />
 
       <Notifications />
       <DeleteModal />
