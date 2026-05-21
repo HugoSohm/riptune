@@ -1,16 +1,25 @@
+import { invoke } from "@tauri-apps/api/core";
+import { open } from "@tauri-apps/plugin-dialog";
 import {
+  Check,
+  Copy,
   Download,
+  Folder,
   FolderOpen,
   Loader2,
   Music,
-  Play,
+  UploadCloud,
   XCircle,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import CheckPill from "../components/CheckPill";
 import CustomSelect from "../components/CustomSelect";
+import StatCard from "../components/StatCard";
 import { useApp } from "../context/useApp";
+import { useAudioProcessor } from "../hooks/useAudioProcessor";
 import { useDownloader } from "../hooks/useDownloader";
 
+/* ─── Home page ─────────────────────────────────────────────── */
 export default function Home() {
   const {
     isTaskActive,
@@ -25,25 +34,57 @@ export default function Home() {
     setAutoAnalyze,
     downloadPlaylist,
     setDownloadPlaylist,
-    handleOpenFile,
     url,
     setUrl,
     format,
     setFormat,
+    dragActive,
   } = useApp();
 
-  // A pure /playlist URL forces the playlist toggle on and locked
   const isPurePlaylistUrl =
     /\/playlist\?list=/i.test(url) || /\/sets\//i.test(url);
-
-  const [formatSelectOpen, setFormatSelectOpen] = useState(false);
-  // Track the task ID of the download started from Home to show Cancel correctly
   const homeTaskIdRef = useRef<string | null>(null);
   const [homeTaskId, setHomeTaskId] = useState<string | null>(null);
-
   const { handleDownload, handleCancelDownload } = useDownloader();
-
+  const { processFile } = useAudioProcessor();
   const isHomeTaskActive = homeTaskId !== null && isTaskActive(homeTaskId);
+  const [trackCopied, setTrackCopied] = useState(false);
+
+  const handleCopyTrack = async (text: string, filepath?: string) => {
+    try {
+      if (filepath) {
+        await invoke("copy_file_to_clipboard", { filepath });
+      } else {
+        await navigator.clipboard.writeText(text);
+      }
+      setTrackCopied(true);
+      setTimeout(() => setTrackCopied(false), 1500);
+    } catch (err) {
+      console.error("Failed to copy file", err);
+      await navigator.clipboard.writeText(text);
+      setTrackCopied(true);
+      setTimeout(() => setTrackCopied(false), 1500);
+    }
+  };
+
+  const handleBrowseFile = async () => {
+    try {
+      const selected = await open({
+        multiple: false,
+        filters: [
+          {
+            name: "Audio Files",
+            extensions: ["mp3", "wav", "flac", "m4a", "ogg", "aac", "wma"],
+          },
+        ],
+      });
+      if (selected && typeof selected === "string") {
+        processFile(selected);
+      }
+    } catch (error) {
+      console.error("Failed to browse audio file", error);
+    }
+  };
 
   useEffect(() => {
     if (url.includes("list=") || url.includes("/sets/")) {
@@ -52,390 +93,347 @@ export default function Home() {
       setIsPlaylist(false);
       setDownloadPlaylist(false);
     }
-
-    // Auto-force playlist mode for pure playlist URLs (not videos within a playlist)
-    if (isPurePlaylistUrl) {
-      setDownloadPlaylist(true);
-    }
+    if (isPurePlaylistUrl) setDownloadPlaylist(true);
   }, [url, isPurePlaylistUrl, setIsPlaylist, setDownloadPlaylist]);
 
-  const startHomeDownload = () => {
-    const taskId = crypto.randomUUID();
-    homeTaskIdRef.current = taskId;
-    setHomeTaskId(taskId);
-    handleDownload(undefined, undefined, undefined, taskId).finally(() => {
+  const startDownload = () => {
+    const id = crypto.randomUUID();
+    homeTaskIdRef.current = id;
+    setHomeTaskId(id);
+    handleDownload(undefined, undefined, undefined, id).finally(() => {
       homeTaskIdRef.current = null;
       setHomeTaskId(null);
     });
   };
 
-  const cancelHomeDownload = () => {
-    const taskId = homeTaskIdRef.current;
-    setHomeTaskId(null);
-    homeTaskIdRef.current = null;
-    if (taskId) handleCancelDownload(taskId);
+  const isValidUrl = (v: string) => {
+    const t = v.trim();
+    if (!t) return false;
+    const isYoutube = /youtube\.com|youtu\.be|youtube-nocookie\.com/i.test(t);
+    const isSoundcloud = /soundcloud\.com/i.test(t);
+    if (!isYoutube && !isSoundcloud) return false;
+    try {
+      const urlString =
+        t.startsWith("http://") || t.startsWith("https://")
+          ? t
+          : `https://${t}`;
+      const parsed = new URL(urlString);
+      return parsed.pathname.length > 1;
+    } catch {
+      return false;
+    }
   };
 
-  const isValidUrl = (val: string) => {
-    const trimmed = val.trim();
-    const youtubeRegex =
-      /^(https?:\/\/)?([a-z0-9-]+\.)?(youtube\.com|youtu\.be|youtube-nocookie\.com)\/.+$/i;
-    const soundcloudRegex =
-      /^(https?:\/\/)?(www\.)?(on\.)?soundcloud\.com\/.+$/i;
-    return youtubeRegex.test(trimmed) || soundcloudRegex.test(trimmed);
-  };
+  const urlInvalid = url && !isValidUrl(url);
 
   return (
-    <div className="w-full flex flex-col items-center max-w-2xl animate-in fade-in slide-in-from-bottom-4 duration-500 gap-5 my-auto py-2">
-      <div className="text-center w-full">
-        <h1 className="text-4xl md:text-5xl font-black tracking-tighter mb-4 bg-clip-text text-transparent bg-gradient-to-r from-purple-500 via-indigo-400 to-blue-500 pb-2 drop-shadow-sm select-none">
-          {t.home.title}
-        </h1>
-        <p
-          className="text-sm md:text-base text-slate-400 max-w-lg mx-auto mb-8 select-none"
-          dangerouslySetInnerHTML={{ __html: t.home.description }}
-        />
-
-        <div className="flex flex-wrap justify-center items-center gap-3 md:gap-6 mb-8">
-          <div className="group relative">
-            <div className="flex items-center gap-2 bg-[#111728] border border-white/5 rounded-full px-4 py-2 hover:border-white/20 transition-colors select-none">
-              <span className="text-xs font-medium tracking-widest text-slate-400 uppercase">
-                {t.home.format}
-              </span>
-              <CustomSelect
-                options={[
-                  { value: "mp3", label: "MP3" },
-                  { value: "wav", label: "WAV" },
-                  { value: "flac", label: "FLAC" },
-                  { value: "m4a", label: "M4A" },
-                ]}
-                value={format}
-                onChange={setFormat}
-                variant="small"
-                className="min-w-[60px]"
-                onOpenChange={setFormatSelectOpen}
-              />
-            </div>
-            {!formatSelectOpen && (
-              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 px-3 py-1.5 bg-slate-900/90 backdrop-blur-md border border-white/10 text-white text-[11px] rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-300 delay-0 group-hover:delay-500 pointer-events-none whitespace-nowrap z-50 shadow-2xl scale-95 group-hover:scale-100 font-medium">
-                {t.home.formatTooltip}
-              </div>
-            )}
-          </div>
-
-          <div className="group relative">
-            <label className="flex items-center gap-2 cursor-pointer bg-[#111728] border border-white/5 rounded-full px-5 py-2 transition-all hover:bg-white/10 hover:border-white/20 select-none">
-              <input
-                type="checkbox"
-                checked={shouldDownload}
-                onChange={(e) => {
-                  setShouldDownload(e.target.checked);
-                }}
-                disabled={isHomeTaskActive}
-                className="w-4 h-4 rounded appearance-none border-2 border-slate-600 checked:border-purple-500 checked:bg-purple-500 transition-colors cursor-pointer relative flex items-center justify-center after:content-[''] after:w-1.5 after:h-2.5 after:border-r-2 after:border-b-2 after:border-white after:rotate-45 after:hidden checked:after:block after:-mt-0.5 disabled:cursor-not-allowed"
-              />
-              <span className="text-sm font-medium text-slate-300">
-                {t.home.download}
-              </span>
-            </label>
-            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 px-3 py-1.5 bg-slate-900/90 backdrop-blur-md border border-white/10 text-white text-[11px] rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-300 delay-0 group-hover:delay-500 pointer-events-none whitespace-nowrap z-50 shadow-2xl scale-95 group-hover:scale-100 font-medium text-center">
-              {t.home.downloadTooltip}
-            </div>
-          </div>
-
-          <div className="group relative">
-            <label
-              className={`flex items-center gap-2 cursor-pointer bg-[#111728] border border-white/5 rounded-full px-5 py-2 transition-all hover:bg-white/10 hover:border-white/20 select-none`}
-            >
-              <input
-                type="checkbox"
-                checked={autoAnalyze}
-                onChange={(e) => setAutoAnalyze(e.target.checked)}
-                disabled={isHomeTaskActive}
-                className="w-4 h-4 rounded appearance-none border-2 border-slate-600 checked:border-purple-500 checked:bg-purple-500 transition-colors cursor-pointer relative flex items-center justify-center after:content-[''] after:w-1.5 after:h-2.5 after:border-r-2 after:border-b-2 after:border-white after:rotate-45 after:hidden checked:after:block after:-mt-0.5 disabled:cursor-not-allowed"
-              />
-              <span className={`text-sm font-medium text-slate-300`}>
-                {t.home.analyze}
-              </span>
-            </label>
-            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 px-3 py-1.5 bg-slate-900/90 backdrop-blur-md border border-white/10 text-white text-[11px] rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-300 delay-0 group-hover:delay-500 pointer-events-none whitespace-nowrap z-50 shadow-2xl scale-95 group-hover:scale-100 font-medium text-center">
-              {t.home.analyzeTooltip}
-            </div>
-          </div>
-
-          <div className="group relative">
-            <label
-              className={`flex items-center gap-2 cursor-pointer bg-[#111728] border border-white/5 rounded-full px-5 py-2 transition-all select-none ${
-                !isPlaylist
-                  ? "opacity-30 grayscale cursor-not-allowed"
-                  : isPurePlaylistUrl
-                    ? "opacity-70 cursor-not-allowed border-blue-500/30 ring-1 ring-blue-500/20"
-                    : "hover:bg-white/10 hover:border-white/20"
-              }`}
-            >
-              <input
-                type="checkbox"
-                checked={downloadPlaylist}
-                onChange={(e) => setDownloadPlaylist(e.target.checked)}
-                disabled={isHomeTaskActive || !isPlaylist || isPurePlaylistUrl}
-                className="w-4 h-4 rounded appearance-none border-2 border-slate-600 checked:border-blue-500 checked:bg-blue-500 transition-colors cursor-pointer relative flex items-center justify-center after:content-[''] after:w-1.5 after:h-2.5 after:border-r-2 after:border-b-2 after:border-white after:rotate-45 after:hidden checked:after:block after:-mt-0.5 disabled:cursor-not-allowed"
-              />
-              <span
-                className={`text-sm font-medium ${!isPlaylist ? "text-slate-600" : "text-slate-300"}`}
-              >
-                {t.home.playlist}
-              </span>
-            </label>
-            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 px-3 py-1.5 bg-slate-900/90 backdrop-blur-md border border-white/10 text-white text-[11px] rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-300 delay-0 group-hover:delay-500 pointer-events-none whitespace-nowrap z-50 shadow-2xl scale-95 group-hover:scale-100 font-medium text-center">
-              {isPurePlaylistUrl
-                ? "Required for playlist pages"
-                : t.home.playlistTooltipFull}
-            </div>
-          </div>
+    <div className="flex flex-col gap-6 pb-6 anim-fade-up">
+      {/* ── URL input card (first) ───────────────────────────── */}
+      <div className="card p-5 relative z-20 anim-fade-up">
+        <div className="flex items-center gap-2 mb-4 select-none">
+          <div className="w-1.5 h-1.5 rounded-full bg-violet-500" />
+          <span className="section-label">
+            {t.home.analyze} / {t.home.download}
+          </span>
         </div>
 
-        <div className="w-full mb-4">
-          <div className="relative group w-full">
-            <div
-              className={`absolute inset-0 bg-gradient-to-r ${url && !isValidUrl(url) ? "from-red-500 to-orange-500" : "from-purple-500 to-blue-500"} rounded-3xl blur-xl opacity-20 group-hover:opacity-40 transition-opacity duration-500`}
+        <div
+          className={`flex items-center bg-[#0d0f14] border rounded-xl overflow-hidden transition-colors duration-200
+          ${urlInvalid ? "border-red-500/40" : "border-white/[0.08] focus-within:border-violet-500/40"}`}
+        >
+          <input
+            type="text"
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            placeholder={t.home.urlPlaceholder}
+            disabled={isHomeTaskActive}
+            className="flex-1 bg-transparent border-none text-sm text-white px-4 py-3 caret-violet-400 focus:outline-none focus:ring-0 placeholder-slate-600 focus:placeholder-transparent disabled:opacity-50"
+          />
+          <button
+            type="button"
+            onClick={() => {
+              if (isHomeTaskActive) {
+                if (homeTaskIdRef.current) {
+                  handleCancelDownload(homeTaskIdRef.current);
+                }
+                setHomeTaskId(null);
+                homeTaskIdRef.current = null;
+              } else {
+                startDownload();
+              }
+            }}
+            disabled={
+              !isHomeTaskActive &&
+              (!url || !isValidUrl(url) || (!shouldDownload && !autoAnalyze))
+            }
+            className="group shrink-0 m-1.5 h-9 w-9 rounded-lg bg-white text-[#0d0f14] flex items-center justify-center hover:bg-slate-200 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+          >
+            {!isHomeTaskActive ? (
+              <Download className="w-4 h-4 transition-transform duration-200 group-hover:scale-110" />
+            ) : (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin text-violet-600" />
+                <XCircle className="w-4 h-4 text-red-500 hidden" />
+              </>
+            )}
+          </button>
+        </div>
+
+        {urlInvalid && (
+          <div className="flex items-center gap-1.5 mt-2 text-red-400 text-xs">
+            <XCircle className="w-3 h-3" />
+            <span>{t.home.invalidUrl}</span>
+          </div>
+        )}
+
+        {/* Options row */}
+        <div className="flex items-center flex-wrap gap-2 mt-4 pt-4 border-t border-white/[0.06]">
+          <div className="flex items-center h-9 gap-2 px-4 rounded-xl border border-white/[0.06] bg-transparent">
+            <span className="section-label">{t.home.format}</span>
+            <CustomSelect
+              options={[
+                { value: "mp3", label: "MP3" },
+                { value: "wav", label: "WAV" },
+                { value: "flac", label: "FLAC" },
+                { value: "m4a", label: "M4A" },
+              ]}
+              value={format}
+              onChange={setFormat}
+              variant="small"
+              className="min-w-[60px]"
             />
-            <div
-              className={`relative bg-[#111728]/80 backdrop-blur-2xl border ${url && !isValidUrl(url) ? "border-red-500/50" : "border-white/10"} rounded-[1.25rem] p-1.5 flex items-center shadow-2xl transition-all duration-300`}
-            >
-              <input
-                type="text"
-                value={url}
-                onChange={(e) => setUrl(e.target.value)}
-                placeholder={t.home.urlPlaceholder}
-                disabled={isHomeTaskActive}
-                className="flex-1 bg-transparent border-none text-base md:text-lg text-white px-5 py-3 focus:outline-none focus:ring-0 placeholder-slate-600 disabled:opacity-50"
-              />
-              <button
-                type="button"
-                onClick={() =>
-                  isHomeTaskActive ? cancelHomeDownload() : startHomeDownload()
-                }
-                disabled={
-                  !isHomeTaskActive &&
-                  (!url ||
-                    !isValidUrl(url) ||
-                    (!shouldDownload && !autoAnalyze))
-                }
-                className="shrink-0 group/cancel relative overflow-hidden h-12 w-12 rounded-xl bg-white text-[#0a0f1c] font-bold text-lg flex items-center justify-center hover:bg-slate-200 transition-all disabled:opacity-50 disabled:cursor-not-allowed border border-white/10"
-              >
-                {!isHomeTaskActive ? (
-                  <Download className="w-5 h-5" />
-                ) : (
-                  <>
-                    <Loader2 className="w-5 h-5 animate-spin group-hover/cancel:opacity-0 transition-opacity text-purple-600" />
-                    <XCircle className="w-6 h-6 absolute inset-0 m-auto opacity-0 group-hover/cancel:opacity-100 transition-opacity animate-in zoom-in-50 duration-200 text-red-500" />
-                  </>
-                )}
-              </button>
-            </div>
           </div>
+          <CheckPill
+            label={t.home.download}
+            checked={shouldDownload}
+            onChange={setShouldDownload}
+            disabled={isHomeTaskActive}
+          />
+          <CheckPill
+            label={t.home.analyze}
+            checked={autoAnalyze}
+            onChange={setAutoAnalyze}
+            disabled={isHomeTaskActive}
+          />
+          <CheckPill
+            label={t.home.playlist}
+            checked={downloadPlaylist}
+            onChange={setDownloadPlaylist}
+            disabled={isHomeTaskActive || !isPlaylist || isPurePlaylistUrl}
+            accent="blue"
+          />
+        </div>
+      </div>
 
-          <div className="h-6 mt-2 flex items-center justify-center">
-            {url && !isValidUrl(url) && (
-              <div className="animate-in slide-in-from-top-1 fade-in duration-300 flex items-center justify-center gap-2 text-red-400 text-xs font-semibold">
-                <XCircle className="w-3 h-3" />
-                <span>{t.home.invalidUrl}</span>
-              </div>
-            )}
+      {/* ── Delimiter ────────────────────────────────────────── */}
+      <div className="flex items-center gap-4 py-1 select-none anim-delay-1 anim-fade-up">
+        <div className="flex-1 h-px bg-white/[0.04]" />
+        <span className="text-[10px] font-bold tracking-[0.2em] text-slate-600">
+          {t.home.or}
+        </span>
+        <div className="flex-1 h-px bg-white/[0.04]" />
+      </div>
+
+      {/* ── Drag & Drop Area (second) ────────────────────────── */}
+      <div
+        onClick={handleBrowseFile}
+        className={`group/drop card p-5 border-2 border-dashed flex items-center justify-between gap-4 cursor-pointer transition-all duration-300 min-h-[90px] relative overflow-hidden anim-delay-1 anim-fade-up ${dragActive ? "border-violet-500 bg-violet-500/10 shadow-[0_0_30px_rgba(139,92,246,0.25)] scale-[1.01]" : "border-white/[0.06] hover:border-violet-500/25 bg-white/[0.01] hover:bg-violet-500/[0.02]"}`}
+      >
+        <div className="absolute inset-0 bg-gradient-to-r from-violet-600/0 to-indigo-600/0 group-hover/drop:to-indigo-600/[0.015] transition-all duration-300 pointer-events-none" />
+
+        <div className="flex items-center gap-4 z-10">
+          <div
+            className={`w-10 h-10 rounded-xl border flex items-center justify-center transition-all duration-300 shrink-0 ${dragActive ? "border-violet-500 bg-violet-500/20 text-violet-400" : "bg-white/[0.03] border-white/[0.06] group-hover/drop:border-violet-500/20 group-hover/drop:bg-violet-500/10 text-slate-400 group-hover/drop:text-violet-400"}`}
+          >
+            <UploadCloud className="w-5 h-5 transition-transform duration-300 group-hover/drop:scale-110" />
+          </div>
+          <div className="text-left">
+            <p className="text-[13px] font-semibold text-white">
+              {t.home.dropTitle}
+            </p>
+            <p className="text-[11px] text-slate-500 mt-0.5">
+              {t.home.dropDesc}
+            </p>
           </div>
         </div>
 
-        <div className="w-full grid grid-cols-2 gap-3 mt-2 animate-in slide-in-from-bottom-8 fade-in duration-700">
-          {/* BPM Card */}
-          <div
-            className={`group relative rounded-[1.25rem] bg-gradient-to-b from-purple-500/10 to-transparent p-[1.5px] transition-all duration-500`}
-          >
-            <div
-              className={`relative h-full w-full bg-[#111728]/90 backdrop-blur-sm rounded-[1.2rem] border ${!latest?.bpm ? "border-white/5 border-dashed opacity-40" : "border-white/5 shadow-2xl"} flex flex-col items-center justify-center py-6 px-4 overflow-visible transition-all duration-500`}
-            >
-              {latest?.bpm && (
-                <div className="absolute top-3 right-3 group/tooltip cursor-default">
-                  {(latest.bpmFromYoutube ?? latest.fromYoutubeDesc) ? (
-                    <Play className="w-5 h-5 text-red-500 opacity-80 transition-transform group-hover/tooltip:scale-110" />
-                  ) : (
-                    <svg
-                      aria-hidden="true"
-                      className="w-4 h-4 -rotate-90 transform"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="text-white/5"
-                        strokeWidth="3"
-                        stroke="currentColor"
-                        fill="transparent"
-                        r="10"
-                        cx="12"
-                        cy="12"
-                      />
-                      <circle
-                        className="text-purple-500 transition-all duration-1000 ease-out"
-                        strokeWidth="3"
-                        strokeDasharray={2 * Math.PI * 10}
-                        strokeDashoffset={
-                          2 * Math.PI * 10 * (1 - (latest.bpmConfidence || 0.8))
-                        }
-                        strokeLinecap="round"
-                        stroke="currentColor"
-                        fill="transparent"
-                        r="10"
-                        cx="12"
-                        cy="12"
-                      />
-                    </svg>
-                  )}
-                  <div className="absolute bottom-full right-0 mb-2 px-3 py-1.5 bg-slate-900/95 backdrop-blur-md border border-white/10 text-white text-[10px] rounded-xl opacity-0 group-hover/tooltip:opacity-100 transition-all duration-300 delay-0 group-hover/tooltip:delay-500 pointer-events-none whitespace-nowrap z-50 shadow-2xl font-bold uppercase tracking-wider">
-                    {(latest.bpmFromYoutube ?? latest.fromYoutubeDesc)
-                      ? t.home.fromYoutube
-                      : t.home.confidenceTooltip}
-                  </div>
-                </div>
-              )}
+        <span
+          className={`text-[11px] font-medium transition-colors z-10 px-3 py-1.5 rounded-lg shrink-0 ${dragActive ? "text-white bg-violet-500/20 border border-violet-500/30" : "text-violet-400 bg-white/[0.03] border border-white/[0.06] group-hover/drop:border-violet-500/20 group-hover/drop:text-violet-300"}`}
+        >
+          {t.home.browse}
+        </span>
+      </div>
 
-              <div className="h-16 flex items-center justify-center">
-                {latest?.bpm && (
-                  <span
-                    className={`text-3xl md:text-4xl lg:text-5xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-br from-white to-purple-400 drop-shadow-md leading-normal select-text`}
-                  >
-                    {latest.bpm}
-                  </span>
-                )}
-              </div>
+      {/* ── Delimiter (simple) ────────────────────────────────── */}
+      <div className="h-px bg-white/[0.04] w-full anim-delay-2 anim-fade-up" />
 
-              <span className="mt-2 text-[9px] font-bold text-slate-500 underline decoration-purple-500/20 underline-offset-4 tracking-[0.2em] uppercase select-none">
-                {t.home.bpm}
-              </span>
-            </div>
-          </div>
-
-          {/* Key Card */}
-          <div
-            className={`group relative rounded-[1.25rem] bg-gradient-to-b from-blue-500/10 to-transparent p-[1.5px] transition-all duration-500`}
-          >
-            <div
-              className={`relative h-full w-full bg-[#111728]/90 backdrop-blur-sm rounded-[1.2rem] border ${!latest?.key ? "border-white/5 border-dashed opacity-40" : "border-white/5 shadow-2xl"} flex flex-col items-center justify-center py-6 px-4 overflow-visible transition-all duration-500`}
-            >
-              {latest?.key && (
-                <div className="absolute top-3 right-3 group/tooltip cursor-default">
-                  {(latest.keyFromYoutube ?? latest.fromYoutubeDesc) ? (
-                    <Play className="w-5 h-5 text-red-500 opacity-80 transition-transform group-hover/tooltip:scale-110" />
-                  ) : (
-                    <svg
-                      aria-hidden="true"
-                      className="w-4 h-4 -rotate-90 transform"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="text-white/5"
-                        strokeWidth="3"
-                        stroke="currentColor"
-                        fill="transparent"
-                        r="10"
-                        cx="12"
-                        cy="12"
-                      />
-                      <circle
-                        className="text-blue-500 transition-all duration-1000 ease-out"
-                        strokeWidth="3"
-                        strokeDasharray={2 * Math.PI * 10}
-                        strokeDashoffset={
-                          2 * Math.PI * 10 * (1 - (latest.keyStrength || 0.5))
-                        }
-                        strokeLinecap="round"
-                        stroke="currentColor"
-                        fill="transparent"
-                        r="10"
-                        cx="12"
-                        cy="12"
-                      />
-                    </svg>
-                  )}
-                  <div className="absolute bottom-full right-0 mb-2 px-3 py-1.5 bg-slate-900/95 backdrop-blur-md border border-white/10 text-white text-[10px] rounded-xl opacity-0 group-hover/tooltip:opacity-100 transition-all duration-300 delay-0 group-hover/tooltip:delay-500 pointer-events-none whitespace-nowrap z-50 shadow-2xl font-bold uppercase tracking-wider">
-                    {(latest.keyFromYoutube ?? latest.fromYoutubeDesc)
-                      ? t.home.fromYoutube
-                      : t.home.confidenceTooltip}
-                  </div>
-                </div>
-              )}
-
-              <div className="h-14 flex items-center justify-center">
-                {latest?.key && (
-                  <span
-                    className={`text-2xl md:text-3xl lg:text-4xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-bl from-white to-blue-400 drop-shadow-md leading-relaxed z-10 select-text`}
-                  >
-                    {latest.key}
-                  </span>
-                )}
-              </div>
-
-              <span className="mt-2 text-[9px] font-bold text-slate-500 underline decoration-blue-500/20 underline-offset-4 tracking-[0.2em] uppercase select-none">
-                {t.home.key}
-              </span>
-            </div>
-          </div>
+      {/* ── Stat row: BPM + Key (second) ─────────────────────── */}
+      <div className="flex flex-col gap-6 max-w-[900px] mx-auto w-full">
+        <div className="flex gap-4 anim-delay-2 anim-fade-up">
+          <StatCard
+            label={t.home.bpm}
+            value={!latestPlaylist ? latest?.bpm : undefined}
+            sub={
+              !latestPlaylist && latest?.bpm
+                ? (latest.bpmFromYoutube ?? latest.fromYoutubeDesc)
+                  ? t.home.fromYoutube
+                  : `~${Math.round((latest.bpmConfidence ?? 0.8) * 100)}% ${t.home.confidence}`
+                : undefined
+            }
+            accent="violet"
+            empty={!!latestPlaylist || !latest?.bpm}
+            copiableValue={!latestPlaylist ? latest?.bpm : undefined}
+            copiedLabel={t.home.copied}
+          />
+          <StatCard
+            label={t.home.key}
+            value={!latestPlaylist ? latest?.key : undefined}
+            sub={
+              !latestPlaylist && latest?.key
+                ? (latest.keyFromYoutube ?? latest.fromYoutubeDesc)
+                  ? t.home.fromYoutube
+                  : `~${Math.round((latest.keyStrength ?? 0.5) * 100)}% ${t.home.confidence}`
+                : undefined
+            }
+            accent="indigo"
+            empty={!!latestPlaylist || !latest?.key}
+            copiableValue={!latestPlaylist ? latest?.key : undefined}
+            copiedLabel={t.home.copied}
+          />
         </div>
 
-        <div className="mt-8 text-center w-full flex justify-center min-h-[64px]">
-          {latestPlaylist ? (
-            <div
-              className={`w-full max-w-lg relative flex items-center gap-3 bg-blue-500/10 backdrop-blur-md border border-blue-500/20 rounded-2xl p-2.5 pr-4 transition-all group/file animate-in fade-in slide-in-from-top-4 duration-500 hover:bg-blue-500/20 cursor-pointer`}
-              onClick={() => handleOpenFile(latestPlaylist.filepath)}
-            >
-              <div className="w-11 h-11 rounded-xl bg-blue-500/20 border border-blue-500/20 flex items-center justify-center shrink-0">
-                <FolderOpen className="w-5 h-5 text-blue-400" />
+        {/* ── Last Processed Track card (third) ───────────────── */}
+        {latestPlaylist && (
+          <div className="card p-4 flex items-center justify-between gap-4 anim-delay-3 anim-fade-up">
+            <div className="flex items-center gap-3.5 min-w-0">
+              <div className="w-10 h-10 rounded-xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center text-violet-400 shrink-0">
+                <Folder className="w-5 h-5" />
               </div>
-              <div className="flex-1 text-left min-w-0">
-                <h3 className="text-base font-bold text-white truncate tracking-tight mb-0.5">
+              <div className="min-w-0">
+                <p className="text-[13px] font-semibold text-white truncate">
                   {latestPlaylist.title}
-                </h3>
-                <p className="text-[10px] text-blue-400/60 font-bold uppercase tracking-[0.1em] truncate flex items-center gap-2">
-                  Playlist Folder
+                </p>
+                <p className="text-[11px] text-slate-500 mt-0.5 truncate">
+                  {t.home.playlist}
                 </p>
               </div>
-              <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-400 group-hover/file:bg-blue-500 group-hover/file:text-white transition-all shrink-0">
-                <FolderOpen className="w-4 h-4" />
-              </div>
             </div>
-          ) : latest ? (
-            <div
-              className={`w-full max-w-lg relative flex items-center gap-3 bg-[#111728]/40 backdrop-blur-md border border-white/5 rounded-2xl p-2.5 pr-4 transition-all group/file animate-in fade-in slide-in-from-top-4 duration-500 ${!latest.isTemp ? "hover:bg-white/[0.02] cursor-pointer" : "cursor-default"}`}
-              onClick={() => !latest.isTemp && handleOpenFile(latest.filepath)}
-            >
-              <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-purple-500/10 to-blue-500/5 border border-white/5 flex items-center justify-center shrink-0">
-                <Music className="w-5 h-5 text-purple-400/70" />
+            <div className="flex items-center gap-1.5 shrink-0">
+              <div className="group/tool relative">
+                <button
+                  type="button"
+                  onClick={() =>
+                    handleCopyTrack(
+                      latestPlaylist.title,
+                      latestPlaylist.filepath,
+                    )
+                  }
+                  className="group p-2.5 rounded-lg bg-white/[0.04] border border-white/[0.07] hover:bg-white/[0.08] hover:border-white/[0.1] text-violet-400 transition-all cursor-pointer active:scale-95"
+                >
+                  {trackCopied ? (
+                    <Check className="w-4 h-4 text-emerald-400 animate-scale-up" />
+                  ) : (
+                    <Copy className="w-4 h-4 transition-transform duration-200 group-hover:scale-110" />
+                  )}
+                </button>
+                <div className="absolute bottom-full right-0 mb-1.5 px-2.5 py-1 bg-[#1e2330]/95 backdrop-blur-xl border border-white/[0.08] text-white text-[10px] font-medium rounded-lg shadow-xl whitespace-nowrap z-[100] pointer-events-none opacity-0 scale-95 group-hover/tool:opacity-100 group-hover/tool:scale-100 transition-all duration-150 group-hover/tool:delay-[600ms]">
+                  {trackCopied ? t.home.copied : t.home.copy}
+                </div>
               </div>
 
-              <div className="flex-1 text-left min-w-0">
-                <h3 className="text-base font-bold text-white truncate tracking-tight mb-0.5">
+              {latestPlaylist.filepath && (
+                <div className="group/tool relative">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      invoke("open_folder", { path: latestPlaylist.filepath })
+                    }
+                    className="group p-2.5 rounded-lg bg-white/[0.04] border border-white/[0.07] hover:bg-white/[0.08] hover:border-white/[0.1] text-violet-400 transition-all cursor-pointer active:scale-95"
+                  >
+                    <FolderOpen className="w-4 h-4 transition-transform duration-200 group-hover:scale-110" />
+                  </button>
+                  <div className="absolute bottom-full right-0 mb-1.5 px-2.5 py-1 bg-[#1e2330]/95 backdrop-blur-xl border border-white/[0.08] text-white text-[10px] font-medium rounded-lg shadow-xl whitespace-nowrap z-[100] pointer-events-none opacity-0 scale-95 group-hover/tool:opacity-100 group-hover/tool:scale-100 transition-all duration-150 group-hover/tool:delay-[600ms]">
+                    {t.history.tooltips.open}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {!latestPlaylist && latest && (
+          <div className="card p-4 flex items-center justify-between gap-4 anim-delay-3 anim-fade-up">
+            <div className="flex items-center gap-3.5 min-w-0">
+              <div className="w-10 h-10 rounded-xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center text-violet-400 shrink-0">
+                <Music className="w-5 h-5" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[13px] font-semibold text-white truncate">
                   {latest.title}
-                </h3>
-                <p className="text-[10px] text-purple-400/60 font-bold uppercase tracking-[0.1em] truncate flex items-center gap-2">
+                </p>
+                <p className="text-[11px] text-slate-500 mt-0.5 truncate">
                   {latest.artist || t.home.unknownArtist}
                 </p>
               </div>
+            </div>
+            <div className="flex items-center gap-1.5 shrink-0">
+              <div className="group/tool relative">
+                <button
+                  type="button"
+                  onClick={() =>
+                    handleCopyTrack(
+                      latest.artist
+                        ? `${latest.artist} - ${latest.title}`
+                        : latest.title,
+                      latest.filepath,
+                    )
+                  }
+                  className="group p-2.5 rounded-lg bg-white/[0.04] border border-white/[0.07] hover:bg-white/[0.08] hover:border-white/[0.1] text-violet-400 transition-all cursor-pointer active:scale-95"
+                >
+                  {trackCopied ? (
+                    <Check className="w-4 h-4 text-emerald-400 animate-scale-up" />
+                  ) : (
+                    <Copy className="w-4 h-4 transition-transform duration-200 group-hover:scale-110" />
+                  )}
+                </button>
+                <div className="absolute bottom-full right-0 mb-1.5 px-2.5 py-1 bg-[#1e2330]/95 backdrop-blur-xl border border-white/[0.08] text-white text-[10px] font-medium rounded-lg shadow-xl whitespace-nowrap z-[100] pointer-events-none opacity-0 scale-95 group-hover/tool:opacity-100 group-hover/tool:scale-100 transition-all duration-150 group-hover/tool:delay-[600ms]">
+                  {trackCopied ? t.home.copied : t.home.copy}
+                </div>
+              </div>
 
-              {!latest.isTemp && (
-                <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-slate-500 group-hover/file:text-white group-hover/file:bg-purple-500/40 transition-all shrink-0">
-                  <FolderOpen className="w-4 h-4" />
+              {!latest.isTemp && latest.filepath && (
+                <div className="group/tool relative">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      invoke("open_file", { filepath: latest.filepath })
+                    }
+                    className="group p-2.5 rounded-lg bg-white/[0.04] border border-white/[0.07] hover:bg-white/[0.08] hover:border-white/[0.1] text-violet-400 transition-all cursor-pointer active:scale-95"
+                  >
+                    <FolderOpen className="w-4 h-4 transition-transform duration-200 group-hover:scale-110" />
+                  </button>
+                  <div className="absolute bottom-full right-0 mb-1.5 px-2.5 py-1 bg-[#1e2330]/95 backdrop-blur-xl border border-white/[0.08] text-white text-[10px] font-medium rounded-lg shadow-xl whitespace-nowrap z-[100] pointer-events-none opacity-0 scale-95 group-hover/tool:opacity-100 group-hover/tool:scale-100 transition-all duration-150 group-hover/tool:delay-[600ms]">
+                    {t.history.tooltips.open}
+                  </div>
                 </div>
               )}
             </div>
-          ) : (
-            <div className="w-full max-w-lg relative flex items-center gap-3 bg-[#111728]/20 backdrop-blur-md border border-white/5 border-dashed rounded-2xl p-2.5 pr-4 transition-all opacity-40 select-none">
-              <div className="w-11 h-11 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center shrink-0">
-                <Music className="w-5 h-5 text-slate-500/30" />
+          </div>
+        )}
+
+        {!latestPlaylist && !latest && (
+          <div className="card p-4 flex items-center justify-between gap-4 anim-delay-3 anim-fade-up opacity-40 select-none pointer-events-none">
+            <div className="flex items-center gap-3.5 min-w-0">
+              <div className="w-10 h-10 rounded-xl bg-white/[0.03] border border-white/[0.04] flex items-center justify-center text-slate-600 shrink-0">
+                <Music className="w-5 h-5" />
               </div>
-              <div className="flex-1 text-left min-w-0">
-                <div className="h-4 w-32 bg-white/5 rounded-md mb-2 animate-pulse" />
-                <div className="h-3 w-20 bg-white/5 rounded-md animate-pulse" />
+              <div className="min-w-0 flex flex-col gap-1.5">
+                <div className="h-3.5 w-32 bg-white/[0.05] rounded-md" />
+                <div className="h-2.5 w-20 bg-white/[0.03] rounded-md mt-0.5" />
               </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );

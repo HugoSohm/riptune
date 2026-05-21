@@ -13,7 +13,7 @@ export const en = {
     analyzeTooltip: "Automatically extract BPM and musical key",
     downloadTooltip: "Keep the audio file on your device after analysis",
     playlistTooltipFull: "Downloads all files from the playlist",
-    dropTitle: "Drop any audio file here",
+    dropTitle: "Drop or import any audio file here",
     dropDesc: "We'll instantly extract the BPM and Key",
     bpm: "BPM",
     key: "Key",
@@ -22,6 +22,11 @@ export const en = {
     unknownArtist: "Unknown Artist",
     confidenceTooltip: "Analysis confidence score",
     fromYoutube: "Extracted from YouTube",
+    copied: "Copied!",
+    copy: "Copy",
+    confidence: "confidence",
+    browse: "Browse",
+    or: "OR",
   },
   history: {
     title: "Your history",
@@ -33,6 +38,7 @@ export const en = {
     emptySearch: "No tracks match your search",
     searchPlaceholder: "Track or artist",
     deleteAll: "Clear history",
+    tableSource: "Source",
     tableTrack: "Track details",
     tableDate: "Date & time",
     tableBpm: "BPM",
@@ -72,7 +78,6 @@ export const en = {
     partialAnalysis: "Partial track analysis",
     partialAnalysisDesc:
       "Analyzes only the first minute of the track. Analysis is faster but the BPM and key might be less accurate.",
-    partialAnalysisWarning: "BPM & Key might be less accurate",
     language: "Language",
     about: "About RipTune",
     aboutDesc:
@@ -109,7 +114,7 @@ export const en = {
   bugModal: {
     title: "Report a bug",
     description:
-      "Something not working correctly? Describe the problem below and our team will check it out<br />You can also open an issue on GitHub",
+      "Something not working correctly? Describe the problem below<br />You can also open an issue on GitHub",
     githubIssues: "Open an issue on GitHub",
     label: "Description",
     emailLabel: "Email",
@@ -132,6 +137,15 @@ export const en = {
     audioAnalyzer: "Audio analyzer",
     koFi: "Support on Ko-fi",
     github: "GitHub Source",
+    support: "Support",
+    sourceCode: "Source Code",
+    whatsNew: "What's new",
+    updateAvailable: "Update available",
+  },
+  changelogModal: {
+    title: "New Features & Updates",
+    subtitle: "Complete history of RipTune versions and improvements",
+    close: "Close",
   },
   notifications: {
     analyzing: "Analyzing BPM & key",

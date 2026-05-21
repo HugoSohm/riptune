@@ -17,32 +17,236 @@ fn sanitize_folder_name(name: &str) -> String {
         .to_string()
 }
 
-#[tauri::command]
-pub async fn check_url_info(
-    app_handle: tauri::AppHandle,
-    url: String,
-    cookies: Option<String>,
-) -> Result<UrlInfo, String> {
-    let yt_dlp_path = crate::audio_processor::utils::resolve_bin_path(&app_handle, "yt-dlp")?;
-
-    let mut cmd = Command::new(yt_dlp_path);
+/// Prepares a hidden Command object for yt-dlp binary
+fn prepare_yt_dlp_command(
+    app_handle: &tauri::AppHandle,
+) -> Result<(Command, std::path::PathBuf), String> {
+    let yt_dlp_path = crate::audio_processor::utils::resolve_bin_path(app_handle, "yt-dlp")?;
+    let mut cmd = Command::new(&yt_dlp_path);
     crate::audio_processor::utils::hide_window(&mut cmd);
     cmd.env("PYTHONUTF8", "1");
+    Ok((cmd, yt_dlp_path))
+}
 
-    let mut cookie_path = None;
+/// Sets up a temporary cookies JSON file if cookies are provided in args
+fn setup_cookies(
+    cmd: &mut Command,
+    cookies: &Option<String>,
+    prefix: &str,
+) -> Result<Option<std::path::PathBuf>, String> {
     if let Some(c) = cookies {
         if !c.is_empty() {
             let ts = std::time::SystemTime::now()
                 .duration_since(std::time::UNIX_EPOCH)
                 .unwrap()
                 .as_secs();
-            let temp_path = std::env::temp_dir().join(format!("riptune_check_{}.json", ts));
+            let temp_path = std::env::temp_dir().join(format!("riptune_{}_{}.json", prefix, ts));
             let mut file = File::create(&temp_path).map_err(|e| e.to_string())?;
             file.write_all(c.as_bytes()).map_err(|e| e.to_string())?;
             cmd.arg("--cookies").arg(&temp_path);
-            cookie_path = Some(temp_path);
+            return Ok(Some(temp_path));
         }
     }
+    Ok(None)
+}
+
+/// Checks if standard yt-dlp stderr output indicates that a video or playlist is private/unavailable
+fn is_unavailable_error(stderr: &str) -> bool {
+    stderr.contains("Private video")
+        || stderr.contains("This playlist does not exist")
+        || stderr.contains("This video is private")
+        || stderr.contains("This video has been removed")
+        || stderr.contains("Video unavailable")
+        || stderr.contains("playlist does not exist")
+        || stderr.contains("is not available")
+        || stderr.contains("members-only")
+        || stderr.contains("The requested track is not available")
+        || stderr.contains("track has been removed")
+        || stderr.contains("404")
+        || stderr.contains("403")
+        || stderr.contains("Not Found")
+        || stderr.contains("Unable to download JSON metadata")
+        || (stderr.contains("ERROR") && stderr.contains("Private"))
+        || (stderr.contains("ERROR") && stderr.contains("does not exist"))
+}
+
+/// Cleans raw yt-dlp stderr to extract the core ERROR message line
+fn clean_stderr(stderr: &str) -> &str {
+    stderr
+        .lines()
+        .find(|l| l.contains("ERROR:"))
+        .map(|l| l.split("ERROR:").last().unwrap_or(l).trim())
+        .unwrap_or(stderr.trim())
+}
+
+/// Determines and creates the target download directory based on DownloadArgs
+fn determine_download_directory(
+    app_handle: &tauri::AppHandle,
+    args: &DownloadArgs,
+) -> Result<std::path::PathBuf, String> {
+    let downloads_dir = if let Some(ref path) = args.custom_path {
+        if path == "TMP_ANALYSIS" {
+            std::env::temp_dir().join("riptune_analysis")
+        } else {
+            std::path::PathBuf::from(path)
+        }
+    } else {
+        app_handle
+            .path()
+            .download_dir()
+            .unwrap_or_else(|_| std::env::current_dir().unwrap().join("downloads"))
+    };
+
+    std::fs::create_dir_all(&downloads_dir).map_err(|e| e.to_string())?;
+
+    let mut final_dir = downloads_dir;
+    if args.download_playlist {
+        if let Some(ref title) = args.playlist_title {
+            let safe_title = sanitize_folder_name(title);
+            if !safe_title.is_empty() {
+                final_dir = final_dir.join(safe_title);
+                std::fs::create_dir_all(&final_dir).map_err(|e| e.to_string())?;
+            }
+        }
+    }
+
+    Ok(final_dir)
+}
+
+/// Spawns the yt-dlp child process and sets up required args and cookies
+fn spawn_yt_dlp(
+    app_handle: &tauri::AppHandle,
+    args: &DownloadArgs,
+    out_template: &str,
+) -> Result<(std::process::Child, Option<std::path::PathBuf>), String> {
+    let (mut cmd, yt_dlp_path) = prepare_yt_dlp_command(app_handle)?;
+    let bin_dir = yt_dlp_path
+        .parent()
+        .ok_or("Could not find binary directory")?;
+
+    let cookie_path = setup_cookies(&mut cmd, &args.cookies, "dl")?;
+
+    cmd.arg("--ffmpeg-location")
+        .arg(bin_dir)
+        .arg("--embed-metadata")
+        .arg("-x")
+        .arg("--audio-format")
+        .arg(&args.format)
+        .arg("-o")
+        .arg(out_template)
+        .arg("--encoding")
+        .arg("utf-8")
+        .arg("--print")
+        .arg("TITLE:%(title)s")
+        .arg("--print")
+        .arg("ARTIST:%(uploader)s")
+        .arg("--print")
+        .arg("URL:%(webpage_url)s")
+        .arg("--print")
+        .arg("DESCRIPTION:%(description)j")
+        .arg("--print")
+        .arg("after_move:FILEPATH:%(filepath)s")
+        .arg("--newline")
+        .arg("--progress");
+
+    if !args.download_playlist {
+        cmd.arg("--no-playlist");
+    }
+
+    let child = cmd
+        .arg(&args.url)
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .map_err(|e| e.to_string())?;
+
+    Ok((child, cookie_path))
+}
+
+/// Parses raw yt-dlp stdout and maps tracks to DownloadResult objects
+fn process_download_output(
+    app_handle: &tauri::AppHandle,
+    stdout: std::process::ChildStdout,
+    fallback_url: &str,
+) -> Result<Vec<DownloadResult>, String> {
+    let mut last_title = String::new();
+    let mut last_artist = String::new();
+    let mut last_url = String::new();
+    let mut last_description: Option<String> = None;
+    let mut results: Vec<DownloadResult> = Vec::new();
+    let mut current_track_count = 0;
+    let mut reader = BufReader::new(stdout);
+    let mut line_buf = Vec::new();
+
+    while reader
+        .read_until(b'\n', &mut line_buf)
+        .map_err(|e| e.to_string())?
+        > 0
+    {
+        let line = String::from_utf8_lossy(&line_buf).trim().to_string();
+        line_buf.clear();
+
+        if line.starts_with("FILEPATH:") {
+            let filepath = line.replace("FILEPATH:", "");
+            results.push(DownloadResult {
+                filepath,
+                title: last_title.clone(),
+                artist: last_artist.clone(),
+                url: if last_url.is_empty() {
+                    fallback_url.to_string()
+                } else {
+                    last_url.clone()
+                },
+                description: last_description.clone(),
+            });
+            last_description = None;
+            current_track_count += 1;
+            let _ = app_handle.emit(
+                "download-progress",
+                ProgressEvent {
+                    current: current_track_count,
+                    total: 0,
+                    title: last_title.clone(),
+                },
+            );
+        } else if line.starts_with("TITLE:") {
+            let val = line.replace("TITLE:", "").trim().to_string();
+            if !val.is_empty() && !val.contains('%') {
+                last_title = val;
+            }
+        } else if line.starts_with("ARTIST:") {
+            let val = line.replace("ARTIST:", "").trim().to_string();
+            if !val.is_empty() && !val.contains('%') {
+                last_artist = val;
+            }
+        } else if line.starts_with("URL:") {
+            let val = line.replace("URL:", "").trim().to_string();
+            if !val.is_empty() && !val.contains('%') {
+                last_url = val;
+            }
+        } else if line.starts_with("DESCRIPTION:") {
+            let val = line.replace("DESCRIPTION:", "").trim().to_string();
+            if !val.is_empty() && !val.contains('%') && val != "null" {
+                if let Ok(desc) = serde_json::from_str::<String>(&val) {
+                    last_description = Some(desc);
+                } else {
+                    last_description = Some(val);
+                }
+            }
+        }
+    }
+
+    Ok(results)
+}
+
+#[tauri::command]
+pub async fn check_url_info(
+    app_handle: tauri::AppHandle,
+    url: String,
+    cookies: Option<String>,
+) -> Result<UrlInfo, String> {
+    let (mut cmd, _) = prepare_yt_dlp_command(&app_handle)?;
+    let cookie_path = setup_cookies(&mut cmd, &cookies, "check")?;
 
     let output = cmd
         .arg("--flat-playlist")
@@ -66,32 +270,11 @@ pub async fn check_url_info(
     }
 
     if !output.status.success() {
-        let stderr = String::from_utf8_lossy(&output.stderr).to_string();
-        let is_unavailable = stderr.contains("Private video")
-            || stderr.contains("This playlist does not exist")
-            || stderr.contains("This video is private")
-            || stderr.contains("Video unavailable")
-            || stderr.contains("playlist does not exist")
-            || stderr.contains("is not available")
-            || stderr.contains("members-only")
-            || stderr.contains("The requested track is not available")
-            || stderr.contains("track has been removed")
-            || stderr.contains("404")
-            || stderr.contains("403")
-            || stderr.contains("Not Found")
-            || stderr.contains("Unable to download JSON metadata")
-            || (stderr.contains("ERROR") && stderr.contains("Private"))
-            || (stderr.contains("ERROR") && stderr.contains("does not exist"));
-        let stderr_clean = stderr
-            .lines()
-            .find(|l| l.contains("ERROR:"))
-            .map(|l| l.split("ERROR:").last().unwrap_or(l).trim())
-            .unwrap_or(stderr.trim());
-
-        return Err(if is_unavailable {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        return Err(if is_unavailable_error(&stderr) {
             "PLAYLIST_NOT_FOUND".to_string()
         } else {
-            stderr_clean.to_string()
+            clean_stderr(&stderr).to_string()
         });
     }
 
@@ -99,13 +282,8 @@ pub async fn check_url_info(
     let lines: Vec<&str> = stdout.lines().collect();
 
     if lines.is_empty() {
-        // Empty stdout despite exit 0 — likely a private/empty playlist
-        let stderr = String::from_utf8_lossy(&output.stderr).to_string();
-        let is_unavailable = stderr.contains("Private")
-            || stderr.contains("private")
-            || stderr.contains("does not exist")
-            || stderr.contains("not available");
-        return Err(if is_unavailable {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        return Err(if is_unavailable_error(&stderr) {
             "PLAYLIST_NOT_FOUND".to_string()
         } else {
             "Failed to fetch URL info".to_string()
@@ -172,92 +350,12 @@ pub async fn download_audio(
     state: tauri::State<'_, ProcessState>,
     args: DownloadArgs,
 ) -> Result<DownloadResponse, String> {
-    let downloads_dir = if let Some(path) = args.custom_path {
-        if path == "TMP_ANALYSIS" {
-            std::env::temp_dir().join("riptune_analysis")
-        } else {
-            std::path::PathBuf::from(&path)
-        }
-    } else {
-        app_handle
-            .path()
-            .download_dir()
-            .unwrap_or_else(|_| std::env::current_dir().unwrap().join("downloads"))
-    };
-
-    std::fs::create_dir_all(&downloads_dir).map_err(|e| e.to_string())?;
-
-    let mut final_dir = downloads_dir;
-    if args.download_playlist {
-        if let Some(title) = args.playlist_title {
-            let safe_title = sanitize_folder_name(&title);
-            if !safe_title.is_empty() {
-                final_dir = final_dir.join(safe_title);
-                std::fs::create_dir_all(&final_dir).map_err(|e| e.to_string())?;
-            }
-        }
-    }
+    let final_dir = determine_download_directory(&app_handle, &args)?;
 
     let separator = std::path::MAIN_SEPARATOR;
     let out_template = format!("{}{}%(title)s.%(ext)s", final_dir.display(), separator);
 
-    let yt_dlp_path = crate::audio_processor::utils::resolve_bin_path(&app_handle, "yt-dlp")?;
-    let bin_dir = yt_dlp_path
-        .parent()
-        .ok_or("Could not find binary directory")?;
-
-    let mut cmd = Command::new(&yt_dlp_path);
-    crate::audio_processor::utils::hide_window(&mut cmd);
-    cmd.env("PYTHONUTF8", "1");
-
-    let mut cookie_path = None;
-    if let Some(c) = args.cookies {
-        if !c.is_empty() {
-            let ts = std::time::SystemTime::now()
-                .duration_since(std::time::UNIX_EPOCH)
-                .unwrap()
-                .as_secs();
-            let temp_path = std::env::temp_dir().join(format!("riptune_dl_{}.json", ts));
-            let mut file = File::create(&temp_path).map_err(|e| e.to_string())?;
-            file.write_all(c.as_bytes()).map_err(|e| e.to_string())?;
-            cmd.arg("--cookies").arg(&temp_path);
-            cookie_path = Some(temp_path);
-        }
-    }
-
-    cmd.arg("--ffmpeg-location")
-        .arg(bin_dir)
-        .arg("--embed-metadata")
-        .arg("-x")
-        .arg("--audio-format")
-        .arg(&args.format)
-        .arg("-o")
-        .arg(&out_template)
-        .arg("--encoding")
-        .arg("utf-8")
-        .arg("--print")
-        .arg("TITLE:%(title)s")
-        .arg("--print")
-        .arg("ARTIST:%(uploader)s")
-        .arg("--print")
-        .arg("URL:%(webpage_url)s")
-        .arg("--print")
-        .arg("DESCRIPTION:%(description)j")
-        .arg("--print")
-        .arg("after_move:FILEPATH:%(filepath)s")
-        .arg("--newline")
-        .arg("--progress");
-
-    if !args.download_playlist {
-        cmd.arg("--no-playlist");
-    }
-
-    let mut child = cmd
-        .arg(&args.url)
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .spawn()
-        .map_err(|e| e.to_string())?;
+    let (mut child, cookie_path) = spawn_yt_dlp(&app_handle, &args, &out_template)?;
 
     let stdout = child.stdout.take().ok_or("Failed to capture stdout")?;
     let stderr_handle = child.stderr.take();
@@ -285,72 +383,7 @@ pub async fn download_audio(
         lock.insert(args.task_id.clone(), child);
     }
 
-    let mut last_title = String::new();
-    let mut last_artist = String::new();
-    let mut last_url = String::new();
-    let mut last_description: Option<String> = None;
-    let mut results: Vec<DownloadResult> = Vec::new();
-    let mut current_track_count = 0;
-    let mut reader = BufReader::new(stdout);
-    let mut line_buf = Vec::new();
-
-    while reader
-        .read_until(b'\n', &mut line_buf)
-        .map_err(|e| e.to_string())?
-        > 0
-    {
-        let line = String::from_utf8_lossy(&line_buf).trim().to_string();
-        line_buf.clear();
-
-        if line.starts_with("FILEPATH:") {
-            let filepath = line.replace("FILEPATH:", "");
-            results.push(DownloadResult {
-                filepath,
-                title: last_title.clone(),
-                artist: last_artist.clone(),
-                url: if last_url.is_empty() {
-                    args.url.clone()
-                } else {
-                    last_url.clone()
-                },
-                description: last_description.clone(),
-            });
-            last_description = None;
-            current_track_count += 1;
-            let _ = app_handle.emit(
-                "download-progress",
-                ProgressEvent {
-                    current: current_track_count,
-                    total: 0,
-                    title: last_title.clone(),
-                },
-            );
-        } else if line.starts_with("TITLE:") {
-            let val = line.replace("TITLE:", "").trim().to_string();
-            if !val.is_empty() && !val.contains("%") {
-                last_title = val;
-            }
-        } else if line.starts_with("ARTIST:") {
-            let val = line.replace("ARTIST:", "").trim().to_string();
-            if !val.is_empty() && !val.contains("%") {
-                last_artist = val;
-            }
-        } else if line.starts_with("URL:") {
-            let val = line.replace("URL:", "").trim().to_string();
-            if !val.is_empty() && !val.contains("%") {
-                last_url = val;
-            }
-        } else if line.starts_with("DESCRIPTION:") {
-            let val = line.replace("DESCRIPTION:", "").trim().to_string();
-            if !val.is_empty() && !val.contains("%") && val != "null" {
-                if let Ok(desc) = serde_json::from_str::<String>(&val) {
-                    last_description = Some(desc);
-                } else {
-                    last_description = Some(val);
-                }
-            }
-        }
-    }
+    let results = process_download_output(&app_handle, stdout, &args.url)?;
 
     {
         let mut lock = state.0.lock().map_err(|e| e.to_string())?;
@@ -366,33 +399,10 @@ pub async fn download_audio(
         thread::sleep(std::time::Duration::from_millis(200));
         let stderr_output = stderr_buf.lock().map(|g| g.clone()).unwrap_or_default();
 
-        // Detect private or non-existent playlist/video
-        let is_unavailable = stderr_output.contains("Private video")
-            || stderr_output.contains("This playlist does not exist")
-            || stderr_output.contains("This video is private")
-            || stderr_output.contains("This video has been removed")
-            || stderr_output.contains("Video unavailable")
-            || stderr_output.contains("playlist does not exist")
-            || stderr_output.contains("is not available")
-            || stderr_output.contains("members-only")
-            || stderr_output.contains("The requested track is not available")
-            || stderr_output.contains("track has been removed")
-            || stderr_output.contains("404")
-            || stderr_output.contains("403")
-            || stderr_output.contains("Not Found")
-            || stderr_output.contains("Unable to download JSON metadata")
-            || (stderr_output.contains("ERROR") && stderr_output.contains("Private"))
-            || (stderr_output.contains("ERROR") && stderr_output.contains("does not exist"));
-
-        let stderr_clean = stderr_output
-            .lines()
-            .find(|l| l.contains("ERROR:"))
-            .map(|l| l.split("ERROR:").last().unwrap_or(l).trim())
-            .unwrap_or(stderr_output.trim());
-
-        if is_unavailable {
+        if is_unavailable_error(&stderr_output) {
             return Err("PLAYLIST_NOT_FOUND".to_string());
         }
+        let stderr_clean = clean_stderr(&stderr_output);
         return Err(if stderr_clean.is_empty() {
             "Download failed or interrupted".to_string()
         } else {

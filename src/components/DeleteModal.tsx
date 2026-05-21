@@ -37,10 +37,10 @@ export default function DeleteModal() {
   return (
     <div className="fixed inset-0 z-[100002] flex items-center justify-center p-4">
       <div
-        className="absolute inset-0 bg-[#0a0f1c]/80 backdrop-blur-md animate-in fade-in duration-300"
+        className="absolute inset-0 bg-black/70 backdrop-blur-md animate-in fade-in duration-300"
         onClick={() => setDeleteConfirmId(null)}
       />
-      <div className="relative w-full max-w-md bg-[#111728] border border-white/10 rounded-[2rem] p-8 md:p-10 shadow-[0_0_100px_rgba(0,0,0,0.5)] animate-in zoom-in-95 slide-in-from-bottom-4 duration-300">
+      <div className="relative w-full max-w-md bg-[#161a22] border border-white/10 rounded-[2rem] p-8 md:p-10 shadow-[0_0_100px_rgba(0,0,0,0.5)] animate-in zoom-in-95 slide-in-from-bottom-4 duration-300">
         <button
           type="button"
           onClick={() => setDeleteConfirmId(null)}

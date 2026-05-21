@@ -14,7 +14,7 @@ export const es = {
     downloadTooltip:
       "Conservar el archivo de audio en su dispositivo tras el análisis",
     playlistTooltipFull: "Descarga todos los archivos de la lista",
-    dropTitle: "Suelta cualquier archivo de audio aquí",
+    dropTitle: "Suelte o importe cualquier archivo de audio aquí",
     dropDesc: "Extraeremos el BPM y la Clave al instante",
     bpm: "BPM",
     key: "Clave",
@@ -23,6 +23,11 @@ export const es = {
     unknownArtist: "Artista desconocido",
     confidenceTooltip: "Índice de confianza del análisis",
     fromYoutube: "Extraído de YouTube",
+    copied: "¡Copiado!",
+    copy: "Copiar",
+    confidence: "confianza",
+    browse: "Examinar",
+    or: "O",
   },
   history: {
     title: "Su historial",
@@ -34,6 +39,7 @@ export const es = {
     emptySearch: "Ninguna pista coincide con tu búsqueda",
     searchPlaceholder: "Título o artista",
     deleteAll: "Borrar historial",
+    tableSource: "Origen",
     tableTrack: "Detalles de la pista",
     tableDate: "Fecha y hora",
     tableBpm: "BPM",
@@ -73,7 +79,6 @@ export const es = {
     partialAnalysis: "Análisis parcial de pista",
     partialAnalysisDesc:
       "Analiza solo el primer minuto de la pista. El análisis es más rápido pero el BPM y la clave podrían ser menos precisos.",
-    partialAnalysisWarning: "El BPM y la clave podrían ser menos precisos",
     language: "Idioma",
     about: "Acerca de RipTune",
     aboutDesc:
@@ -110,7 +115,7 @@ export const es = {
   bugModal: {
     title: "Reportar un bug",
     description:
-      "¿Algo no funciona? Describe el problema para que nuestro equipo pueda analizarlo<br />También puedes abrir una incidencia en GitHub",
+      "¿Algo no funciona? Describe el problema a continuación<br />También puedes abrir una incidencia en GitHub",
     githubIssues: "Abrir una incidencia en GitHub",
     label: "Descripción",
     emailLabel: "Correo electrónico",
@@ -133,6 +138,15 @@ export const es = {
     audioAnalyzer: "Analizador de audio",
     koFi: "Apoyar en Ko-fi",
     github: "Código fuente en GitHub",
+    support: "Apoyar",
+    sourceCode: "Código fuente",
+    whatsNew: "¿Qué hay de nuevo?",
+    updateAvailable: "Actualización disponible",
+  },
+  changelogModal: {
+    title: "Novedades y Actualizaciones",
+    subtitle: "Historial completo de versiones y mejoras de RipTune",
+    close: "Cerrar",
   },
   notifications: {
     analyzing: "Analizando BPM y Clave",

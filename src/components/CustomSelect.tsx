@@ -52,19 +52,19 @@ export default function CustomSelect({
         onClick={() => setIsOpen(!isOpen)}
         className={`w-full flex items-center justify-between transition-all duration-300 ${
           variant === "large"
-            ? "bg-[#0a0f1c] border border-white/10 rounded-xl px-4 py-3 text-white font-bold shadow-inner hover:border-white/20"
-            : "bg-transparent text-white text-xs font-bold hover:text-purple-400 gap-1"
+            ? "bg-[#0d0f14] border border-white/[0.08] rounded-xl px-4 py-2.5 text-[13px] font-semibold text-white hover:border-white/[0.15]"
+            : "bg-transparent text-white text-xs font-bold hover:text-violet-400 gap-1"
         }`}
       >
         <span className="truncate">{selectedOption.label}</span>
         <ChevronDown
-          className={`w-4 h-4 transition-transform duration-300 shrink-0 ${isOpen ? "rotate-180 text-purple-400" : "text-slate-500"}`}
+          className={`w-4 h-4 transition-transform duration-300 shrink-0 ${isOpen ? "rotate-180 text-violet-400" : "text-slate-500"}`}
         />
       </button>
 
       {isOpen && (
         <div
-          className={`absolute z-[1000] mt-2 left-0 ${variant === "large" ? "w-full" : "min-w-max"} bg-slate-900/90 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200`}
+          className={`absolute z-[1000] mt-2 left-0 ${variant === "large" ? "w-full" : "min-w-max"} bg-[#161a22]/95 backdrop-blur-xl border border-white/[0.08] rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200`}
         >
           <div className="p-1.5 flex flex-col gap-1">
             {options.map((option) => (
@@ -75,10 +75,10 @@ export default function CustomSelect({
                   onChange(option.value);
                   setIsOpen(false);
                 }}
-                className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all group ${
+                className={`flex items-center justify-between px-3 py-2 rounded-xl text-sm font-medium transition-all group ${
                   value === option.value
-                    ? "bg-purple-500/20 text-purple-400"
-                    : "text-slate-300 hover:bg-white/5 hover:text-white"
+                    ? "bg-violet-500/10 text-violet-400 font-semibold"
+                    : "text-slate-300 hover:bg-white/[0.04] hover:text-white"
                 }`}
               >
                 <span>{option.label}</span>

@@ -1,46 +1,209 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* ============================================================
+   BASE
+   ============================================================ */
 html,
 body,
 #root {
   height: 100%;
   width: 100%;
-  background-color: #0a0f1c;
+  background-color: #0d0f14;
   overflow: hidden;
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Fix for smooth blurs on macOS */
-.blur-xl,
-.blur-2xl,
-.blur-3xl {
-  backface-visibility: hidden;
-  transform: translateZ(0);
-}
-
-/* Custom Scrollbar Styles */
+/* ============================================================
+   SCROLLBAR
+   ============================================================ */
 ::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+  width: 5px;
+  height: 5px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #0a0f1c;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #1e293b;
-  border: 2px solid #0a0f1c;
-  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.07);
+  border-radius: 100px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #334155;
+  background: rgba(255, 255, 255, 0.14);
 }
 
-/* Firefox */
 * {
   scrollbar-width: thin;
-  scrollbar-color: #1e293b #0a0f1c;
+  scrollbar-color: rgba(255, 255, 255, 0.07) transparent;
+}
+
+/* Force scrollbar to overlay on top of content to avoid shifting layout */
+.overflow-y-auto,
+.overflow-auto {
+  overflow-y: overlay;
+}
+
+/* ============================================================
+   SELECTION
+   ============================================================ */
+::selection {
+  background: rgba(139, 92, 246, 0.28);
+  color: #fff;
+}
+
+/* ============================================================
+   FOCUS
+   ============================================================ */
+:focus-visible {
+  outline: 2px solid rgba(139, 92, 246, 0.5);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+/* ============================================================
+   DESIGN TOKENS — COMPONENT LAYER
+   ============================================================ */
+@layer components {
+  /* ── Cards ────────────────────────────────────────────────── */
+  .card {
+    @apply bg-[#161a22] border border-white/[0.07] rounded-2xl;
+  }
+
+  .card-sm {
+    @apply bg-[#161a22] border border-white/[0.07] rounded-xl;
+  }
+
+  .card-hover {
+    @apply transition-colors duration-200 hover:bg-[#1c2130] hover:border-white/[0.1];
+  }
+
+  /* ── Section label ─────────────────────────────────────────── */
+  .section-label {
+    @apply text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500 whitespace-nowrap;
+  }
+
+  /* ── Badge ─────────────────────────────────────────────────── */
+  .badge-purple {
+    @apply inline-flex items-center px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider bg-violet-500/15 text-violet-300 border border-violet-500/20;
+  }
+
+  /* ── Input ─────────────────────────────────────────────────── */
+  .input-field {
+    @apply w-full bg-[#0d0f14] border border-white/[0.08] rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-slate-600 transition-colors duration-200 focus:outline-none focus:border-violet-500/40;
+  }
+
+  /* ── Divider ────────────────────────────────────────────────── */
+  .divider {
+    @apply h-px w-full bg-white/[0.06];
+  }
+
+  /* ── Sidebar nav item ──────────────────────────────────────── */
+  .nav-item {
+    @apply flex items-center gap-3 w-full px-3.5 py-3 rounded-xl text-[14px] font-semibold text-slate-400 border border-transparent transition-all duration-150 cursor-pointer select-none hover:text-white hover:bg-white/[0.04];
+  }
+
+  .nav-item-active {
+    @apply nav-item text-white bg-white/[0.07] border-white/[0.08];
+  }
+
+  /* ── Stat card (BPM / Key) ─────────────────────────────────── */
+  .stat-card {
+    @apply card flex flex-col gap-1 p-5;
+  }
+
+  /* ── Toggle ─────────────────────────────────────────────────── */
+  .toggle-track {
+    @apply w-9 h-5 rounded-full relative border border-white/[0.07] bg-white/[0.06] transition-colors duration-250 peer-checked:bg-violet-600 peer-checked:border-violet-500/40;
+  }
+
+  .toggle-track-red {
+    @apply w-9 h-5 rounded-full relative border border-white/[0.07] bg-white/[0.06] transition-colors duration-250 peer-checked:bg-red-500 peer-checked:border-red-400/40;
+  }
+
+  .toggle-thumb {
+    @apply after:content-[''] after:absolute after:top-[1px] after:left-[1px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all after:duration-200 peer-checked:after:translate-x-4;
+  }
+
+  /* ── Tooltip ─────────────────────────────────────────────────── */
+  .tooltip-base {
+    @apply absolute z-[200] px-2.5 py-1.5 bg-[#1e2330]/95 backdrop-blur-xl border border-white/[0.08] text-white text-[11px] font-medium rounded-lg shadow-2xl pointer-events-none whitespace-nowrap opacity-0 scale-95 transition-all duration-150 group-hover:opacity-100 group-hover:scale-100;
+  }
+
+  /* ── Action button ─────────────────────────────────────────── */
+  .action-btn {
+    @apply w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 bg-white/[0.04] border border-white/[0.06] transition-all duration-150 hover:text-white hover:bg-white/[0.08] hover:border-white/[0.1];
+
+    svg {
+      @apply transition-transform duration-200;
+    }
+
+    &:hover svg {
+      @apply scale-110;
+    }
+  }
+}
+
+/* ============================================================
+   ANIMATIONS
+   ============================================================ */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.anim-fade-up {
+  animation: fadeInUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.anim-fade-in {
+  animation: fadeIn 0.3s ease-out both;
+}
+
+/* Stagger helpers */
+.anim-delay-1 {
+  animation-delay: 0.05s;
+}
+
+.anim-delay-2 {
+  animation-delay: 0.1s;
+}
+
+.anim-delay-3 {
+  animation-delay: 0.15s;
+}
+
+.anim-delay-4 {
+  animation-delay: 0.2s;
+}
+
+/* ============================================================
+   TABLE ROW HOVER
+   ============================================================ */
+tbody tr:hover td {
+  background: rgba(255, 255, 255, 0.018);
 }

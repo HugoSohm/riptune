@@ -21,13 +21,14 @@
         "minHeight": 800,
         "decorations": true,
         "transparent": false,
-        "backgroundColor": "#0a0f1c",
+        "backgroundColor": "#0d0f14",
         "titleBarStyle": "Overlay",
         "trafficLightPosition": {
           "x": 18,
-          "y": 30
+          "y": 17
         },
-        "shadow": true
+        "shadow": true,
+        "scrollBarStyle": "fluentOverlay"
       }
     ],
     "security": {
@@ -68,7 +69,9 @@
     },
     "deep-link": {
       "desktop": {
-        "schemes": ["riptune"]
+        "schemes": [
+          "riptune"
+        ]
       }
     }
   }

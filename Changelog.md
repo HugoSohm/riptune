@@ -1,5 +1,11 @@
 # RipTune Changelog
 
+## 0.3.5 (2026-05-21)
+
+### 🎨 UI Overhaul & What's New
+- **Graphic Overhaul**: Visual redesign of the user interface featuring a modern dark palette and layout improvements.
+- **What's New**: Interactive modal rendering the changelog history, accessible from the sidebar footer.
+
 ## 0.3.4 (2026-05-18)
 
 ### ✨ YouTube Metadata & DX Polish
