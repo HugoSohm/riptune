@@ -8,6 +8,7 @@ import {
   FolderOpen,
   Loader2,
   Music,
+  Play,
   UploadCloud,
   XCircle,
 } from "lucide-react";
@@ -39,6 +40,7 @@ export default function Home() {
     format,
     setFormat,
     dragActive,
+    playTrack,
   } = useApp();
 
   const isPurePlaylistUrl =
@@ -377,29 +379,46 @@ export default function Home() {
               </div>
             </div>
             <div className="flex items-center gap-1.5 shrink-0">
-              <div className="group/tool relative">
-                <button
-                  type="button"
-                  onClick={() =>
-                    handleCopyTrack(
-                      latest.artist
-                        ? `${latest.artist} - ${latest.title}`
-                        : latest.title,
-                      latest.filepath,
-                    )
-                  }
-                  className="group p-2.5 rounded-lg bg-white/[0.04] border border-white/[0.07] hover:bg-white/[0.08] hover:border-white/[0.1] text-violet-400 transition-all cursor-pointer active:scale-95"
-                >
-                  {trackCopied ? (
-                    <Check className="w-4 h-4 text-emerald-400 animate-scale-up" />
-                  ) : (
-                    <Copy className="w-4 h-4 transition-transform duration-200 group-hover:scale-110" />
-                  )}
-                </button>
-                <div className="absolute bottom-full right-0 mb-1.5 px-2.5 py-1 bg-[#1e2330]/95 backdrop-blur-xl border border-white/[0.08] text-white text-[10px] font-medium rounded-lg shadow-xl whitespace-nowrap z-[100] pointer-events-none opacity-0 scale-95 group-hover/tool:opacity-100 group-hover/tool:scale-100 transition-all duration-150 group-hover/tool:delay-[600ms]">
-                  {trackCopied ? t.home.copied : t.home.copy}
+              {!latest.isTemp && latest.filepath && (
+                <div className="group/tool relative">
+                  <button
+                    type="button"
+                    onClick={() => playTrack(latest)}
+                    className="group p-2.5 rounded-lg bg-violet-600/20 border border-violet-500/30 hover:bg-violet-600/30 hover:border-violet-500/50 text-violet-400 hover:text-violet-300 transition-all cursor-pointer active:scale-95"
+                  >
+                    <Play className="w-4 h-4 fill-current transition-transform duration-200 group-hover:scale-110" />
+                  </button>
+                  <div className="absolute bottom-full right-0 mb-1.5 px-2.5 py-1 bg-[#1e2330]/95 backdrop-blur-xl border border-white/[0.08] text-white text-[10px] font-medium rounded-lg shadow-xl whitespace-nowrap z-[100] pointer-events-none opacity-0 scale-95 group-hover/tool:opacity-100 group-hover/tool:scale-100 transition-all duration-150 group-hover/tool:delay-[600ms]">
+                    {t.history.tooltips.play || "Play"}
+                  </div>
                 </div>
-              </div>
+              )}
+
+              {!latest.isTemp && (
+                <div className="group/tool relative">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      handleCopyTrack(
+                        latest.artist
+                          ? `${latest.artist} - ${latest.title}`
+                          : latest.title,
+                        latest.filepath,
+                      )
+                    }
+                    className="group p-2.5 rounded-lg bg-white/[0.04] border border-white/[0.07] hover:bg-white/[0.08] hover:border-white/[0.1] text-violet-400 transition-all cursor-pointer active:scale-95"
+                  >
+                    {trackCopied ? (
+                      <Check className="w-4 h-4 text-emerald-400 animate-scale-up" />
+                    ) : (
+                      <Copy className="w-4 h-4 transition-transform duration-200 group-hover:scale-110" />
+                    )}
+                  </button>
+                  <div className="absolute bottom-full right-0 mb-1.5 px-2.5 py-1 bg-[#1e2330]/95 backdrop-blur-xl border border-white/[0.08] text-white text-[10px] font-medium rounded-lg shadow-xl whitespace-nowrap z-[100] pointer-events-none opacity-0 scale-95 group-hover/tool:opacity-100 group-hover/tool:scale-100 transition-all duration-150 group-hover/tool:delay-[600ms]">
+                    {trackCopied ? t.home.copied : t.home.copy}
+                  </div>
+                </div>
+              )}
 
               {!latest.isTemp && latest.filepath && (
                 <div className="group/tool relative">

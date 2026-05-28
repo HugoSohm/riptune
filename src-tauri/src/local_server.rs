@@ -247,11 +247,12 @@ fn handle_command_route(app_handle: &AppHandle, mut request: Request, cors_heade
 
                 let response = Response::from_string("{\"status\":\"ok\"}").with_status_code(200);
 
-                // Clear previous analysis for this URL
+                // Clear previous analysis for this URL (decode first — extension sends encodeURIComponent)
                 if (action == "analyze" || action == "both") && !url.is_empty() {
+                    let decoded_url = url_decode(url);
                     let state = app_handle.state::<AnalysisResults>();
                     let mut current = state.0.lock().unwrap();
-                    current.remove(url);
+                    current.remove(&decoded_url);
                 }
 
                 let _ = request.respond(with_headers(response, cors_headers));

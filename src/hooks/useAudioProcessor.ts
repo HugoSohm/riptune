@@ -25,6 +25,7 @@ export function useAudioProcessor() {
     id?: string,
     isPlaylist?: boolean,
     description?: string,
+    reportUrl?: string,
   ) => {
     const taskId = id || crypto.randomUUID();
     addActiveTask(taskId, "analysis");
@@ -59,9 +60,13 @@ export function useAudioProcessor() {
         removeNotification(notifId);
       }
 
-      if (url) {
+      if (url || reportUrl) {
         try {
-          await invoke("report_analysis_result", { url, bpm, key: keyStr });
+          await invoke("report_analysis_result", {
+            url: reportUrl || url,
+            bpm,
+            key: keyStr,
+          });
         } catch (e) {
           console.error("Failed to report analysis result", e);
         }

@@ -6,11 +6,23 @@ import { trackEvent } from "../utils/analytics";
 
 export function useDeepLink(
   handleDownloadRef: RefObject<
-    (url: string, dl: boolean, an: boolean) => Promise<void>
+    (
+      url: string,
+      dl?: boolean,
+      an?: boolean,
+      overrideId?: string,
+      overrideDownloadPlaylist?: boolean,
+    ) => Promise<void>
   >,
 ) {
-  const { setUrl, setShouldDownload, setAutoAnalyze, setActiveTab, setFormat } =
-    useApp();
+  const {
+    setUrl,
+    setShouldDownload,
+    setAutoAnalyze,
+    setActiveTab,
+    setFormat,
+    setDownloadPlaylist,
+  } = useApp();
 
   useEffect(() => {
     const processDeepLink = (raw: string) => {
@@ -45,29 +57,57 @@ export function useDeepLink(
         // Configure action flags based on the riptune:// action
         let dl = false;
         let an = false;
+        let pl = false;
 
         if (action === "download") {
           setShouldDownload(true);
           setAutoAnalyze(false);
+          setDownloadPlaylist(false);
           dl = true;
           an = false;
+          pl = false;
         } else if (action === "analyze") {
           setShouldDownload(false);
           setAutoAnalyze(true);
+          setDownloadPlaylist(false);
           dl = false;
           an = true;
+          pl = false;
         } else if (action === "both") {
           setShouldDownload(true);
           setAutoAnalyze(true);
+          setDownloadPlaylist(false);
           dl = true;
           an = true;
+          pl = false;
+        } else if (action === "playlist") {
+          setShouldDownload(true);
+          setAutoAnalyze(false);
+          setDownloadPlaylist(true);
+          dl = true;
+          an = false;
+          pl = true;
         }
 
         trackEvent("deep_link_received", { action });
+        console.log("[Riptune DeepLink] Parsed payload:", {
+          raw,
+          action,
+          videoUrl,
+          dl,
+          an,
+          pl,
+        });
 
         // Trigger the process automatically!
         setTimeout(() => {
-          handleDownloadRef.current(decodeURIComponent(videoUrl), dl, an);
+          handleDownloadRef.current(
+            decodeURIComponent(videoUrl),
+            dl,
+            an,
+            undefined,
+            pl,
+          );
         }, 100);
       } catch (err) {
         console.error("[RipTune] Failed to parse deep link:", err);
@@ -98,5 +138,6 @@ export function useDeepLink(
     setActiveTab,
     setFormat,
     handleDownloadRef,
+    setDownloadPlaylist,
   ]);
 }

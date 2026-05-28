@@ -22,8 +22,13 @@ export function useDownloader() {
     t,
   } = useUIContext();
 
-  const { customDir, cookies, downloadPlaylist, shouldDownload, autoAnalyze } =
-    useConfigContext();
+  const {
+    customDir,
+    cookies,
+    downloadPlaylist: contextDownloadPlaylist,
+    shouldDownload,
+    autoAnalyze,
+  } = useConfigContext();
   const { addNotification, clearNotificationsFor } = useNotificationsContext();
   const { updateHistory, setLatest, setLatestPlaylist } = useHistoryContext();
   const { processFile } = useAudioProcessor();
@@ -33,7 +38,12 @@ export function useDownloader() {
     overrideShouldDownload?: boolean,
     overrideAutoAnalyze?: boolean,
     overrideId?: string,
+    overrideDownloadPlaylist?: boolean,
   ) => {
+    const downloadPlaylist =
+      overrideDownloadPlaylist !== undefined
+        ? overrideDownloadPlaylist
+        : contextDownloadPlaylist;
     // Ensure we only use overrideUrl if it's actually a string (not an Event)
     const validOverrideUrl =
       typeof overrideUrl === "string" ? overrideUrl : undefined;
@@ -162,6 +172,7 @@ export function useDownloader() {
             undefined,
             downloadPlaylist,
             res.description,
+            targetUrl,
           );
           analyzedCount++;
           if (!targetShouldDownload) {
@@ -237,10 +248,11 @@ export function useDownloader() {
               }
             }
           }
+          if (latestEntry && !downloadPlaylist) {
+            setLatest(latestEntry);
+          }
           return updatedHistory;
         });
-
-        if (latestEntry && !downloadPlaylist) setLatest(latestEntry);
       }
 
       setPlaylistProgress(null);
