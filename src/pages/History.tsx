@@ -87,15 +87,6 @@ export default function History() {
 
   /** Click handler: check file exists before opening the player */
   const handlePlayItem = async (item: (typeof history)[number]) => {
-    // If same track is already loaded, just reopen/resume
-    if (currentTrack?.id === item.id) {
-      if (isVisible) {
-        togglePlay();
-      } else {
-        reopenPlayer();
-      }
-      return;
-    }
     // HEAD request to verify the file is accessible
     const audioUrl = `${AUDIO_SERVER}/audio?path=${encodeURIComponent(item.filepath)}`;
     try {
@@ -106,6 +97,16 @@ export default function History() {
       }
     } catch (_) {
       addNotification(t.notifications.errorNotFound, "error");
+      return;
+    }
+
+    // If same track is already loaded, just reopen/resume
+    if (currentTrack?.id === item.id) {
+      if (isVisible) {
+        togglePlay();
+      } else {
+        reopenPlayer();
+      }
       return;
     }
     loadPlaylist(playableItems, item.id);

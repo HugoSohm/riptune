@@ -1,5 +1,11 @@
 # RipTune Changelog
 
+## 0.3.8 (2026-05-28)
+
+### 🎵 Audio Player Refinements
+- **Improved Player Layout**: The music player at the bottom is now contained within the content area and no longer overlaps the sidebar.
+- **Reliable Playback**: The application now verifies that a downloaded file is still available before attempting to play it.
+
 ## 0.3.7 (2026-05-28)
 
 ### 🎵 Audio Player & Homepage Polish
