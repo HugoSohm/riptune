@@ -8,6 +8,7 @@
   [![React](https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=black)](https://react.dev/)
   [![Rust](https://img.shields.io/badge/Rust-Latest-E34C26?style=flat-square&logo=rust&logoColor=white)](https://www.rust-lang.org/)
   [![Support on Ko-fi](https://img.shields.io/badge/Support%20on%20Ko--fi-F16061?style=flat-square&logo=ko-fi&logoColor=white)](https://ko-fi.com/riptune)
+  [![Product Hunt](https://img.shields.io/badge/Product%20Hunt-Featured-DA552F?style=flat-square&logo=producthunt&logoColor=white)](https://www.producthunt.com/products/riptune?embed=true&utm_source=badge-featured)
 </div>
 
 ---

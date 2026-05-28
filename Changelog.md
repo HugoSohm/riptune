@@ -1,5 +1,10 @@
 # RipTune Changelog
 
+## 1.0.0 (2026-05-28)
+
+### 🚀 Official 1.0 Release
+- **Official Major Release**: RipTune is officially out of beta! Bringing premium music analysis, metadata retrieval, and high-quality audio downloads in a perfectly polished desktop experience.
+
 ## 0.3.8 (2026-05-28)
 
 ### 🎵 Audio Player Refinements
