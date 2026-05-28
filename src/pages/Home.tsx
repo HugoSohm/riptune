@@ -41,6 +41,7 @@ export default function Home() {
     setFormat,
     dragActive,
     playTrack,
+    addNotification,
   } = useApp();
 
   const isPurePlaylistUrl =
@@ -86,6 +87,24 @@ export default function Home() {
     } catch (error) {
       console.error("Failed to browse audio file", error);
     }
+  };
+
+  const AUDIO_SERVER = "http://127.0.0.1:4774";
+
+  const handlePlayLatest = async () => {
+    if (!latest?.filepath) return;
+    const audioUrl = `${AUDIO_SERVER}/audio?path=${encodeURIComponent(latest.filepath)}`;
+    try {
+      const res = await fetch(audioUrl, { method: "HEAD" });
+      if (!res.ok) {
+        addNotification(t.notifications.errorNotFound, "error");
+        return;
+      }
+    } catch (_) {
+      addNotification(t.notifications.errorNotFound, "error");
+      return;
+    }
+    playTrack(latest);
   };
 
   useEffect(() => {
@@ -383,7 +402,7 @@ export default function Home() {
                 <div className="group/tool relative">
                   <button
                     type="button"
-                    onClick={() => playTrack(latest)}
+                    onClick={handlePlayLatest}
                     className="group p-2.5 rounded-lg bg-violet-600/20 border border-violet-500/30 hover:bg-violet-600/30 hover:border-violet-500/50 text-violet-400 hover:text-violet-300 transition-all cursor-pointer active:scale-95"
                   >
                     <Play className="w-4 h-4 fill-current transition-transform duration-200 group-hover:scale-110" />
