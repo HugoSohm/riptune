@@ -70,6 +70,9 @@ function AppContent() {
         </div>
       </div>
 
+      {/* Audio player bar */}
+      <AudioPlayer {...audioPlayerProps} />
+
       <Notifications />
       <DeleteModal />
       <BugReportModal />
