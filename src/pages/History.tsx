@@ -345,14 +345,14 @@ export default function History() {
                       {/* BPM */}
                       <td className="px-3 py-[21px] text-center">
                         <span className="inline-flex items-center justify-center w-20 h-10 rounded-xl bg-violet-500/15 border border-violet-500/30 text-[15px] font-extrabold text-violet-300 select-text">
-                          {item.bpm ?? "—"}
+                          {item.bpm ?? ""}
                         </span>
                       </td>
 
                       {/* Key */}
                       <td className="px-3 py-[21px] text-center">
                         <span className="inline-flex items-center justify-center w-20 h-10 rounded-xl bg-indigo-500/15 border border-indigo-500/30 text-[15px] font-extrabold text-indigo-300 whitespace-nowrap select-text">
-                          {item.key ?? "—"}
+                          {item.key ?? ""}
                         </span>
                       </td>
 

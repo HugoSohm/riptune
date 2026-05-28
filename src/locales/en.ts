@@ -52,6 +52,7 @@ export const en = {
     tooltips: {
       analyze: "Analyze BPM & key",
       download: "Download audio file",
+      play: "Play",
       open: "Open file in Explorer",
       delete: "Delete from history",
       analyzed: "Analyzed",

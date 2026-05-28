@@ -55,13 +55,18 @@ function AppContent() {
         {/* Sidebar */}
         <Sidebar />
 
-        {/* Page content */}
-        <div className="flex-1 overflow-y-auto bg-[#0d0f14]">
-          <div className="p-6 h-full">
-            {activeTab === "home" && <Home />}
-            {activeTab === "history" && <History />}
-            {activeTab === "settings" && <Settings />}
+        {/* Page content + player scoped to the right of sidebar */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <div className="flex-1 overflow-y-auto bg-[#0d0f14]">
+            <div className="p-6 h-full">
+              {activeTab === "home" && <Home />}
+              {activeTab === "history" && <History />}
+              {activeTab === "settings" && <Settings />}
+            </div>
           </div>
+
+          {/* Audio player bar — constrained to content area only */}
+          <AudioPlayer {...audioPlayerProps} />
         </div>
       </div>
 

@@ -54,6 +54,7 @@ export const fr = {
     tooltips: {
       analyze: "Analyser BPM & clé",
       download: "Télécharger le fichier audio",
+      play: "Lire",
       open: "Ouvrir dans l'explorateur",
       delete: "Supprimer de l'historique",
       analyzed: "Analysé",

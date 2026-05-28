@@ -1,5 +1,12 @@
 # RipTune Changelog
 
+## 0.3.7 (2026-05-28)
+
+### 🎵 Audio Player & Homepage Polish
+- **Better Player Placement**: The bottom player bar is now fully contained within pages and no longer overlaps the sidebar.
+- **Quick Play on Homepage**: Added a play button next to the latest downloaded track on the home screen to listen instantly.
+- **Improved Browser Integration**: Enhanced connection handling to instantly analyze or download tracks directly from the Chrome extension with a single click.
+
 ## 0.3.6 (2026-05-21)
 
 ### 🎵 Premium Integrated Audio Player
