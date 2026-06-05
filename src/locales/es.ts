@@ -68,6 +68,9 @@ export const es = {
     dlLocation: "Ubicación de descarga",
     dlLocationDesc:
       "Elige la carpeta donde se guardarán tus archivos. Por defecto, se usa la ruta del sistema que se muestra abajo",
+    lyricsDir: "Carpeta de letras",
+    lyricsDirDesc:
+      "Elige la carpeta donde se almacenarán tus archivos de letras (.txt). Por defecto, se usa el directorio de datos de la aplicación",
     browse: "Buscar",
     cookies: "Cookies (YouTube/SC)",
     cookiesDesc:
@@ -134,6 +137,7 @@ export const es = {
   titleBar: {
     home: "Inicio",
     history: "Historial",
+    lyrics: "Letras",
     settings: "Ajustes",
     bugReport: "Reportar un error",
     audioAnalyzer: "Analizador de audio",
@@ -172,5 +176,26 @@ export const es = {
     bugReportError: "Error al enviar el informe",
     imageAttached: "Imagen adjunta",
     imageError: "No se pudo leer el archivo de imagen",
+  },
+  lyrics: {
+    title: "Letras",
+    description: "Escribe y guarda las letras de tus pistas",
+    newButton: "Nueva",
+    createBlank: "Crear letra en blanco",
+    save: "Guardar",
+    selectTrack: "Seleccionar una pista",
+    searchPlaceholder: "Buscar pistas…",
+    emptyState: "Aún no hay letras",
+    emptyStateDesc: 'Haz clic en "Nueva" para asociar letras a una pista',
+    emptyEditor: "Selecciona un archivo de letras para empezar a editar",
+    unsaved: "Sin guardar",
+    saved: "Guardado",
+    saving: "Guardando…",
+    rename: "Renombrar",
+    renameError: "Ya existe un archivo con ese nombre",
+    delete: "Eliminar letras",
+    orphanTooltip: "La pista vinculada ya no está en el historial",
+    filenamePlaceholder: "Nombre del archivo…",
+    placeholder: "Escribe tus letras aquí…",
   },
 };

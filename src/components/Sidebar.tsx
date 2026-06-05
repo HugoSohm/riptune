@@ -1,5 +1,13 @@
 import { openUrl } from "@tauri-apps/plugin-opener";
-import { Bug, Coffee, History, Home, Settings2, Sparkles } from "lucide-react";
+import {
+  Bug,
+  Coffee,
+  FileText,
+  History,
+  Home,
+  Settings2,
+  Sparkles,
+} from "lucide-react";
 import { useApp } from "../context/useApp";
 import FooterLink from "./FooterLink";
 import NavItem from "./NavItem";
@@ -28,6 +36,12 @@ export default function Sidebar() {
           label={t.titleBar.history}
           active={activeTab === "history"}
           onClick={() => setActiveTab("history")}
+        />
+        <NavItem
+          icon={<FileText className="w-4 h-4" />}
+          label={t.titleBar.lyrics}
+          active={activeTab === "lyrics"}
+          onClick={() => setActiveTab("lyrics")}
         />
         <NavItem
           icon={<Settings2 className="w-4 h-4" />}

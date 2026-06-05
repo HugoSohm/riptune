@@ -69,6 +69,9 @@ export const fr = {
     dlLocation: "Dossier de téléchargement",
     dlLocationDesc:
       "Choisissez le dossier où seront sauvegardés vos titres. Par défaut, le chemin système ci-dessous est utilisé",
+    lyricsDir: "Dossier des paroles",
+    lyricsDirDesc:
+      "Choisissez le dossier où seront stockés vos fichiers de paroles (.txt). Par défaut, le dossier de données de l'application est utilisé",
     browse: "Parcourir",
     cookies: "Cookies (YouTube/SC)",
     cookiesDesc:
@@ -136,6 +139,7 @@ export const fr = {
   titleBar: {
     home: "Accueil",
     history: "Historique",
+    lyrics: "Paroles",
     settings: "Paramètres",
     bugReport: "Signaler un bug",
     audioAnalyzer: "Analyseur audio",
@@ -174,5 +178,27 @@ export const fr = {
     bugReportError: "Échec de l'envoi du rapport",
     imageAttached: "Image ajoutée",
     imageError: "Impossible de lire le fichier image",
+  },
+  lyrics: {
+    title: "Paroles",
+    description: "Rédigez et sauvegardez les paroles de vos morceaux",
+    newButton: "Nouveau",
+    createBlank: "Créer des paroles vierges",
+    save: "Sauvegarder",
+    selectTrack: "Sélectionner un morceau",
+    searchPlaceholder: "Rechercher un morceau…",
+    emptyState: "Aucune parole pour l'instant",
+    emptyStateDesc:
+      'Cliquez sur "Nouveau" pour associer des paroles à un morceau',
+    emptyEditor: "Sélectionnez un fichier de paroles pour l'éditer",
+    unsaved: "Non sauvegardé",
+    saved: "Sauvegardé",
+    saving: "Sauvegarde…",
+    rename: "Renommer",
+    renameError: "Un fichier avec ce nom existe déjà",
+    delete: "Supprimer les paroles",
+    orphanTooltip: "Le morceau associé n'est plus dans l'historique",
+    filenamePlaceholder: "Nom du fichier…",
+    placeholder: "Écrivez vos paroles ici…",
   },
 };

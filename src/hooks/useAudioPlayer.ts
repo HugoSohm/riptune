@@ -214,6 +214,32 @@ export function useAudioPlayer() {
     }
   }, []);
 
+  // ── Keyboard shortcut for Space (Play/Pause) ──────────────
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!isVisible || currentIndexRef.current < 0) return;
+
+      if (e.code === "Space" || e.key === " ") {
+        const target = e.target as HTMLElement;
+        if (
+          target &&
+          (target.tagName === "INPUT" ||
+            target.tagName === "TEXTAREA" ||
+            target.isContentEditable)
+        ) {
+          return;
+        }
+        e.preventDefault();
+        togglePlay();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isVisible, togglePlay, currentIndexRef]);
+
   const playPrev = useCallback(() => {
     const audio = audioRef.current;
     if (audio && audio.currentTime > 3) {

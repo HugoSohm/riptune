@@ -1,5 +1,20 @@
 # RipTune Changelog
 
+## 1.0.1 (2026-06-04)
+
+### 📝 Lyrics Editor
+- **New Lyrics Tab**: Added a dedicated Lyrics section to the sidebar, allowing you to write and store lyrics for any of your tracks.
+- **Split-View Editor**: The Lyrics screen shows your lyrics files on the left and a clean, minimal text editor on the right.
+- **Linked to Your History**: When creating a new lyrics file, simply select a track from your history to associate it with.
+- **Files Saved on Disk**: Lyrics are saved as plain text files (.txt), keeping them safe even if app data is reset. The storage folder can be customized in Settings.
+- **Auto-Save**: Your lyrics are automatically saved every 30 seconds while you type. You can also press Ctrl+S to save instantly.
+- **Rename Support**: Rename any lyrics file inline from the editor header. Duplicate names are prevented with a clear error.
+- **Orphan Detection**: If a linked track is removed from history, the lyrics file remains and is visually marked for easy identification.
+
+### 🎵 Shortcuts & Navigation
+- **Spacebar Play/Pause**: Added support for using the Spacebar to easily play or pause the audio player when it is open.
+- **Enter Key to Download**: Added support for pressing the Enter key directly inside the homepage URL field to start downloading or analyzing immediately.
+
 ## 1.0.0 (2026-05-28)
 
 ### 🚀 Official 1.0 Release

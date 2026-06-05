@@ -15,6 +15,7 @@ import { useDragDrop } from "./hooks/useDragDrop";
 import { useFullscreenShortcut } from "./hooks/useFullscreenShortcut";
 import History from "./pages/History";
 import Home from "./pages/Home";
+import Lyrics from "./pages/Lyrics";
 import Settings from "./pages/Settings";
 import { trackEvent } from "./utils/analytics";
 
@@ -61,6 +62,7 @@ function AppContent() {
             <div className="p-6 h-full">
               {activeTab === "home" && <Home />}
               {activeTab === "history" && <History />}
+              {activeTab === "lyrics" && <Lyrics />}
               {activeTab === "settings" && <Settings />}
             </div>
           </div>
