@@ -55,11 +55,7 @@ pub async fn list_lyrics_files(dir: String) -> Result<Vec<String>, String> {
 
 /// Renames a lyrics file. Returns an error if the new name already exists.
 #[tauri::command]
-pub async fn rename_lyrics(
-    dir: String,
-    old_name: String,
-    new_name: String,
-) -> Result<(), String> {
+pub async fn rename_lyrics(dir: String, old_name: String, new_name: String) -> Result<(), String> {
     let dir_path = PathBuf::from(&dir);
     let old_path = dir_path.join(&old_name);
     let new_path = dir_path.join(&new_name);
