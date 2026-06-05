@@ -17,8 +17,10 @@
 
 ### ✨ Features
 
-- 🚀 **Flash Analysis**: Thanks to partial extraction via FFmpeg, BPM & Key analysis takes less than 3 seconds.
-- 📥 **YouTube & Playlist Downloader**: Download individual tracks or **entire YouTube playlists** directly to WAV/MP3.
+- 📥 **YouTube & Playlist Downloader**: Download individual tracks or **entire YouTube playlists** directly to MP3/WAV/FLAC.
+- 🚀 **Flash Analysis**: Instantly extracts BPM & Key in less than 3 seconds using the Essentia engine, or retrieves them from the track's YouTube/SoundCloud description when available.
+- 🎧 **Built-in Music Player**: Listen to your downloaded tracks directly inside the app with integrated playback controls, keyboard shortcuts (Spacebar), and active queue/playlist management.
+- 📝 **Lyrics Editor**: Write, store, and manage lyrics for your tracks. Directly links to your download history with auto-save (every 30s), custom disk storage (saved as local `.txt` files), and orphan track detection.
 - 🎵 **Pro Quality**: High-precision acoustic analysis powered by the Essentia engine (UPF).
 - 🔒 **100% Local Processing**: All downloads, BPM calculations, and key extractions are computed entirely on your machine. No cloud APIs are used for core features (we only use Resend for bug reporting and Aptabase for anonymous telemetry).
 

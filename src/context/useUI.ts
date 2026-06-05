@@ -3,9 +3,9 @@ import { type Lang, translations } from "../i18n";
 import type { PlaylistProgress } from "../types";
 
 export function useUI() {
-  const [activeTab, setActiveTab] = useState<"home" | "history" | "settings">(
-    "home",
-  );
+  const [activeTab, setActiveTab] = useState<
+    "home" | "history" | "lyrics" | "settings"
+  >("home");
 
   // Multi-task tracking: each concurrent task has a unique ID and a type
   const [activeTasks, setActiveTasks] = useState<

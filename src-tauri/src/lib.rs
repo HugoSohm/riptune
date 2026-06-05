@@ -2,6 +2,7 @@ use tauri::{Emitter, Manager};
 
 pub mod audio_processor;
 pub mod local_server;
+pub mod lyrics;
 pub mod reporting;
 pub mod setup;
 pub mod telemetry;
@@ -64,7 +65,14 @@ pub fn run(context: tauri::Context) {
             audio_processor::update_metadata,
             audio_processor::get_default_download_dir,
             audio_processor::copy_file_to_clipboard,
-            local_server::report_analysis_result
+            local_server::report_analysis_result,
+            lyrics::get_default_lyrics_dir,
+            lyrics::save_lyrics,
+            lyrics::read_lyrics,
+            lyrics::list_lyrics_files,
+            lyrics::rename_lyrics,
+            lyrics::delete_lyrics,
+            lyrics::resolve_lyrics_filename
         ])
         .build(context)
         .expect("error while building tauri application")

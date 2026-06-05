@@ -67,6 +67,9 @@ export const en = {
     dlLocation: "Download location",
     dlLocationDesc:
       "Select a specific folder where all your downloaded audio files will be saved. If no folder is selected, RipTune defaults to the system path shown below",
+    lyricsDir: "Lyrics folder",
+    lyricsDirDesc:
+      "Select the folder where your lyrics files (.txt) will be stored. Defaults to the app data directory",
     browse: "Browse",
     cookies: "Cookies (YouTube/SC)",
     cookiesDesc:
@@ -133,6 +136,7 @@ export const en = {
   titleBar: {
     home: "Home",
     history: "History",
+    lyrics: "Lyrics",
     settings: "Settings",
     bugReport: "Report a bug",
     audioAnalyzer: "Audio analyzer",
@@ -171,5 +175,26 @@ export const en = {
     bugReportError: "Failed to send report",
     imageAttached: "Image attached",
     imageError: "Could not read image file",
+  },
+  lyrics: {
+    title: "Lyrics",
+    description: "Write and store lyrics for your tracks",
+    newButton: "New",
+    createBlank: "Create blank lyrics",
+    save: "Save",
+    selectTrack: "Select a track",
+    searchPlaceholder: "Search tracks…",
+    emptyState: "No lyrics yet",
+    emptyStateDesc: 'Click "New" to attach lyrics to a track',
+    emptyEditor: "Select a lyrics file to start editing",
+    unsaved: "Unsaved",
+    saved: "Saved",
+    saving: "Saving…",
+    rename: "Rename",
+    renameError: "A file with this name already exists",
+    delete: "Delete lyrics",
+    orphanTooltip: "Linked track no longer in history",
+    filenamePlaceholder: "File name…",
+    placeholder: "Write your lyrics here…",
   },
 };
