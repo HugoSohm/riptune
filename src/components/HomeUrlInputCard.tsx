@@ -149,6 +149,7 @@ export default function HomeUrlInputCard() {
           <CustomSelect
             options={[
               { value: "mp3", label: "MP3" },
+              { value: "mp3_hd", label: "MP3 HD" },
               { value: "wav", label: "WAV" },
               { value: "flac", label: "FLAC" },
               { value: "m4a", label: "M4A" },

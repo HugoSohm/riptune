@@ -1,5 +1,10 @@
 # RipTune Changelog
 
+## 1.0.2 (2026-06-24)
+
+### 🎵 Audio & Formats
+- **High-Quality MP3 Option**: Added a new "MP3 HD" choice to download files at a high-quality constant bitrate of 320 kbps.
+
 ## 1.0.1 (2026-06-04)
 
 ### 📝 Lyrics Editor

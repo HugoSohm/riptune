@@ -44,8 +44,10 @@ export function useDeepLink(
 
         if (
           formatParam === "mp3" ||
+          formatParam === "mp3_hd" ||
           formatParam === "wav" ||
-          formatParam === "flac"
+          formatParam === "flac" ||
+          formatParam === "m4a"
         ) {
           setFormat(formatParam);
         }

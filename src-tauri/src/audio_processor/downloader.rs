@@ -126,13 +126,23 @@ fn spawn_yt_dlp(
 
     let cookie_path = setup_cookies(&mut cmd, &args.cookies, "dl")?;
 
+    let (format_arg, is_hd) = match args.format.as_str() {
+        "mp3_hd" => ("mp3", true),
+        f => (f, false),
+    };
+
     cmd.arg("--ffmpeg-location")
         .arg(bin_dir)
         .arg("--embed-metadata")
         .arg("-x")
         .arg("--audio-format")
-        .arg(&args.format)
-        .arg("-o")
+        .arg(format_arg);
+
+    if is_hd {
+        cmd.arg("--audio-quality").arg("320K");
+    }
+
+    cmd.arg("-o")
         .arg(out_template)
         .arg("--encoding")
         .arg("utf-8")
